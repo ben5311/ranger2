@@ -1,14 +1,16 @@
 {
     "name": "ranger",
-    "displayName": "ranger",
-    "description": "Please enter a brief description here",
+    "displayName": "Ranger",
+    "description": "A Test data generator",
     "version": "0.0.1",
-    "engines": {
-        "vscode": "^1.67.0"
+    "publisher": "Benjamin Heimann",
+    "icon": "./resources/langium-logo.png",
+    "categories": ["Testing"],
+    "engines": {"vscode": "^1.67.0"},
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ben5311/ranger2"
     },
-    "categories": [
-        "Programming Languages"
-    ],
     "contributes": {
         "languages": [{
             "id": "ranger",
@@ -22,9 +24,7 @@
             "path": "./syntaxes/ranger.tmLanguage.json"
         }]
     },
-    "activationEvents": [
-        "onLanguage:ranger"
-    ],
+    "activationEvents": ["onLanguage:ranger"],
     "files": [
         "bin",
         "out",
@@ -35,12 +35,14 @@
     },
     "main": "./out/extension.js",
     "scripts": {
-        "vscode:prepublish": "npm run build && npm run lint",
-        "build": "tsc -b tsconfig.json",
-        "watch": "tsc -b tsconfig.json --watch",
+        "build": "langium generate && tsc -b tsconfig.json",
+        "build:bundle:extension": "esbuild ./src/extension.ts src/language-server/main.ts --bundle --outdir=out --external:vscode --format=cjs --platform=node --minify",
+        "build:bundle:webworker": "esbuild ./src/language-server/main.ts --bundle --outdir=out --format=iife --minify",
+        "watch": "concurrently \"langium generate --watch\" \"tsc -b tsconfig.json --watch\"",
         "lint": "eslint src --ext ts",
-        "langium:generate": "langium generate",
-        "langium:watch": "langium generate --watch"
+        "test": "vitest",
+        "test-ui": "vitest --ui",
+        "package": "npm run build:bundle:extension && vsce package"
     },
     "dependencies": {
         "chevrotain": "~10.4.2",
@@ -56,8 +58,12 @@
         "@types/vscode": "~1.67.0",
         "@typescript-eslint/eslint-plugin": "~5.51.0",
         "@typescript-eslint/parser": "~5.51.0",
+        "@vitest/ui": "~0.28.4",
+        "@vscode/vsce": "~2.18.0",
+        "esbuild": "~0.17.11",
         "eslint": "~8.33.0",
         "langium-cli": "~1.1.0",
-        "typescript": "~4.9.5"
+        "typescript": "~4.9.5",
+        "vitest": "^0.29.2"
     }
 }

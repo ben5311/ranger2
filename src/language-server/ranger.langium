@@ -1,13 +1,14 @@
 grammar Ranger
 
-entry Model:
-    (persons+=Person | greetings+=Greeting)*;
+entry Document:
+    (entities+=Entity)*
+    ;
 
-Person:
-    'person' name=ID;
+Entity:
+    'Entity' name=ID '{'
 
-Greeting:
-    'Hello' person=[Person:ID] '!';
+    '}'
+    ;
 
 hidden terminal WS: /\s+/;
 terminal ID: /[_a-zA-Z][\w_]*/;

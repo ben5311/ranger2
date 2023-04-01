@@ -1,5 +1,7 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
-import { RangerAstType, Person } from './generated/ast';
+
+import { RangerAstType } from './generated/ast';
+
 import type { RangerServices } from './ranger-module';
 
 /**
@@ -9,7 +11,7 @@ export function registerValidationChecks(services: RangerServices) {
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.RangerValidator;
     const checks: ValidationChecks<RangerAstType> = {
-        Person: validator.checkPersonStartsWithCapital
+        //Person: validator.checkPersonStartsWithCapital
     };
     registry.register(checks, validator);
 }
@@ -18,8 +20,7 @@ export function registerValidationChecks(services: RangerServices) {
  * Implementation of custom validations.
  */
 export class RangerValidator {
-
-    checkPersonStartsWithCapital(person: Person, accept: ValidationAcceptor): void {
+    checkPersonStartsWithCapital(person: any, accept: ValidationAcceptor): void {
         if (person.name) {
             const firstChar = person.name.substring(0, 1);
             if (firstChar.toUpperCase() !== firstChar) {
@@ -27,5 +28,4 @@ export class RangerValidator {
             }
         }
     }
-
 }

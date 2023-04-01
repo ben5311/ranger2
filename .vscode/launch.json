@@ -10,6 +10,7 @@
             "type": "extensionHost",
             "request": "launch",
             "args": [
+                "${workspaceFolder}/examples",
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ]
         },
@@ -27,5 +28,12 @@
                 "${workspaceFolder}/node_modules/langium"
             ]
         }
-    ]
+    ],
+    "compounds": [
+        {
+          "name": "Debug Extension",
+          "configurations": ["Run Extension", "Attach to Language Server"],
+          "stopAll": true,
+        }
+      ]
 }

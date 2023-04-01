@@ -2,18 +2,17 @@
 
 ## What's in the folder
 
-This folder contains all necessary files for the Tiny DSL language extension.
+This folder contains all necessary files for the Ranger DSL language extension.
 
 * `package.json` - the manifest file in which language support is declared.
 * `language-configuration.json` - the language configuration used in the VS Code editor, defining the tokens that are used for comments and brackets.
 * `src/extension.ts` - the main code of the extension, which is responsible for launching a language server and client.
 * `src/web/extension.ts` - does the same when using the extension as a web extension for running VS code within a web browser.
-* `src/language-server/tiny-dsl.langium` -  the grammar definition of the Tiny DSL language.
+* `src/language-server/ranger.langium` - the grammar definition of the Ranger DSL language.
 * `src/language-server/main.ts` - the entry point of the language server process.
-* `src/language-server/tiny-dsl-module.ts` - the dependency injection module. Use this to register overridden and added services.
-* `src/language-server/tiny-dsl-validator.ts` - the validator module containing custom validations.
-* `src/generator.ts` - an SQL code generator, generating SQL DDL scripts from Tiny DSL files
-* `examples` - folder containing sample `.tinydsl` files.
+* `src/language-server/ranger-module.ts` - the dependency injection module. Use this to register overridden and added services.
+* `src/language-server/ranger-validator.ts` - the validator module containing custom validations.
+* `examples` - folder containing sample `.ranger` files.
 
 ## Get up and running straight away
 
@@ -21,9 +20,9 @@ This folder contains all necessary files for the Tiny DSL language extension.
 2. Run `npm install` to download all project dependencies.
 3. Run `npm run build` to generate TypeScript code from the grammar definition and to compile all TypeScript code to JavaScript.
 4. Press `F5` to open a new window with your extension loaded (aka VS Code Debug instance).
-5. Open a file inside `examples` folder or create a new file with file name suffix `.tinydsl`.
+5. Open a file inside `examples` folder or create a new file with file name suffix `.ranger`.
 6. Verify that syntax highlighting, validation, completion etc. are working as expected.
-7. Example SQL files are generated after saving any `.tinydsl`-Files (or can be triggered manually via the menu of the `.tyndsl`-Editor).
+7. Example SQL files are generated after saving any `.ranger`-Files (or can be triggered manually via the menu of the `.tyndsl`-Editor).
 
 ## Make changes
 
@@ -49,14 +48,6 @@ This folder contains all necessary files for the Tiny DSL language extension.
 ## Package
 
 * Run `npm run package` to create a VS Code `.vsix` extension file that can be installed in any VS Code editor.
-
-## Web-based Development
-
-* VS Code extensions can be deployed as web extensions as well
-* Run `npm run compile-web` to compile the TinyDSL as a web-based extension.
-* Set the `$extensionFolderPath` variable to your workspace location (e.g., `$extensionFolderPath='C:\Dev\Langium\langium-intermission-02-2023'`).
-* Run `npx @vscode/test-web --extensionDevelopmentPath=$extensionFolderPath` to run VS Code as a local server at port 3000
-* Go to your browser and open <http://localhost:3000/>
 
 ## To Go Further
 
