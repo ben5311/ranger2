@@ -1,5 +1,8 @@
 Entity Test {
 }
 
+/**
+This is a Test entity.
+*/
 Entity test2 {
 }

@@ -11,6 +11,7 @@ import {
 
 import { RangerGeneratedModule, RangerGeneratedSharedModule } from './generated/module';
 import { RangerActionProvider } from './ranger-actions';
+import { RangerCompletionProvider } from './ranger-completions';
 import { RangerFormatter } from './ranger-formatter';
 import { RangerValidator, registerValidationChecks } from './ranger-validator';
 
@@ -40,6 +41,7 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
     },
     lsp: {
         CodeActionProvider: (services) => new RangerActionProvider(services),
+        CompletionProvider: (services) => new RangerCompletionProvider(services),
         Formatter: () => new RangerFormatter(),
     },
 };
