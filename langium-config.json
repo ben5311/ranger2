@@ -1,0 +1,12 @@
+{
+    "projectName": "Ranger",
+    "languages": [{
+        "id": "ranger",
+        "grammar": "src/language-server/ranger.langium",
+        "fileExtensions": [".ranger"],
+        "textMate": {
+            "out": "syntaxes/ranger.tmLanguage.json"
+        }
+    }],
+    "out": "src/language-server/generated"
+}

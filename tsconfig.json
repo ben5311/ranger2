@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "lib": ["ESNext", "WebWorker"],
+    "sourceMap": true,
+    "outDir": "out",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+  },
+  "include": [
+     "src/**/*.ts"
+  ],
+  "exclude": [
+     "out",
+     "node_modules",
+  ]
+}

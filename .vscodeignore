@@ -1,0 +1,22 @@
+.github
+.vscode
+bin/
+examples/
+node_modules
+out/
+!out/extension.js
+!out/language-server/main.js
+src/
+#syntaxes/  # don't uncomment this! syntax files are required for the extension to have syntax highlighting
+test/
+unzipped/
+.eslintrc
+.gitignore
+.prettierrc
+langium-config.json
+# language-configuration.json   # this is a configuration file required by vscode at runtime
+tsconfig.json
+**/*.map
+**/*.ts
+**/*.yml
+**/*.md
