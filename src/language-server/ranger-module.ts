@@ -1,8 +1,16 @@
 import {
-    createDefaultModule, createDefaultSharedModule, DefaultSharedModuleContext, inject,
-    LangiumServices, LangiumSharedServices, Module, PartialLangiumServices
+    createDefaultModule,
+    createDefaultSharedModule,
+    DefaultSharedModuleContext,
+    inject,
+    LangiumServices,
+    LangiumSharedServices,
+    Module,
+    PartialLangiumServices,
 } from 'langium';
+
 import { RangerGeneratedModule, RangerGeneratedSharedModule } from './generated/module';
+import { RangerActionProvider } from './ranger-actions';
 import { RangerValidator, registerValidationChecks } from './ranger-validator';
 
 /**
@@ -10,15 +18,15 @@ import { RangerValidator, registerValidationChecks } from './ranger-validator';
  */
 export type RangerAddedServices = {
     validation: {
-        RangerValidator: RangerValidator
-    }
-}
+        RangerValidator: RangerValidator;
+    };
+};
 
 /**
  * Union of Langium default services and your custom services - use this as constructor parameter
  * of custom service classes.
  */
-export type RangerServices = LangiumServices & RangerAddedServices
+export type RangerServices = LangiumServices & RangerAddedServices;
 
 /**
  * Dependency injection module that overrides Langium default services and contributes the
@@ -27,8 +35,11 @@ export type RangerServices = LangiumServices & RangerAddedServices
  */
 export const RangerModule: Module<RangerServices, PartialLangiumServices & RangerAddedServices> = {
     validation: {
-        RangerValidator: () => new RangerValidator()
-    }
+        RangerValidator: () => new RangerValidator(),
+    },
+    lsp: {
+        CodeActionProvider: (services) => new RangerActionProvider(services),
+    },
 };
 
 /**
@@ -47,18 +58,11 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
  * @returns An object wrapping the shared services and the language-specific services
  */
 export function createRangerServices(context: DefaultSharedModuleContext): {
-    shared: LangiumSharedServices,
-    Ranger: RangerServices
+    shared: LangiumSharedServices;
+    Ranger: RangerServices;
 } {
-    const shared = inject(
-        createDefaultSharedModule(context),
-        RangerGeneratedSharedModule
-    );
-    const Ranger = inject(
-        createDefaultModule({ shared }),
-        RangerGeneratedModule,
-        RangerModule
-    );
+    const shared = inject(createDefaultSharedModule(context), RangerGeneratedSharedModule);
+    const Ranger = inject(createDefaultModule({ shared }), RangerGeneratedModule, RangerModule);
     shared.ServiceRegistry.register(Ranger);
     registerValidationChecks(Ranger);
     return { shared, Ranger };
