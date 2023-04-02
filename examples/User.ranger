@@ -1,6 +1,18 @@
 
+
 Entity Kunde {
-    id: 1,
+    id: 1
+    name: "Max Mustermann"
+    role: "User"
+    isActive: true
+    createdAt: "2023-04-02"
+    origin: null
+    account: {
+        id: 1
+        balance: 15000.25
+        currency: "EUR"
+        cards: [1, 2, 3]
+    }
 }
 
 // /**

@@ -1,7 +1,13 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { Issue, satisfies } from '../utils/types';
-import { Document, Entity, RangerAstType } from './generated/ast';
+import {
+	Document,
+	Entity,
+	isLiteral,
+	Literal,
+	RangerAstType,
+} from './generated/ast';
 
 import type { RangerServices } from './ranger-module';
 
@@ -13,7 +19,11 @@ export function registerValidationChecks(services: RangerServices) {
     const validator = services.validation.RangerValidator;
     const checks: ValidationChecks<RangerAstType> = {
         Document: [validator.checkDocument_NoDuplicateEntities],
-        Entity: [validator.checkEntity_NameStartsWithCapital, validator.checkEntity_NoDuplicateMembers],
+        Entity: [
+            validator.checkEntity_NameStartsWithCapital,
+            validator.checkEntity_NoDuplicateMembers,
+            validator.checkEntity_ShowDebugInfo,
+        ],
     };
     registry.register(checks, validator);
 }
@@ -46,6 +56,17 @@ export class RangerValidator {
         const duplicates = this.findDuplicates(entity.properties);
         for (let dup of duplicates) {
             accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
+        }
+    }
+
+    checkEntity_ShowDebugInfo(entity: Entity, accept: ValidationAcceptor): void {
+        for (let prop of entity.properties) {
+            if (isLiteral(prop.value))
+                accept('info', `Type: ${typeof prop.value.literal}, Value: ${prop.value.literal}`, {
+                    node: prop,
+                    property: 'value',
+                    code: 'DebugInfo',
+                });
         }
     }
 
