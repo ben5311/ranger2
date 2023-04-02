@@ -1,8 +1,10 @@
-Entity Test {
+
+Entity Kunde {
+    id: 1,
 }
 
-/**
-This is a Test entity.
-*/
-Entity test2 {
-}
+// /**
+// This is a Test entity.
+// */
+// Entity test2 {
+// }

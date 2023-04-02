@@ -1,7 +1,7 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { Issue, satisfies } from '../utils/types';
-import { Entity, RangerAstType } from './generated/ast';
+import { Document, Entity, RangerAstType } from './generated/ast';
 
 import type { RangerServices } from './ranger-module';
 
@@ -12,14 +12,15 @@ export function registerValidationChecks(services: RangerServices) {
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.RangerValidator;
     const checks: ValidationChecks<RangerAstType> = {
-        Entity: validator.checkEntity_NameStartsWithCapital,
+        Document: [validator.checkDocument_NoDuplicateEntities],
+        Entity: [validator.checkEntity_NameStartsWithCapital, validator.checkEntity_NoDuplicateMembers],
     };
     registry.register(checks, validator);
 }
 
 export const Issues = satisfies<Record<string, Issue>>()({
     Document_DuplicateEntity: { code: 'Document.DuplicateEntity', msg: 'Duplicate Entity: ' },
-    Entity_DuplicateMember: { code: 'Entity.DuplicateMember', msg: 'Duplicate Member:' },
+    Entity_DuplicateProperty: { code: 'Entity.DuplicateMember', msg: 'Duplicate Property:' },
     Entity_NameNotCapitalized: { code: 'Entity.NameNotCapitalized', msg: 'Entity name should start with a capital.' },
 });
 
@@ -40,22 +41,22 @@ export class RangerValidator {
         }
     }
 
-    // checkEntity_NoDuplicateMembers(entity: Entity, accept: ValidationAcceptor): void {
-    //     const issue = Issues.Entity_DuplicateMember;
-    //     const duplicates = this.findDuplicates(entity.members);
-    //     for (let dup of duplicates) {
-    //         accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
-    //     }
-    // }
+    checkEntity_NoDuplicateMembers(entity: Entity, accept: ValidationAcceptor): void {
+        const issue = Issues.Entity_DuplicateProperty;
+        const duplicates = this.findDuplicates(entity.properties);
+        for (let dup of duplicates) {
+            accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
+        }
+    }
 
-    // checkDocument_NoDuplicateEntities(document: Document, accept: ValidationAcceptor) {
-    //     const issue = Issues.Document_DuplicateEntity;
-    //     const entities = this.indexAccess.searchIndex(Entity);
-    //     const duplicates = this.findDuplicates(entities).filter((desc) => desc.documentUri === document.$document?.uri);
-    //     for (let dup of duplicates) {
-    //         accept('error', `${issue.msg} [${dup.name}]`, { node: dup.node!, property: 'name', code: issue.code });
-    //     }
-    // }
+    checkDocument_NoDuplicateEntities(document: Document, accept: ValidationAcceptor) {
+        const issue = Issues.Document_DuplicateEntity;
+        const entities = document.entities;
+        const duplicates = this.findDuplicates(entities);
+        for (let dup of duplicates) {
+            accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
+        }
+    }
 
     findDuplicates<T extends { name: string }>(elements: T[]): T[] {
         return elements
