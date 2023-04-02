@@ -22,7 +22,6 @@ This folder contains all necessary files for the Ranger DSL language extension.
 4. Press `F5` to open a new window with your extension loaded (aka VS Code Debug instance).
 5. Open a file inside `examples` folder or create a new file with file name suffix `.ranger`.
 6. Verify that syntax highlighting, validation, completion etc. are working as expected.
-7. Example SQL files are generated after saving any `.ranger`-Files (or can be triggered manually via the menu of the `.tyndsl`-Editor).
 
 ## Make changes
 
