@@ -1,15 +1,9 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { Issue, satisfies } from '../utils/types';
-import {
-	Document,
-	Entity,
-	isLiteral,
-	Literal,
-	RangerAstType,
-} from './generated/ast';
-
-import type { RangerServices } from './ranger-module';
+import { Document, Entity, isLiteral, RangerAstType } from './generated/ast';
+import { Config } from './ranger-config';
+import { RangerServices } from './ranger-module';
 
 /**
  * Register custom validation checks.
@@ -60,9 +54,10 @@ export class RangerValidator {
     }
 
     checkEntity_ShowDebugInfo(entity: Entity, accept: ValidationAcceptor): void {
+        if (!Config.debug) return;
         for (let prop of entity.properties) {
             if (isLiteral(prop.value))
-                accept('info', `Type: ${typeof prop.value.literal}, Value: ${prop.value.literal}`, {
+                accept('info', `${typeof prop.value.literal}(${prop.value.literal})`, {
                     node: prop,
                     property: 'value',
                     code: 'DebugInfo',

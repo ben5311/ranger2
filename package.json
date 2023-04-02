@@ -22,7 +22,15 @@
             "language": "ranger",
             "scopeName": "source.ranger",
             "path": "./syntaxes/ranger.tmLanguage.json"
-        }]
+        }],
+        "commands": [
+            {"command": "ranger.toggleDebugView", "title": "Ranger: Toggle Debug View"}
+        ],
+        "menus": {
+            "editor/context": [
+                {"command": "ranger.toggleDebugView", "group": "navigation","when": "resourceLangId == ranger"}
+            ]
+        }
     },
     "activationEvents": ["onLanguage:ranger"],
     "files": [

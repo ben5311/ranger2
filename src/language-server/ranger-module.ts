@@ -1,18 +1,24 @@
 import {
-    createDefaultModule,
-    createDefaultSharedModule,
-    DefaultSharedModuleContext,
-    inject,
-    LangiumServices,
-    LangiumSharedServices,
-    Module,
-    PartialLangiumServices,
+	createDefaultModule,
+	createDefaultSharedModule,
+	DefaultSharedModuleContext,
+	inject,
+	LangiumServices,
+	LangiumSharedServices,
+	Module,
+	PartialLangiumServices,
+	PartialLangiumSharedServices,
 } from 'langium';
 
-import { RangerGeneratedModule, RangerGeneratedSharedModule } from './generated/module';
+import {
+	RangerGeneratedModule,
+	RangerGeneratedSharedModule,
+} from './generated/module';
 import { RangerActionProvider } from './ranger-actions';
+import { RangerExecuteCommandHandler } from './ranger-commands';
 import { RangerCompletionProvider } from './ranger-completions';
 import { RangerFormatter } from './ranger-formatter';
+import { IndexAccess, RangerDocumentBuilder } from './ranger-services';
 import { RangerValidator, registerValidationChecks } from './ranger-validator';
 
 /**
@@ -21,6 +27,9 @@ import { RangerValidator, registerValidationChecks } from './ranger-validator';
 export type RangerAddedServices = {
     validation: {
         RangerValidator: RangerValidator;
+    };
+    workspace: {
+        IndexAccess: IndexAccess;
     };
 };
 
@@ -44,6 +53,18 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
         CompletionProvider: (services) => new RangerCompletionProvider(services),
         Formatter: () => new RangerFormatter(),
     },
+    workspace: {
+        IndexAccess: (services) => new IndexAccess(services),
+    },
+};
+
+export const RangerSharedModule: Module<LangiumSharedServices, PartialLangiumSharedServices> = {
+    lsp: {
+        ExecuteCommandHandler: (services) => new RangerExecuteCommandHandler(services),
+    },
+    workspace: {
+        DocumentBuilder: (services) => new RangerDocumentBuilder(services),
+    },
 };
 
 /**
@@ -65,7 +86,7 @@ export function createRangerServices(context: DefaultSharedModuleContext): {
     shared: LangiumSharedServices;
     Ranger: RangerServices;
 } {
-    const shared = inject(createDefaultSharedModule(context), RangerGeneratedSharedModule);
+    const shared = inject(createDefaultSharedModule(context), RangerGeneratedSharedModule, RangerSharedModule);
     const Ranger = inject(createDefaultModule({ shared }), RangerGeneratedModule, RangerModule);
     shared.ServiceRegistry.register(Ranger);
     registerValidationChecks(Ranger);
