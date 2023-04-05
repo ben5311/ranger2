@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+        "label": "Run npm watch on startup",
+        "type": "shell",
+        "command": "npm run watch",
+        "presentation": {
+            "reveal": "always",
+            "panel": "new"
+        },
+        "runOptions": { "runOn": "folderOpen" }
+        }
+    ]
+}
