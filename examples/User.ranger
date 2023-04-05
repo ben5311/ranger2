@@ -1,22 +1,39 @@
-
-
 Entity Kunde {
-    id: 1
     name: "Max Mustermann"
     role: "User"
     isActive: true
     createdAt: "2023-04-02"
     origin: null
-    account: {
-        id: 1
-        balance: 15000.25
-        currency: "EUR"
-        cards: [1, 2, 3]
-    }
+    account: Account
+    address: Address
 }
 
-// /**
-// This is a Test entity.
-// */
-// Entity test2 {
-// }
+Entity Account {
+    id: 1
+    balance: 15000
+    currency: "EUR"
+    cards: [1, 2, 3]
+}
+
+Entity Address {
+    address: "Hauptstraße 1"
+    zip: "53111"
+    city: "Bonn"
+    country: "Germany"
+    phone: ["0123 4567", "0345 161434"]
+    phone2: phone
+    phone3: phone2
+    phone4: phone3
+}
+
+print(Kunde.address)
+
+print(Kunde.account)
+
+print(Kunde.account.currency)
+
+/**
+This is a Test entity.
+*/
+Entity Test2 {
+}

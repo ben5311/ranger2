@@ -13,14 +13,17 @@ import * as ast from './generated/ast';
 
 export class RangerFormatter extends AbstractFormatter {
     protected format(node: AstNode): void {
-        if (ast.isDocument(node)) {
-            //const formatter = this.getNodeFormatter(node);
-        } else if (ast.isEntity(node)) {
-            const formatter = this.getNodeFormatter(node);
+        const formatter = this.getNodeFormatter(node);
+        if (ast.isObjekt(node)) {
             const bracesOpen = formatter.keyword('{');
             const bracesClose = formatter.keyword('}');
             formatter.interior(bracesOpen, bracesClose).prepend(Formatting.indent({ allowMore: true }));
-            bracesClose.prepend(Formatting.newLine()).append(Formatting.newLines(2));
+            bracesClose.prepend(Formatting.newLine());
+            if (ast.isDocument(node.$container?.$container)) {
+                bracesClose.append(Formatting.newLines(2));
+            }
+        } else if (ast.isPrintStatement(node)) {
+            formatter.node(node).append(Formatting.newLines(2));
         }
     }
 

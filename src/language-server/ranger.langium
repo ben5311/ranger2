@@ -1,35 +1,38 @@
 grammar Ranger
 
 entry Document:
-    (entities+=Entity)*;
+    (entities+=Entity | printStatements+=PrintStatement)*;
 
-Entity:
-    "Entity" name=ID "{"
-        (properties+=Property)*
-    "}";
-
-Property:
-    name=(STRING|ID) ":" value=Value ","?;
-
-Value:
-     Objekt | List | Literal;
+Entity infers Property:
+    "Entity" name=ID value=Objekt;
 
 Objekt:
     "{"
         (properties+=Property)*
     "}";
 
+Property:
+    name=(STRING|ID) ":" value=(Value|PropertyReference) ","?;
+
+Value:
+     Objekt | List | Literal | Null;
+
+PropertyReference:
+    element=[Property:ID] ({infer PropertyReference.previous=current} "." element=[Property:ID])*;
+
 List:
     "["
-        (values+=Value ("," values+=Value)*)?
+        (values+=Value ("," values+=Value|PropertyReference)*)?     // TODO: PropertyReference in Lists not working yet
     "]";
 
 Literal:
-    literalValue=(STRING | NUMBER | BOOL | DATE | Null);
+    literalValue=(STRING | NUMBER | BOOL | DATE);
 
 Null:
     {infer Null} "null";
 
+PrintStatement:
+    "print" "(" propertyReference=PropertyReference ")";
 
 terminal NUMBER returns number: /[+-]?[0-9]+(\.[0-9]*)?/;
 terminal BOOL returns boolean: "true" | "false";

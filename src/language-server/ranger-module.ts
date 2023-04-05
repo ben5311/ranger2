@@ -1,23 +1,21 @@
 import {
-	createDefaultModule,
-	createDefaultSharedModule,
-	DefaultSharedModuleContext,
-	inject,
-	LangiumServices,
-	LangiumSharedServices,
-	Module,
-	PartialLangiumServices,
-	PartialLangiumSharedServices,
+    createDefaultModule,
+    createDefaultSharedModule,
+    DefaultSharedModuleContext,
+    inject,
+    LangiumServices,
+    LangiumSharedServices,
+    Module,
+    PartialLangiumServices,
+    PartialLangiumSharedServices,
 } from 'langium';
 
-import {
-	RangerGeneratedModule,
-	RangerGeneratedSharedModule,
-} from './generated/module';
+import { RangerGeneratedModule, RangerGeneratedSharedModule } from './generated/module';
 import { RangerActionProvider } from './ranger-actions';
 import { RangerExecuteCommandHandler } from './ranger-commands';
 import { RangerCompletionProvider } from './ranger-completions';
 import { RangerFormatter } from './ranger-formatter';
+import { RangerScopeProvider } from './ranger-scope';
 import { IndexAccess, RangerDocumentBuilder } from './ranger-services';
 import { RangerValidator, registerValidationChecks } from './ranger-validator';
 
@@ -45,16 +43,19 @@ export type RangerServices = LangiumServices & RangerAddedServices;
  * selected services, while the custom services must be fully specified.
  */
 export const RangerModule: Module<RangerServices, PartialLangiumServices & RangerAddedServices> = {
-    validation: {
-        RangerValidator: () => new RangerValidator(),
-    },
     lsp: {
         CodeActionProvider: (services) => new RangerActionProvider(services),
         CompletionProvider: (services) => new RangerCompletionProvider(services),
         Formatter: () => new RangerFormatter(),
     },
+    references: {
+        ScopeProvider: (services) => new RangerScopeProvider(services),
+    },
     workspace: {
         IndexAccess: (services) => new IndexAccess(services),
+    },
+    validation: {
+        RangerValidator: () => new RangerValidator(),
     },
 };
 

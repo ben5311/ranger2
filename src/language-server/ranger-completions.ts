@@ -22,6 +22,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         '//': '// $0',
         '/**': '/**\n$0\n*/',
         'Entity {}': 'Entity $1 {\n\t$0\n}',
+        'print()': 'print($0)',
     };
 
     override async getCompletion(document: LangiumDocument, params: CompletionParams) {

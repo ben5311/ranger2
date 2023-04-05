@@ -1,7 +1,8 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
 
+import { getValue } from '../generator/ranger-generator';
 import { Issue, satisfies } from '../utils/types';
-import { Document, Entity, isLiteral, RangerAstType } from './generated/ast';
+import { Document, Objekt, PrintStatement, RangerAstType } from './generated/ast';
 import { Config } from './ranger-config';
 import { RangerServices } from './ranger-module';
 
@@ -12,28 +13,26 @@ export function registerValidationChecks(services: RangerServices) {
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.RangerValidator;
     const checks: ValidationChecks<RangerAstType> = {
-        Document: [validator.checkDocument_NoDuplicateEntities],
-        Entity: [
-            validator.checkEntity_NameStartsWithCapital,
-            validator.checkEntity_NoDuplicateMembers,
-            validator.checkEntity_ShowDebugInfo,
-        ],
+        Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_EntityNamesStartsWithCapital],
+        Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_ShowDebugInfo],
+        PrintStatement: validator.checkPrintStatement_ShowDebugInfo,
     };
     registry.register(checks, validator);
 }
 
 export const Issues = satisfies<Record<string, Issue>>()({
     Document_DuplicateEntity: { code: 'Document.DuplicateEntity', msg: 'Duplicate Entity: ' },
-    Entity_DuplicateProperty: { code: 'Entity.DuplicateMember', msg: 'Duplicate Property:' },
     Entity_NameNotCapitalized: { code: 'Entity.NameNotCapitalized', msg: 'Entity name should start with a capital.' },
+    Object_DuplicateProperty: { code: 'Entity.DuplicateMember', msg: 'Duplicate Property:' },
+    DebugInfo: { code: 'DebugInfo', msg: '' },
 });
 
 /**
  * Implementation of custom validations.
  */
 export class RangerValidator {
-    checkEntity_NameStartsWithCapital(entity: Entity, accept: ValidationAcceptor): void {
-        if (entity.name) {
+    checkDocument_EntityNamesStartsWithCapital(document: Document, accept: ValidationAcceptor): void {
+        for (let entity of document.entities.filter((e) => e.name)) {
             const firstChar = entity.name.substring(0, 1);
             if (firstChar.toUpperCase() !== firstChar) {
                 accept('warning', Issues.Entity_NameNotCapitalized.msg, {
@@ -45,26 +44,6 @@ export class RangerValidator {
         }
     }
 
-    checkEntity_NoDuplicateMembers(entity: Entity, accept: ValidationAcceptor): void {
-        const issue = Issues.Entity_DuplicateProperty;
-        const duplicates = this.findDuplicates(entity.properties);
-        for (let dup of duplicates) {
-            accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
-        }
-    }
-
-    checkEntity_ShowDebugInfo(entity: Entity, accept: ValidationAcceptor): void {
-        if (!Config.debug) return;
-        for (let prop of entity.properties) {
-            if (isLiteral(prop.value))
-                accept('info', `${typeof prop.value.literalValue}(${prop.value.literalValue})`, {
-                    node: prop,
-                    property: 'value',
-                    code: 'DebugInfo',
-                });
-        }
-    }
-
     checkDocument_NoDuplicateEntities(document: Document, accept: ValidationAcceptor) {
         const issue = Issues.Document_DuplicateEntity;
         const entities = document.entities;
@@ -72,6 +51,28 @@ export class RangerValidator {
         for (let dup of duplicates) {
             accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
         }
+    }
+
+    checkObjekt_NoDuplicateProperties(objekt: Objekt, accept: ValidationAcceptor): void {
+        const issue = Issues.Object_DuplicateProperty;
+        const duplicates = this.findDuplicates(objekt.properties);
+        for (let dup of duplicates) {
+            accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
+        }
+    }
+
+    checkObjekt_ShowDebugInfo(objekt: Objekt, accept: ValidationAcceptor): void {
+        if (!Config.debug) return;
+        for (let prop of objekt.properties || {}) {
+            let value = getValue(prop.value!);
+            accept('info', `${typeof value}(${value})`, { node: prop, property: 'value', code: Issues.DebugInfo.code });
+        }
+    }
+
+    checkPrintStatement_ShowDebugInfo(print: PrintStatement, accept: ValidationAcceptor) {
+        let element = print.propertyReference.element.ref;
+        let value = getValue(element);
+        accept('info', JSON.stringify(value), { node: print, code: Issues.DebugInfo.code });
     }
 
     findDuplicates<T extends { name: string }>(elements: T[]): T[] {
