@@ -57,7 +57,7 @@ export class RangerValidator {
         if (!Config.debug) return;
         for (let prop of entity.properties) {
             if (isLiteral(prop.value))
-                accept('info', `${typeof prop.value.literal}(${prop.value.literal})`, {
+                accept('info', `${typeof prop.value.literalValue}(${prop.value.literalValue})`, {
                     node: prop,
                     property: 'value',
                     code: 'DebugInfo',
