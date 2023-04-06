@@ -39,7 +39,7 @@
         "src"
     ],
     "bin": {
-        "ranger-cli": "./bin/cli"
+        "ranger": "./bin/cli"
     },
     "main": "./out/extension.js",
     "scripts": {
