@@ -1,8 +1,4 @@
-import {
-	AbstractExecuteCommandHandler,
-	ExecuteCommandAcceptor,
-	LangiumSharedServices,
-} from 'langium';
+import { AbstractExecuteCommandHandler, ExecuteCommandAcceptor, LangiumSharedServices } from 'langium';
 
 import { Config } from './ranger-config';
 import { RangerDocumentBuilder } from './ranger-services';
@@ -15,8 +11,8 @@ export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
         this.documentBuilder = services.workspace.DocumentBuilder as RangerDocumentBuilder;
     }
 
-    registerCommands(accept: ExecuteCommandAcceptor): void {
-        accept('ranger.toggleDebugView', () => {
+    registerCommands(register: ExecuteCommandAcceptor): void {
+        register('ranger.toggleDebugView', () => {
             Config.debug = !Config.debug;
             this.documentBuilder.invalidateAllDocuments();
         });

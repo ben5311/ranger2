@@ -1,4 +1,5 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
+import { cloneDeep } from 'lodash';
 
 import { getValue } from '../generator/ranger-generator';
 import { Issue, satisfies } from '../utils/types';
@@ -64,15 +65,20 @@ export class RangerValidator {
     checkObjekt_ShowDebugInfo(objekt: Objekt, accept: ValidationAcceptor): void {
         if (!Config.debug) return;
         for (let prop of objekt.properties || {}) {
-            let value = getValue(prop.value!);
-            accept('info', `${typeof value}(${value})`, { node: prop, property: 'value', code: Issues.DebugInfo.code });
+            let value = getValue(prop.value);
+            accept('info', JSON.stringify(value), { node: prop, property: 'value', code: Issues.DebugInfo.code });
         }
     }
 
     checkPrintStatement_ShowDebugInfo(print: PrintStatement, accept: ValidationAcceptor) {
         let element = print.propertyReference.element.ref;
         let value = getValue(element);
-        accept('info', JSON.stringify(value), { node: print, code: Issues.DebugInfo.code });
+        let range = cloneDeep(print.$cstNode?.range);
+        if (range) {
+            range.start.character += 6;
+            range.end.character -= 1;
+        }
+        accept('info', JSON.stringify(value), { node: print, range: range, code: Issues.DebugInfo.code });
     }
 
     findDuplicates<T extends { name: string }>(elements: T[]): T[] {
