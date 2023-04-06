@@ -23,7 +23,7 @@ export class RangerFormatter extends AbstractFormatter {
                 bracesClose.append(Formatting.newLines(2));
             }
         } else if (ast.isPrintStatement(node)) {
-            formatter.node(node).append(Formatting.newLines(2));
+            formatter.node(node).append(Formatting.newLines(1));
         }
     }
 

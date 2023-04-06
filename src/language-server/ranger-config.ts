@@ -1,3 +1,3 @@
 export const Config = {
-    debug: true,
+    debug: false,
 };

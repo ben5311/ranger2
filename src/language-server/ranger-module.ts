@@ -15,6 +15,7 @@ import { RangerActionProvider } from './ranger-actions';
 import { RangerExecuteCommandHandler } from './ranger-commands';
 import { RangerCompletionProvider } from './ranger-completions';
 import { RangerFormatter } from './ranger-formatter';
+import { RangerHoverProvider } from './ranger-hover';
 import { RangerScopeProvider } from './ranger-scope';
 import { IndexAccess, RangerDocumentBuilder } from './ranger-services';
 import { RangerValidator, registerValidationChecks } from './ranger-validator';
@@ -47,6 +48,7 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
         CodeActionProvider: (services) => new RangerActionProvider(services),
         CompletionProvider: (services) => new RangerCompletionProvider(services),
         Formatter: () => new RangerFormatter(),
+        HoverProvider: (services) => new RangerHoverProvider(services),
     },
     references: {
         ScopeProvider: (services) => new RangerScopeProvider(services),

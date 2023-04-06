@@ -3,7 +3,7 @@ import { cloneDeep } from 'lodash';
 
 import { getValue } from '../generator/ranger-generator';
 import { Issue, satisfies } from '../utils/types';
-import { Document, Objekt, PrintStatement, RangerAstType } from './generated/ast';
+import { Document, isObjekt, Objekt, PrintStatement, RangerAstType } from './generated/ast';
 import { Config } from './ranger-config';
 import { RangerServices } from './ranger-module';
 
@@ -64,8 +64,9 @@ export class RangerValidator {
 
     checkObjekt_ShowDebugInfo(objekt: Objekt, accept: ValidationAcceptor): void {
         if (!Config.debug) return;
-        for (let prop of objekt.properties || {}) {
+        for (let prop of objekt.properties.filter((p) => !isObjekt(p.value))) {
             let value = getValue(prop.value);
+            if (value === undefined) return;
             accept('info', JSON.stringify(value), { node: prop, property: 'value', code: Issues.DebugInfo.code });
         }
     }
@@ -73,6 +74,7 @@ export class RangerValidator {
     checkPrintStatement_ShowDebugInfo(print: PrintStatement, accept: ValidationAcceptor) {
         let element = print.propertyReference.element.ref;
         let value = getValue(element);
+        if (value === undefined) return;
         let range = cloneDeep(print.$cstNode?.range);
         if (range) {
             range.start.character += 6;

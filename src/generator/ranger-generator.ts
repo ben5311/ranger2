@@ -7,7 +7,8 @@ import { DynamicObject } from '../utils/types';
  */
 export function getValue(element?: Value | Property | PropertyReference): unknown {
     element = resolveValue(element);
-    if (isNull(element) || !element) return null;
+    if (element === undefined) return undefined;
+    if (isNull(element) || element === null) return null;
     if (isLiteral(element)) return element.literalValue;
     if (isList(element)) return element.values.map(getValue);
     // Element must be an Objekt

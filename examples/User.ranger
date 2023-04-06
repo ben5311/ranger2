@@ -6,7 +6,16 @@ Entity Kunde {
     origin: null
     account: Account
     address: Address
+    mandates: {
+        "full": "Hans Müller"
+    }
 }
+
+print(Kunde.address)
+print(Kunde.account)
+print(Kunde.mandates.full)
+print(Kunde.account.currency)
+// TODO: Fix resolve references inside references
 
 Entity Account {
     id: 1
@@ -16,24 +25,14 @@ Entity Account {
 }
 
 Entity Address {
-    address: "Hauptstraße 1"
+    address: "Hauptstr. 1"
     zip: "53111"
     city: "Bonn"
-    country: "Germany"
-    phone: ["0123 4567", "0345 161434"]
-    phone2: phone
-    phone3: phone2
-    phone4: phone3
+    country: "DE"
 }
 
-print(Kunde.address)
-
-print(Kunde.account)
-
-print(Kunde.account.currency)
-
-/**
-This is a Test entity.
-*/
-Entity Test2 {
+Entity ReferencesOfReferences {
+    first: 1
+    second: first
+    third: second
 }
