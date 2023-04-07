@@ -18,6 +18,7 @@ import { RangerFormatter } from './ranger-formatter';
 import { RangerHoverProvider } from './ranger-hover';
 import { RangerScopeProvider } from './ranger-scope';
 import { IndexAccess, RangerDocumentBuilder } from './ranger-services';
+import { RangerSymbolProvider } from './ranger-symbols';
 import { RangerTokenProvider } from './ranger-tokens';
 import { RangerValidator, registerValidationChecks } from './ranger-validator';
 
@@ -48,6 +49,7 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
     lsp: {
         CodeActionProvider: (services) => new RangerActionProvider(services),
         CompletionProvider: (services) => new RangerCompletionProvider(services),
+        DocumentSymbolProvider: (services) => new RangerSymbolProvider(services),
         Formatter: () => new RangerFormatter(),
         HoverProvider: (services) => new RangerHoverProvider(services),
         SemanticTokenProvider: (services) => new RangerTokenProvider(services),

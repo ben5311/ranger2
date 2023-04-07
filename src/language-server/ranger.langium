@@ -3,7 +3,7 @@ grammar Ranger
 entry Document:
     (entities+=Entity | printStatements+=PrintStatement)*;
 
-Entity infers Property:
+Entity returns Entity:
     "Entity" name=ID value=Objekt;
 
 Objekt:
@@ -11,7 +11,7 @@ Objekt:
         (properties+=Property)*
     "}";
 
-Property:
+Property returns Property:
     name=(STRING|ID) ":" value=(Value|PropertyReference) ","?;
 
 Value:
@@ -33,6 +33,17 @@ Null:
 
 PrintStatement:
     "print" "(" propertyReference=PropertyReference ")";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Interfaces
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+interface Entity extends Property {}
+interface Property { name: string; value: Value | PropertyReference}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Terminals
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 terminal NUMBER returns number: /[+-]?[0-9]+(\.[0-9]*)?/;
 terminal BOOL returns boolean: "true" | "false";

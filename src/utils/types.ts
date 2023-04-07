@@ -1,6 +1,6 @@
 import { AstNode } from 'langium';
 
-import { isDocument, isProperty, Property } from '../language-server/generated/ast';
+import { isEntity, isObjekt, isProperty, isPropertyReference, Property } from '../language-server/generated/ast';
 
 /**
  * Allows to enforce types without throwing away information about any more specific type
@@ -75,13 +75,13 @@ export interface Issue {
     msg: string;
 }
 
-export function isEntity(node: AstNode) {
-    return isProperty(node) && isDocument(node.$container);
-}
-
 /**
  * Returns true if node is a real property (and not an Entity).
  */
 export function isPureProperty(node: AstNode): node is Property {
     return isProperty(node) && !isEntity(node);
+}
+
+export function isSimpleProperty(node: AstNode): node is Property {
+    return isProperty(node) && !isObjekt(node.value) && !isPropertyReference(node.value);
 }
