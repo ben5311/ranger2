@@ -11,12 +11,6 @@ Entity Kunde {
     }
 }
 
-print(Kunde.address)
-print(Kunde.account)
-print(Kunde.mandates.full)
-print(Kunde.account.currency)
-// TODO: Fix resolve references inside references
-
 Entity Account {
     id: 1
     balance: 15000
@@ -31,8 +25,9 @@ Entity Address {
     country: "DE"
 }
 
-Entity ReferencesOfReferences {
+Entity References {
     first: 1
     second: first
     third: second
+    currency: Kunde.account.currency    // TODO: Fix references inside references
 }
