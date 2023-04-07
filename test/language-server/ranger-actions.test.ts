@@ -1,11 +1,11 @@
 import { describe, test } from 'vitest';
 
-import { fix } from '../../src/utils/test';
+import { testQuickFix } from '../../src/utils/test';
 
 describe('RangerActionProvider', () => {
     describe('fixEntity', () => {
         test('NameStartsWithCapital', async () => {
-            await fix({
+            await testQuickFix({
                 before: 'Entity customer {}',
                 after: 'Entity Customer {}',
             });

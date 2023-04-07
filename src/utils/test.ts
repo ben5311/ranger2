@@ -74,7 +74,8 @@ export interface ExpectedSymbols extends ExpectedBase {
 
 export const services = createRangerServices(EmptyFileSystem);
 export const validate = validationHelper<Document>(services.Ranger);
-export const fix = quickFixHelper<Document>(services.Ranger);
+export const testQuickFix = quickFixHelper<Document>(services.Ranger);
+export const testFormatting = expectFormatting(services.Ranger);
 export const clearIndex = () => {
     services.shared.workspace.IndexManager.remove(testURIs);
     testURIs.length = 0;

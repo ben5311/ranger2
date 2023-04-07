@@ -71,6 +71,7 @@
         "@vitest/ui": "~0.28.4",
         "@vscode/vsce": "~2.18.0",
         "concurrently": "^7.6.0",
+        "dedent-js": "~1.0.1",
         "esbuild": "~0.17.11",
         "eslint": "~8.33.0",
         "langium-cli": "~1.1.0",
