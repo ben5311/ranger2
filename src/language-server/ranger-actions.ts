@@ -24,18 +24,6 @@ export class RangerActionProvider implements CodeActionProvider {
         this.indexManager = services.shared.workspace.IndexManager;
     }
 
-    getCodeActions(document: LangiumDocument, params: CodeActionParams): MaybePromise<Array<Command | CodeAction>> {
-        const result: CodeAction[] = [];
-        for (const diagnostic of params.context.diagnostics) {
-            const issueCode = diagnostic.code || '';
-            const providers = actionProviders[issueCode] || [];
-            for (const provider of providers) {
-                result.push(provider(diagnostic, document));
-            }
-        }
-        return result;
-    }
-
     @Fix(Issues.Entity_NameNotCapitalized.code)
     private makeUpperCase(diagnostic: Diagnostic, document: LangiumDocument): CodeAction {
         const range = {
@@ -61,6 +49,18 @@ export class RangerActionProvider implements CodeActionProvider {
                 },
             },
         };
+    }
+
+    getCodeActions(document: LangiumDocument, params: CodeActionParams): MaybePromise<Array<Command | CodeAction>> {
+        const result: CodeAction[] = [];
+        for (const diagnostic of params.context.diagnostics) {
+            const issueCode = diagnostic.code || '';
+            const providers = actionProviders[issueCode] || [];
+            for (const provider of providers) {
+                result.push(provider(diagnostic, document));
+            }
+        }
+        return result;
     }
 }
 
