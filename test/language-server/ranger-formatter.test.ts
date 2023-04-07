@@ -7,15 +7,19 @@ describe('RangerFormatter', () => {
     test('New lines between entities', async () => {
         await testFormatting({
             before: dedent`
-            Entity Customer {
-            }
-            Entity Account {
-            }`,
+            Entity Customer {}
+            Entity Account {}
+            // This is a loan.
+            Entity Loan {}`,
             after: dedent`
             Entity Customer {
             }
 
             Entity Account {
+            }
+
+            // This is a loan.
+            Entity Loan {
             }`,
         });
     });
