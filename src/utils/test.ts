@@ -8,7 +8,6 @@
 
 import {
     AstNode,
-    CstNode,
     EmptyFileSystem,
     escapeRegExp,
     findNodeForProperty,
@@ -58,7 +57,7 @@ export function parseHelper<T extends AstNode = AstNode>(
     };
 }
 
-function expect(actual: unknown, expected: unknown, message?: string) {
+function expectEqual(actual: unknown, expected: unknown, message?: string) {
     expectFunction(actual, message).toEqual(expected);
 }
 
@@ -85,114 +84,149 @@ export const clearIndex = () => {
 // Issues (Validation Errors, Warnings, etc.)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function expectNoIssues<T extends AstNode = AstNode, N extends AstNode = AstNode>(
-    validationResult: ValidationResult<T>,
-    filter?: ExpectDiagnosticOptions<N>,
-) {
-    const issues = findIssues<T, N>(validationResult, filter);
-    expect(issues.length == 0, true, `Expected no issues, but got: ${toString(validationResult)}`);
-}
-
-export function expectIssue<T extends AstNode = AstNode, N extends AstNode = AstNode>(
-    validationResult: ValidationResult<T>,
-    code: string,
-    filter?: ExpectDiagnosticOptions<N>,
-): void {
-    const issues = findIssues<T, N>(validationResult, { code: code, ...filter });
-    expect(
-        issues.length > 0,
-        true,
-        `Missing ${severity(filter) || 'ISSUE'} of type [${code}], only got: ${toString(validationResult)}`,
-    );
-}
-
 export function expectError<T extends AstNode = AstNode, N extends AstNode = AstNode>(
     validationResult: ValidationResult<T>,
     code: string,
-    filter?: ExpectDiagnosticOptionsWithoutContent<N>,
+    assertion?: DiagnosticAssertion<N>,
 ): void {
-    expectIssue<T, N>(validationResult, code, { severity: DiagnosticSeverity.Error, ...filter });
+    expectIssue<T, N>(validationResult, { severity: DiagnosticSeverity.Error, code }, assertion);
 }
 
 export function expectWarning<T extends AstNode = AstNode, N extends AstNode = AstNode>(
     validationResult: ValidationResult<T>,
     code: string,
-    filter?: ExpectDiagnosticOptionsWithoutContent<N>,
+    assertion?: DiagnosticAssertion<N>,
 ): void {
-    expectIssue<T, N>(validationResult, code, { severity: DiagnosticSeverity.Warning, ...filter });
+    expectIssue<T, N>(validationResult, { severity: DiagnosticSeverity.Warning, code }, assertion);
 }
 
 export function expectInfo<T extends AstNode = AstNode, N extends AstNode = AstNode>(
     validationResult: ValidationResult<T>,
     code: string,
-    filter?: ExpectDiagnosticOptionsWithoutContent<N>,
+    assertion?: DiagnosticAssertion<N>,
 ): void {
-    expectIssue<T, N>(validationResult, code, { severity: DiagnosticSeverity.Information, ...filter });
+    expectIssue<T, N>(validationResult, { severity: DiagnosticSeverity.Information, code }, assertion);
 }
 
 export function expectHint<T extends AstNode = AstNode, N extends AstNode = AstNode>(
     validationResult: ValidationResult<T>,
     code: string,
-    filter?: ExpectDiagnosticOptionsWithoutContent<N>,
+    assertion?: DiagnosticAssertion<N>,
 ): void {
-    expectIssue<T, N>(validationResult, code, { severity: DiagnosticSeverity.Hint, ...filter });
+    expectIssue<T, N>(validationResult, { severity: DiagnosticSeverity.Hint, code }, assertion);
 }
 
-function findIssues<T extends AstNode, N extends AstNode>(
+export function expectNoIssues<T extends AstNode = AstNode>(
     validationResult: ValidationResult<T>,
-    options?: ExpectDiagnosticOptions<N>,
+    filter?: DiagnosticFilter,
+) {
+    const issues = findIssues<T>(validationResult, filter);
+    expectEqual(issues.length == 0, true, `Expected no issues, but got: ${diagnosticsString(validationResult)}`);
+}
+
+export function expectIssue<T extends AstNode = AstNode, N extends AstNode = AstNode>(
+    validationResult: ValidationResult<T>,
+    filter?: DiagnosticFilter,
+    assertion?: DiagnosticAssertion<N>,
+): void {
+    let issues = findIssues<T>(validationResult, filter);
+    expectEqual(
+        issues.length > 0,
+        true,
+        `Missing ${severityString(filter?.severity) || 'ISSUE'} of type [${filter?.code || '<ANY>'}], ` +
+            `only got: ${diagnosticsString(validationResult)}`,
+    );
+    if (!assertion) return;
+
+    const range = findRangeForAssertion(assertion, validationResult.document.textDocument);
+    issues = issues.filter((issue) => isRangeEqual(issue.range, range));
+
+    if (assertion.message !== undefined) {
+        if (typeof assertion.message === 'string') {
+            issues = issues.filter((issue) => issue.message === assertion.message);
+        } else if (assertion.message instanceof RegExp) {
+            const regex = assertion.message as RegExp;
+            issues = issues.filter((issue) => regex.test(issue.message));
+        }
+    }
+
+    const replacer = (key: string, value: any) => (key === 'node' ? `(${value?.$type}) ${value?.name}` : value);
+    expectEqual(
+        issues.length > 0,
+        true,
+        `None of the ${severityString(filter?.severity) || 'ISSUE'}s found ` +
+            `matches ${JSON.stringify(assertion, replacer)}: ${diagnosticsString(validationResult)}`,
+    );
+}
+
+export function findIssues<T extends AstNode>(
+    validationResult: ValidationResult<T>,
+    filter?: DiagnosticFilter,
 ): Diagnostic[] {
-    if (!options) {
-        return validationResult.diagnostics;
-    }
-    const filters: Array<Predicate<Diagnostic>> = [];
-    if ('node' in options && options.node) {
-        let cstNode: CstNode | undefined = options.node.$cstNode;
-        if (options.property) {
-            const name = typeof options.property === 'string' ? options.property : options.property.name;
-            const index = typeof options.property === 'string' ? undefined : options.property.index;
-            cstNode = findNodeForProperty(cstNode, name, index);
-        }
-        if (!cstNode) {
-            throw new Error('Cannot find the node!');
-        }
-        const checkRange = options.property ? isRangeEqual : isRangeInside;
-        filters.push((d) => checkRange(cstNode!.range, d.range));
-    }
-    if ('offset' in options) {
-        const outer = {
-            start: validationResult.document.textDocument.positionAt(options.offset),
-            end: validationResult.document.textDocument.positionAt(options.offset + options.length),
+    return validationResult.diagnostics
+        .filter((d) => !filter?.severity || d.severity === filter.severity)
+        .filter((d) => !filter?.code || d.code === filter.code);
+}
+
+function findRangeForAssertion<T extends AstNode>(assertion: DiagnosticAssertion<T>, doc: TextDocument): Range {
+    let range: Range = { start: { line: -1, character: -1 }, end: { line: -1, character: -1 } };
+    if ('node' in assertion && assertion.node) {
+        const name = typeof assertion.property === 'string' ? assertion.property : assertion.property.name;
+        const index = typeof assertion.property === 'string' ? undefined : assertion.property.index;
+        const cstNode = findNodeForProperty(assertion.node.$cstNode, name, index);
+        if (!cstNode) throw new Error('Cannot find the node!');
+        range = cstNode.range;
+    } else if ('offset' in assertion) {
+        range = {
+            start: doc.positionAt(assertion.offset),
+            end: doc.positionAt(assertion.offset + assertion.length),
         };
-        filters.push((d) => isRangeEqual(outer, d.range));
+    } else if ('range' in assertion) {
+        range = assertion.range;
     }
-    if ('range' in options) {
-        filters.push((d) => isRangeEqual(options.range!, d.range));
-    }
-    if (options.code) {
-        filters.push((d) => d.code === options.code);
-    }
-    if (options.message) {
-        if (typeof options.message === 'string') {
-            filters.push((d) => d.message === options.message);
-        } else if (options.message instanceof RegExp) {
-            const regexp = options.message as RegExp;
-            filters.push((d) => regexp.test(d.message));
-        }
-    }
-    if (options.severity) {
-        filters.push((d) => d.severity === options.severity);
-    }
-    return validationResult.diagnostics.filter((diag) => filters.every((holdsFor) => holdsFor(diag)));
+    return range;
 }
 
-function toString(result: ValidationResult): string {
-    const issues = result.diagnostics;
-    return '[\n' + issues.map((issue) => `  ${severity(issue)} (${issue.code}: ${issue.message})`).join('\n') + '\n]';
+interface DiagnosticFilter {
+    code?: string;
+    severity?: DiagnosticSeverity;
 }
 
-function severity(issue: { severity?: DiagnosticSeverity } | undefined): string | undefined {
-    switch (issue?.severity) {
+/**
+ * Assert that a diagnostic is attached to a specific AstNode, Range or text offset.
+ *
+ * Specify either (node, property) or (range) or (offset, length).
+ */
+type DiagnosticAssertion<T extends AstNode> = NodeAssertion<T> | RangeAssertion | OffsetAssertion;
+interface NodeAssertion<T extends AstNode> extends MessageAssertion {
+    node: T;
+    property: Properties<T> | { name: Properties<T>; index?: number };
+}
+interface RangeAssertion extends MessageAssertion {
+    range: Range;
+}
+interface OffsetAssertion extends MessageAssertion {
+    offset: number;
+    length: number;
+}
+interface MessageAssertion {
+    message?: string | RegExp;
+}
+
+function diagnosticsString(result: ValidationResult): string {
+    return '[\n' + result.diagnostics.map((d) => `  ${diagnosticString(d)}`).join('\n') + '\n]';
+}
+
+function diagnosticString(diag: Diagnostic): string {
+    return `${severityString(diag.severity)} (${diag.code}: ${diag.message}) (${rangeString(diag.range)})`;
+}
+
+function rangeString(range: Range): string {
+    return `${range.start.line}:${range.start.character}->${range.end.line}:${range.end.character}`;
+}
+
+function severityString(severity?: DiagnosticSeverity): string | undefined {
+    switch (severity) {
         case DiagnosticSeverity.Error:
             return 'ERROR';
         case DiagnosticSeverity.Warning:
@@ -215,7 +249,7 @@ export function expectSymbols(services: LangiumServices): (input: ExpectedSymbol
         const document = await parseDocument(services, input.text);
         const symbolProvider = services.lsp.DocumentSymbolProvider;
         const symbols = (await symbolProvider?.getSymbols(document, textDocumentParams(document))) ?? [];
-        expect(
+        expectEqual(
             symbols.length,
             input.expectedSymbols.length,
             `Expected ${input.expectedSymbols.length} but found ${symbols.length} symbols in document.`,
@@ -224,9 +258,9 @@ export function expectSymbols(services: LangiumServices): (input: ExpectedSymbol
             const expected = input.expectedSymbols[i];
             const item = symbols[i];
             if (typeof expected === 'string') {
-                expect(item.name, expected);
+                expectEqual(item.name, expected);
             } else {
-                expect(item, expected);
+                expectEqual(item, expected);
             }
         }
     };
@@ -243,18 +277,22 @@ export function expectFoldings(services: LangiumServices): (input: ExpectedBase)
         const foldingRangeProvider = services.lsp.FoldingRangeProvider;
         const foldings = (await foldingRangeProvider?.getFoldingRanges(document, textDocumentParams(document))) ?? [];
         foldings.sort((a, b) => a.startLine - b.startLine);
-        expect(foldings.length, ranges.length, `Expected ${ranges.length} but received ${foldings.length} foldings`);
+        expectEqual(
+            foldings.length,
+            ranges.length,
+            `Expected ${ranges.length} but received ${foldings.length} foldings`,
+        );
         for (let i = 0; i < ranges.length; i++) {
             const expected = ranges[i];
             const item = foldings[i];
             const expectedStart = document.textDocument.positionAt(expected[0]);
             const expectedEnd = document.textDocument.positionAt(expected[1]);
-            expect(
+            expectEqual(
                 item.startLine,
                 expectedStart.line,
                 `Expected folding start at line ${expectedStart.line} but received folding start at line ${item.startLine} instead.`,
             );
-            expect(
+            expectEqual(
                 item.endLine,
                 expectedEnd.line,
                 `Expected folding end at line ${expectedEnd.line} but received folding end at line ${item.endLine} instead.`,
@@ -288,7 +326,7 @@ export function expectCompletion(services: LangiumServices): (completion: Expect
         )) ?? { items: [] };
         const expectedItems = expectedCompletion.expectedItems;
         const items = completions.items.sort((a, b) => a.sortText?.localeCompare(b.sortText || '0') || 0);
-        expect(
+        expectEqual(
             items.length,
             expectedItems.length,
             `Expected ${expectedItems.length} but received ${items.length} completion items`,
@@ -297,9 +335,9 @@ export function expectCompletion(services: LangiumServices): (completion: Expect
             const expected = expectedItems[i];
             const completion = items[i];
             if (typeof expected === 'string') {
-                expect(completion.label, expected);
+                expectEqual(completion.label, expected);
             } else {
-                expect(completion, expected);
+                expectEqual(completion, expected);
             }
         }
     };
@@ -328,7 +366,7 @@ export function expectGoToDefinition(
             )) ?? [];
         const rangeIndex = expectedGoToDefinition.rangeIndex;
         if (Array.isArray(rangeIndex)) {
-            expect(
+            expectEqual(
                 locationLinks.length,
                 rangeIndex.length,
                 `Expected ${rangeIndex.length} definitions but received ${locationLinks.length}`,
@@ -339,7 +377,7 @@ export function expectGoToDefinition(
                     end: document.textDocument.positionAt(ranges[index][1]),
                 };
                 const range = locationLinks[0].targetSelectionRange;
-                expect(
+                expectEqual(
                     range,
                     expectedRange,
                     `Expected range ${rangeToString(expectedRange)} does not match actual range ${rangeToString(
@@ -352,9 +390,9 @@ export function expectGoToDefinition(
                 start: document.textDocument.positionAt(ranges[rangeIndex][0]),
                 end: document.textDocument.positionAt(ranges[rangeIndex][1]),
             };
-            expect(locationLinks.length, 1, `Expected a single definition but received ${locationLinks.length}`);
+            expectEqual(locationLinks.length, 1, `Expected a single definition but received ${locationLinks.length}`);
             const range = locationLinks[0].targetSelectionRange;
-            expect(
+            expectEqual(
                 range,
                 expectedRange,
                 `Expected range ${rangeToString(expectedRange)} does not match actual range ${rangeToString(range)}`,
@@ -386,13 +424,13 @@ export function expectFindReferences(
             const referenceParameters = referenceParams(document, index, expectedFindReferences.includeDeclaration);
             const references = (await referenceFinder?.findReferences(document, referenceParameters)) ?? [];
 
-            expect(
+            expectEqual(
                 references.length,
                 expectedRanges.length,
                 'Found references do not match amount of expected references',
             );
             for (const reference of references) {
-                expect(
+                expectEqual(
                     expectedRanges.some((range) => isRangeEqual(range, reference.range)),
                     true,
                     `Found unexpected reference at range ${rangeToString(reference.range)}`,
@@ -431,10 +469,10 @@ export function expectHover(services: LangiumServices): (expectedHover: Expected
         );
         const hoverContent = hover && MarkupContent.is(hover.contents) ? hover.contents.value : undefined;
         if (typeof expectedHover.hover !== 'object') {
-            expect(hoverContent, expectedHover.hover);
+            expectEqual(hoverContent, expectedHover.hover);
         } else {
             const value = hoverContent ?? '';
-            expect(
+            expectEqual(
                 expectedHover.hover.test(value),
                 true,
                 `Hover '${value}' does not match regex /${expectedHover.hover.source}/${expectedHover.hover.flags}.`,
@@ -475,7 +513,7 @@ export function expectFormatting(services: LangiumServices): (expectedFormatting
             : formatter.formatDocument(document, { options, textDocument: identifier }));
 
         const editedDocument = TextDocument.applyEdits(document.textDocument, edits);
-        expect(editedDocument, expectedFormatting.after);
+        expectEqual(editedDocument, expectedFormatting.after);
     };
 }
 
@@ -555,10 +593,10 @@ export function validationHelper<T extends AstNode = AstNode>(
 
 export function quickFixHelper<T extends AstNode = AstNode>(
     services: LangiumServices,
-): (input: string) => Promise<string> {
+): (input: { before: string; after: string }) => Promise<void> {
     const validate = validationHelper<T>(services);
     return async (input) => {
-        const { document, diagnostics } = await validate(input);
+        const { document, diagnostics } = await validate(input.before);
         const params: CodeActionParams = {
             textDocument: document.textDocument,
             range: { start: { line: 1, character: 1 }, end: { line: 1, character: 1 } },
@@ -574,36 +612,9 @@ export function quickFixHelper<T extends AstNode = AstNode>(
         if (edit) {
             TextDocument.update(document.textDocument, [{ range: edit.range, text: edit.newText }], 1);
         }
-        return document.textDocument.getText();
+        const fixed = document.textDocument.getText();
+        expectEqual(fixed, input.after);
     };
-}
-
-export type ExpectDiagnosticOptionsWithoutContent<T extends AstNode = AstNode> = ExpectDiagnosticCode &
-    (ExpectDiagnosticAstOptions<T> | ExpectDiagnosticRangeOptions | ExpectDiagnosticOffsetOptions);
-export type ExpectDiagnosticOptions<T extends AstNode = AstNode> = ExpectDiagnosticContent &
-    ExpectDiagnosticOptionsWithoutContent<T>;
-
-export interface ExpectDiagnosticContent {
-    message?: string | RegExp;
-    severity?: DiagnosticSeverity;
-}
-
-export interface ExpectDiagnosticCode {
-    code?: string;
-}
-
-export interface ExpectDiagnosticAstOptions<T extends AstNode> {
-    node?: T;
-    property?: Properties<T> | { name: Properties<T>; index?: number };
-}
-
-export interface ExpectDiagnosticRangeOptions {
-    range: Range;
-}
-
-export interface ExpectDiagnosticOffsetOptions {
-    offset: number;
-    length: number;
 }
 
 export type Predicate<T> = (arg: T) => boolean;
@@ -668,5 +679,5 @@ export function expectSemanticToken(
     const result = tokensWithRanges.tokens.filter((t) => {
         return t.tokenType === options.tokenType && t.offset === range[0] && t.offset + t.text.length === range[1];
     });
-    expect(result.length, 1, `Expected one token with the specified options but found ${result.length}`);
+    expectEqual(result.length, 1, `Expected one token with the specified options but found ${result.length}`);
 }

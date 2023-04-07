@@ -3,7 +3,7 @@ import { cloneDeep } from 'lodash';
 
 import { getValue } from '../generator/ranger-generator';
 import { Issue, satisfies } from '../utils/types';
-import { Document, isObjekt, Objekt, PrintStatement, RangerAstType } from './generated/ast';
+import { Document, Objekt, PrintStatement, RangerAstType, isObjekt } from './generated/ast';
 import { Config } from './ranger-config';
 import { RangerServices } from './ranger-module';
 
@@ -24,7 +24,7 @@ export function registerValidationChecks(services: RangerServices) {
 export const Issues = satisfies<Record<string, Issue>>()({
     Document_DuplicateEntity: { code: 'Document.DuplicateEntity', msg: 'Duplicate Entity: ' },
     Entity_NameNotCapitalized: { code: 'Entity.NameNotCapitalized', msg: 'Entity name should start with a capital.' },
-    Object_DuplicateProperty: { code: 'Entity.DuplicateMember', msg: 'Duplicate Property:' },
+    Objekt_DuplicateProperty: { code: 'Entity.DuplicateMember', msg: 'Duplicate Property:' },
     DebugInfo: { code: 'DebugInfo', msg: '' },
 });
 
@@ -55,7 +55,7 @@ export class RangerValidator {
     }
 
     checkObjekt_NoDuplicateProperties(objekt: Objekt, accept: ValidationAcceptor): void {
-        const issue = Issues.Object_DuplicateProperty;
+        const issue = Issues.Objekt_DuplicateProperty;
         const duplicates = this.findDuplicates(objekt.properties);
         for (let dup of duplicates) {
             accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });

@@ -20,7 +20,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
          * https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
          */
         '//': '// $0',
-        '/**': '/**\n$0\n*/',
+        '/*': '/*\n$0\n*/',
         'Entity {}': 'Entity $1 {\n\t$0\n}',
         'print()': 'print($0)',
     };
