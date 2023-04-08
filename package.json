@@ -58,6 +58,7 @@
         "commander": "~10.0.0",
         "langium": "~1.1.0",
         "lodash": "~4.17.21",
+        "random-js": "~2.1.0",
         "vscode-languageclient": "~8.0.2",
         "vscode-languageserver": "~8.0.2",
         "vscode-uri": "~3.0.7"

@@ -83,5 +83,5 @@ export function isPureProperty(node: AstNode): node is Property {
 }
 
 export function isSimpleProperty(node: AstNode): node is Property {
-    return isProperty(node) && !isObjekt(node.value) && !isPropertyReference(node.value);
+    return isProperty(node) && !isObjekt(node.value);
 }

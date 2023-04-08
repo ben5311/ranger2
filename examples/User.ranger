@@ -1,14 +1,10 @@
 Entity Kunde {
-    name: "Max Mustermann"
-    role: "User"
-    isActive: true
-    createdAt: "2023-04-02"
-    origin: null
+    name: 1
+    age: 2
     account: Account
     address: Address
-    mandates: {
-        "full": "Hans Müller"
-    }
+    nex: random([10, 20, 30])
+    nex2: random(1.0..2)
 }
 
 Entity Account {
@@ -16,6 +12,8 @@ Entity Account {
     balance: 15000
     currency: "EUR"
     cards: [1, 2, 3]
+    createdAt: "2023-04-02"
+    isActive: true
 }
 
 Entity Address {
@@ -29,5 +27,5 @@ Entity References {
     first: 1
     second: first
     third: second
-    currency: Kunde.account.currency    // TODO: Fix references inside references
+    currency: Kunde.account.currency
 }

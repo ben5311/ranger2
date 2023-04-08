@@ -15,7 +15,7 @@ Property returns Property:
     name=(STRING|ID) ":" value=(Value|PropertyReference) ","?;
 
 Value:
-     Objekt | List | Literal | Null;
+     Objekt | List | Literal | Num | Func | Null;
 
 PropertyReference:
     element=[Property:ID] ({infer PropertyReference.previous=current} "." element=[Property:ID])*;
@@ -26,10 +26,30 @@ List:
     "]";
 
 Literal:
-    literalValue=(STRING | NUMBER | BOOL | DATE);
+    value=(STRING | BOOL | DATE);
+
+Num:
+    Float | Integer;
+Float:
+    value=FLOAT;
+Integer:
+    value=INTEGER;
 
 Null:
     {infer Null} "null";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Functions
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Func:
+    Random | PrintStatement;
+
+Random:
+    "random" "(" (range=Range | list=List)  ")";
+
+Range:
+    min=Num ".." max=Num;
 
 PrintStatement:
     "print" "(" propertyReference=PropertyReference ")";
@@ -45,10 +65,11 @@ interface Property { name: string; value: Value | PropertyReference}
 // Terminals
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-terminal NUMBER returns number: /[+-]?[0-9]+(\.[0-9]*)?/;
+terminal FLOAT returns number: /[+-]?[0-9]+\.[0-9]*/;
+terminal INTEGER returns number: /[+-]?[0-9]+/;
 terminal BOOL returns boolean: "true" | "false";
 terminal DATE returns Date: /"\d{4}-\d{2}-\d{2}"/;
-terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
+terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*?'/;
 terminal ID: /[_a-zA-Z][\w_]*/;
 
 hidden terminal WS: /\s+/;
