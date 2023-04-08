@@ -6,12 +6,19 @@ import {
     FormattingAction,
     FormattingContext,
     isRootCstNode,
+    LangiumDocument,
 } from 'langium';
-import { TextEdit } from 'vscode-languageserver';
+import { DiagnosticSeverity, FormattingOptions, Range, TextEdit } from 'vscode-languageserver';
 
 import * as ast from './generated/ast';
 
 export class RangerFormatter extends AbstractFormatter {
+    override doDocumentFormat(document: LangiumDocument, options: FormattingOptions, range?: Range): TextEdit[] {
+        // Do not format if document has validation errors
+        const errors = document.diagnostics?.filter((d) => d.severity === DiagnosticSeverity.Error).length;
+        return errors ? [] : super.doDocumentFormat(document, options, range);
+    }
+
     protected format(node: AstNode): void {
         const formatter = this.getNodeFormatter(node);
         if (ast.isObjekt(node)) {
