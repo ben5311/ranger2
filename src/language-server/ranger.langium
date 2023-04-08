@@ -20,7 +20,7 @@ Value:
 PropertyReference:
     element=[Property:ID] ({infer PropertyReference.previous=current} "." element=[Property:ID])*;
 
-List:
+List returns List:
     "["
         (values+=(Value|PropertyReference) ("," values+=(Value|PropertyReference))* ","?)?
     "]";
@@ -46,10 +46,13 @@ Func:
     Random | PrintStatement;
 
 Random:
-    "random" "(" (range=Range | list=List)  ")";
+    "random" "(" (range=Range | list=ListWithoutBrackets)  ")";     // TODO: Allow references for range and list
 
 Range:
     min=Num ".." max=Num;
+
+ListWithoutBrackets returns List:
+    (values+=(Value|PropertyReference) ("," values+=(Value|PropertyReference))* ","?)?;
 
 PrintStatement:
     "print" "(" propertyReference=PropertyReference ")";
@@ -60,6 +63,7 @@ PrintStatement:
 
 interface Entity extends Property {}
 interface Property { name: string; value: Value | PropertyReference}
+interface List { values: (Value|PropertyReference)[] }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Terminals

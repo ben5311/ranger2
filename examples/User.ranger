@@ -1,6 +1,6 @@
 Entity Kunde {
     id: 1
-    name: random(["Max", "Peter", "John"])
+    name: random("Max", "Peter", "John")
     age: random(20..60),
     account: Account
 }
