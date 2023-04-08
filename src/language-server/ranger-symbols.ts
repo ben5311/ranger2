@@ -1,7 +1,7 @@
 import { AstNode, DefaultDocumentSymbolProvider, LangiumDocument } from 'langium';
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 
-import { getValue } from '../generator/ranger-generator';
+import { getValueAsJson } from '../generator/ranger-generator';
 import { isSimpleProperty } from '../utils/types';
 
 export class RangerSymbolProvider extends DefaultDocumentSymbolProvider {
@@ -10,12 +10,12 @@ export class RangerSymbolProvider extends DefaultDocumentSymbolProvider {
         const nameNode = this.nameProvider.getNameNode(astNode);
         if (nameNode && node) {
             const name = this.nameProvider.getName(astNode);
-            const value = isSimpleProperty(astNode) ? getValue(astNode) : undefined;
+            const value = isSimpleProperty(astNode) ? getValueAsJson(astNode) : undefined;
             return [
                 {
                     kind: this.getSymbolKind(astNode.$type),
                     name: name ?? nameNode.text,
-                    detail: JSON.stringify(value),
+                    detail: value,
                     range: node.range,
                     selectionRange: nameNode.range,
                     children: this.getChildSymbols(document, astNode),

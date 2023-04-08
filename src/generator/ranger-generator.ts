@@ -7,7 +7,7 @@ import { DynamicObject } from '../utils/types';
 /**
  * Returns the next generated value.
  */
-export function getValue(element?: ast.Value | ast.Property | ast.PropertyReference): unknown {
+export function getValue(element?: ValueOrProperty): unknown {
     element = resolveValue(element);
     if (element === undefined) return undefined;
     if (ast.isNull(element) || element === null) return null;
@@ -40,3 +40,17 @@ function getFuncValue(func: ast.Func): unknown {
     }
     return undefined;
 }
+
+/**
+ * Returns the next generated value as JSON string or undefined if an error occured.
+ */
+export function getValueAsJson(element?: ValueOrProperty) {
+    try {
+        const value = getValue(element);
+        return JSON.stringify(value);
+    } catch {
+        return undefined;
+    }
+}
+
+type ValueOrProperty = ast.Value | ast.Property | ast.PropertyReference;

@@ -1,10 +1,8 @@
 Entity Kunde {
-    name: 1
-    age: 2
+    id: 1
+    name: random(["Max", "Peter", "John"])
+    age: random(20..60),
     account: Account
-    address: Address
-    nex: random([10, 20, 30])
-    nex2: random(1.0..2)
 }
 
 Entity Account {
@@ -14,13 +12,6 @@ Entity Account {
     cards: [1, 2, 3]
     createdAt: "2023-04-02"
     isActive: true
-}
-
-Entity Address {
-    address: "Hauptstr. 1"
-    zip: "53111"
-    city: "Bonn"
-    country: "DE"
 }
 
 Entity References {

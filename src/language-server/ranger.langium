@@ -65,7 +65,7 @@ interface Property { name: string; value: Value | PropertyReference}
 // Terminals
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-terminal FLOAT returns number: /[+-]?[0-9]+\.[0-9]*/;
+terminal FLOAT returns number: /[+-]?[0-9]+\.[0-9]+/;
 terminal INTEGER returns number: /[+-]?[0-9]+/;
 terminal BOOL returns boolean: "true" | "false";
 terminal DATE returns Date: /"\d{4}-\d{2}-\d{2}"/;
