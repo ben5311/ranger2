@@ -22,7 +22,7 @@ PropertyReference:
 
 List:
     "["
-        (values+=Value ("," values+=Value|PropertyReference)*)?     // TODO: PropertyReference in Lists not working yet
+        (values+=(Value|PropertyReference) ("," values+=(Value|PropertyReference))* ","?)?
     "]";
 
 Literal:
