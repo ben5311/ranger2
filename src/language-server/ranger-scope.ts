@@ -10,9 +10,8 @@ export class RangerScopeProvider extends DefaultScopeProvider {
             if (!previousElement) {
                 return super.getScope(context);
             }
-            const previousValue = previousElement.value;
-            const resolved = resolveValue(previousElement); // TODO: scoping of resolved references not yet working
-            return this.scopeValue(previousValue);
+            const resolved = resolveValue(previousElement);
+            return this.scopeValue(resolved);
         }
         return super.getScope(context);
     }
