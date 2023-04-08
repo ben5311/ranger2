@@ -17,7 +17,8 @@ export class RangerFormatter extends AbstractFormatter {
         if (ast.isObjekt(node)) {
             const bracesOpen = formatter.keyword('{');
             const bracesClose = formatter.keyword('}');
-            formatter.interior(bracesOpen, bracesClose).prepend(Formatting.indent({ allowMore: true }));
+            const interior = formatter.interior(bracesOpen, bracesClose);
+            interior.prepend(Formatting.indent({ allowMore: true }));
             bracesClose.prepend(Formatting.newLine());
             if (ast.isDocument(node.$container?.$container)) {
                 bracesClose.append(Formatting.newLines(2));
@@ -33,7 +34,15 @@ export class RangerFormatter extends AbstractFormatter {
         formatting: FormattingAction,
         context: FormattingContext,
     ): TextEdit[] {
-        // Fix for no blank lines between entities if they have a docstring on top
+        // Add trailing commas to properties
+        /*         if (ast.isProperty(b.element) && !b.text.endsWith(',')) {
+            const textEdit: TextEdit = {
+                range: b.range,
+                newText: b.text.trimEnd() + ',',
+            };
+            return [textEdit];
+        } */
+        // Fix for no blank lines between Entities if they have a comment on top
         if (b.hidden && b.text.match(/\/[/*]/) && isRootCstNode(b.parent)) {
             b = {
                 parent: b.parent,
