@@ -1,16 +1,15 @@
 Entity Kunde {
     id: 1
     name: random("Max", "Peter", "John")
-    age: random(20..60),
+    age: random(20..60)
+    createdAt: "2023-04-02"
     account: Account
 }
 
 Entity Account {
-    id: 1
     balance: 15000
     currency: "EUR"
     cards: [1, 2, 3]
-    createdAt: "2023-04-02"
     isActive: true
 }
 

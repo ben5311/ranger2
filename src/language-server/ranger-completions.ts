@@ -19,7 +19,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
     KeywordSnippets: Record<string, string> = {
         'Entity {}': 'Entity $0 {\n\t\n}',
         'print()': 'print($0)',
-        'random([])': 'random([$0])',
+        'random()': 'random([$0])',
         'random(a..b)': 'random($1..$0)',
     };
 
@@ -30,17 +30,17 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         const completions = await super.getCompletion(document, params);
         if (params.position.character == 0) {
             const offset = document.textDocument.offsetAt(params.position);
-            for (const [completion, insertText] of Object.entries(this.DocumentSnippets)) {
+            Object.entries(this.DocumentSnippets).forEach(([key, value], index) => {
                 const completionItem = this.fillCompletionItem(document.textDocument, offset, {
-                    label: completion,
+                    label: key,
                     kind: CompletionItemKind.Text,
                     detail: 'Snippet',
-                    insertText: insertText,
+                    insertText: value,
                     insertTextFormat: InsertTextFormat.Snippet,
-                    sortText: '1',
+                    sortText: `-1000${index}`,
                 });
                 if (completionItem) completions?.items.push(completionItem);
-            }
+            });
         }
         return completions;
     }
@@ -50,19 +50,19 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
      */
     override completionForKeyword(context: CompletionContext, keyword: ast.Keyword, accept: CompletionAcceptor) {
         let matched = false;
-        for (const [completion, insertText] of Object.entries(this.KeywordSnippets)) {
-            if (completion.startsWith(keyword.value)) {
+        Object.entries(this.KeywordSnippets).forEach(([key, value], index) => {
+            if (key.startsWith(keyword.value)) {
                 accept({
-                    label: completion,
+                    label: key,
                     kind: CompletionItemKind.Function,
                     detail: 'Snippet',
-                    insertText: insertText,
+                    insertText: value,
                     insertTextFormat: InsertTextFormat.Snippet,
-                    sortText: '-1',
+                    sortText: `-0000${index}`,
                 });
                 matched = true;
             }
-        }
+        });
         if (!matched) {
             return super.completionForKeyword(context, keyword, accept);
         }
