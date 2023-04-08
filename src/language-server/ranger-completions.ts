@@ -1,15 +1,9 @@
-import { DefaultCompletionProvider, LangiumDocument } from 'langium';
-import {
-    CompletionItem,
-    CompletionItemKind,
-    CompletionList,
-    CompletionParams,
-    InsertTextFormat,
-    Range,
-} from 'vscode-languageserver';
+import { CompletionAcceptor, CompletionContext, DefaultCompletionProvider, LangiumDocument } from 'langium';
+import * as ast from 'langium/lib/grammar/generated/ast';
+import { CompletionItemKind, CompletionParams, InsertTextFormat } from 'vscode-languageserver';
 
 export class RangerCompletionProvider extends DefaultCompletionProvider {
-    CustomSnippets: Record<string, string> = {
+    DocumentSnippets: Record<string, string> = {
         /**
          * A snippet can define tab stops and placeholders with `$1`, `$2`
          * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
@@ -21,50 +15,56 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
          */
         '//': '// $0',
         '/*': '/*\n$0\n*/',
-        'Entity {}': 'Entity $1 {\n\t$0\n}',
+    };
+    KeywordSnippets: Record<string, string> = {
+        'Entity {}': 'Entity $0 {\n\t\n}',
         'print()': 'print($0)',
+        'random([])': 'random([$0])',
+        'random(a..b)': 'random($1..$0)',
     };
 
+    /**
+     * Provides custom Completions when the cursor is at the beginning of the line.
+     */
     override async getCompletion(document: LangiumDocument, params: CompletionParams) {
-        const defaultCompletions = (await super.getCompletion(document, params))?.items || [];
-        const customCompletions: CompletionItem[] = [];
-        const textDocument = document.textDocument;
-        const offset = textDocument.offsetAt(params.position);
-        const currentLineUntilCursor: Range = {
-            start: { line: params.position.line, character: 0 },
-            end: params.position,
-        };
-        const textToBeCompleted = textDocument.getText(currentLineUntilCursor);
-        const acceptor: PartialCompletionItemAcceptor = (partialCompletionItem: PartialCompletionItem) => {
-            const fullCompletionItem = this.fillCompletionItem(textDocument, offset, {
-                ...partialCompletionItem,
-                textEdit: { range: currentLineUntilCursor, newText: partialCompletionItem.insertText },
-                insertText: undefined,
-            });
-            if (fullCompletionItem) customCompletions.push(fullCompletionItem);
-        };
-
-        this.addSnippetCompletions(textToBeCompleted, acceptor);
-
-        const allCompletions = customCompletions.concat(defaultCompletions);
-        return CompletionList.create(allCompletions, true);
-    }
-
-    protected addSnippetCompletions(textToBeCompleted: string, accept: PartialCompletionItemAcceptor) {
-        for (const [completion, insertText] of Object.entries(this.CustomSnippets)) {
-            if (completion.startsWith(textToBeCompleted)) {
-                accept({
+        const completions = await super.getCompletion(document, params);
+        if (params.position.character == 0) {
+            const offset = document.textDocument.offsetAt(params.position);
+            for (const [completion, insertText] of Object.entries(this.DocumentSnippets)) {
+                const completionItem = this.fillCompletionItem(document.textDocument, offset, {
                     label: completion,
-                    kind: CompletionItemKind.Snippet,
+                    kind: CompletionItemKind.Text,
                     detail: 'Snippet',
                     insertText: insertText,
                     insertTextFormat: InsertTextFormat.Snippet,
-                    preselect: true,
+                    sortText: '1',
                 });
+                if (completionItem) completions?.items.push(completionItem);
             }
+        }
+        return completions;
+    }
+
+    /**
+     * Provides custom context-aware completions for language keywords.
+     */
+    override completionForKeyword(context: CompletionContext, keyword: ast.Keyword, accept: CompletionAcceptor) {
+        let matched = false;
+        for (const [completion, insertText] of Object.entries(this.KeywordSnippets)) {
+            if (completion.startsWith(keyword.value)) {
+                accept({
+                    label: completion,
+                    kind: CompletionItemKind.Function,
+                    detail: 'Snippet',
+                    insertText: insertText,
+                    insertTextFormat: InsertTextFormat.Snippet,
+                    sortText: '-1',
+                });
+                matched = true;
+            }
+        }
+        if (!matched) {
+            return super.completionForKeyword(context, keyword, accept);
         }
     }
 }
-
-type PartialCompletionItem = Partial<CompletionItem> & { label: string; insertText: string };
-type PartialCompletionItemAcceptor = (completionItem: PartialCompletionItem) => void;
