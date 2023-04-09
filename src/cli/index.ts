@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { Presets, SingleBar } from 'cli-progress';
 import { Command, Option } from 'commander';
 import fs from 'fs';
 import { NodeFileSystem } from 'langium/node';
@@ -48,12 +49,16 @@ export function generateOutputFile(document: Document, filePath: string, opts: O
     const entity = document.entities[0];
 
     if (!fs.existsSync(opts.outputDir)) fs.mkdirSync(opts.outputDir, { recursive: true });
+    const progressBar = new SingleBar({}, Presets.shades_classic);
+    progressBar.start(opts.count, 0);
     for (let i = 1; i <= opts.count; i++) {
         const value = getValue(entity);
         outputFile.write(JSON.stringify(value));
         outputFile.write('\n');
+        progressBar.increment();
     }
     outputFile.close();
+    progressBar.stop();
 
     return outputFilePath;
 }
