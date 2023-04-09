@@ -20,7 +20,7 @@ describe('RangerValidator', () => {
             validation = await validate(`
             Entity customer {}`);
             expectWarning(validation, Issues.Entity_NameNotCapitalized.code, {
-                node: validation.document.parseResult.value.entities[0],
+                node: validation.result.entities[0],
                 property: 'name',
             });
         });
@@ -34,7 +34,7 @@ describe('RangerValidator', () => {
             Entity Customer {}
             Entity Customer {}`);
             expectError(validation, Issues.Document_DuplicateEntity.code, {
-                node: validation.document.parseResult.value.entities[0],
+                node: validation.result.entities[0],
                 property: 'name',
             });
         });
@@ -53,9 +53,8 @@ describe('RangerValidator', () => {
                 name: "John Doe"
                 name: "John Doe"
             }`);
-            let objekt = validation.document.parseResult.value.entities[0].value as Objekt;
             expectError(validation, Issues.Objekt_DuplicateProperty.code, {
-                node: objekt.properties[0],
+                node: (validation.result.entities[0].value as Objekt).properties[0],
                 property: 'name',
             });
         });
@@ -69,12 +68,38 @@ describe('RangerValidator', () => {
                 married: false
                 phone: null
             }`);
-            let objekt = validation.document.parseResult.value.entities[0].value as Objekt;
-            let props = objekt.properties;
+            let props = (validation.result.entities[0].value as Objekt).properties;
             expectInfo(validation, Issues.DebugInfo.code, { node: props[0], property: 'value', message: '"John Doe"' });
             expectInfo(validation, Issues.DebugInfo.code, { node: props[1], property: 'value', message: '28' });
             expectInfo(validation, Issues.DebugInfo.code, { node: props[2], property: 'value', message: 'false' });
             expectInfo(validation, Issues.DebugInfo.code, { node: props[3], property: 'value', message: 'null' });
+        });
+    });
+
+    describe('checkPropertyReference', () => {
+        test('NoCircularReferences', async () => {
+            let validation = await validate(`
+            Entity Customer {
+                name: name
+            }`);
+            expectError(validation, Issues.PropertyReference_CircularReference.code, {
+                node: (validation.result.entities[0].value as Objekt).properties[0],
+                property: 'value',
+            });
+
+            validation = await validate(`
+            Entity Customer {
+                first: second
+                second: first
+            }`);
+            expectError(validation, Issues.PropertyReference_CircularReference.code, {
+                node: (validation.result.entities[0].value as Objekt).properties[0],
+                property: 'value',
+            });
+            expectError(validation, Issues.PropertyReference_CircularReference.code, {
+                node: (validation.result.entities[0].value as Objekt).properties[1],
+                property: 'value',
+            });
         });
     });
 });

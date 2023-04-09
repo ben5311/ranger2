@@ -30,14 +30,18 @@ export class RangerScopeProvider extends DefaultScopeProvider {
  * Resolves the Value behind a Property or PropertyReference.
  * Supports transitive references.
  */
-export function resolveValue(element?: Property | PropertyReference | Value): Value | undefined {
+export function resolveValue(element?: ValueOrProperty, onError?: (errorMsg: string) => void): Value | undefined {
     let i = 1;
     while (isProperty(element) || isPropertyReference(element)) {
         element = isProperty(element) ? element.value : element.element.ref;
         if (i++ >= 100) {
-            console.log(`Max reference depth exceeded for element [${element?.$type}]`);
+            const name = isProperty(element) ? element.name : undefined;
+            onError = onError || console.log;
+            onError(`Possibly circular refernce on [${name}]: Max reference depth exceeded`);
             return undefined;
         }
     }
     return element;
 }
+
+export type ValueOrProperty = Value | Property | PropertyReference;

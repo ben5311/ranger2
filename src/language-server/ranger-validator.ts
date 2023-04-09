@@ -2,9 +2,10 @@ import { ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { getValue } from '../generator/ranger-generator';
 import { Issue, satisfies } from '../utils/types';
-import { Document, isObjekt, Objekt, RangerAstType } from './generated/ast';
+import { Document, isObjekt, Objekt, PropertyReference, RangerAstType } from './generated/ast';
 import { Config } from './ranger-config';
 import { RangerServices } from './ranger-module';
+import { resolveValue } from './ranger-scope';
 
 /**
  * Register custom validation checks.
@@ -15,6 +16,7 @@ export function registerValidationChecks(services: RangerServices) {
     const checks: ValidationChecks<RangerAstType> = {
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_EntityNamesStartsWithCapital],
         Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_ShowDebugInfo],
+        PropertyReference: [validator.checkPropertyReference_NoCircularReferences],
     };
     registry.register(checks, validator);
 }
@@ -23,6 +25,7 @@ export const Issues = satisfies<Record<string, Issue>>()({
     Document_DuplicateEntity: { code: 'Document.DuplicateEntity', msg: 'Duplicate Entity: ' },
     Entity_NameNotCapitalized: { code: 'Entity.NameNotCapitalized', msg: 'Entity name should start with a capital.' },
     Objekt_DuplicateProperty: { code: 'Entity.DuplicateMember', msg: 'Duplicate Property:' },
+    PropertyReference_CircularReference: { code: 'PropertyReference.CircularReference', msg: 'Circular reference' },
     DebugInfo: { code: 'DebugInfo', msg: '' },
 });
 
@@ -67,6 +70,13 @@ export class RangerValidator {
             if (value === undefined) return;
             accept('info', JSON.stringify(value), { node: prop, property: 'value', code: Issues.DebugInfo.code });
         }
+    }
+
+    checkPropertyReference_NoCircularReferences(ref: PropertyReference, accept: ValidationAcceptor): void {
+        const issue = Issues.PropertyReference_CircularReference;
+        resolveValue(ref, (_) => {
+            accept('error', issue.msg, { node: ref, code: issue.code });
+        });
     }
 
     findDuplicates<T extends { name: string }>(elements: T[]): T[] {

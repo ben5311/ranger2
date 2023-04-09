@@ -580,6 +580,7 @@ function replaceIndices(base: ExpectedBase): { output: string; indices: number[]
 export interface ValidationResult<T extends AstNode = AstNode> {
     diagnostics: Diagnostic[];
     document: LangiumDocument<T>;
+    result: T;
 }
 
 export function validationHelper<T extends AstNode = AstNode>(
@@ -588,7 +589,11 @@ export function validationHelper<T extends AstNode = AstNode>(
     const parse = parseHelper<T>(services);
     return async (input) => {
         const document = await parse(input);
-        return { document, diagnostics: await services.validation.DocumentValidator.validateDocument(document) };
+        return {
+            document,
+            result: document.parseResult.value,
+            diagnostics: await services.validation.DocumentValidator.validateDocument(document),
+        };
     };
 }
 

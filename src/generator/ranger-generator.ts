@@ -1,7 +1,7 @@
 import { nativeMath, Random } from 'random-js';
 
 import * as ast from '../language-server/generated/ast';
-import { resolveValue } from '../language-server/ranger-scope';
+import { resolveValue, ValueOrProperty } from '../language-server/ranger-scope';
 import { DynamicObject } from '../utils/types';
 
 /**
@@ -52,5 +52,3 @@ export function getValueAsJson(element?: ValueOrProperty) {
         return undefined;
     }
 }
-
-type ValueOrProperty = ast.Value | ast.Property | ast.PropertyReference;
