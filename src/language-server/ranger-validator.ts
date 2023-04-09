@@ -1,9 +1,8 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
-import { cloneDeep } from 'lodash';
 
 import { getValue } from '../generator/ranger-generator';
 import { Issue, satisfies } from '../utils/types';
-import { Document, Objekt, PrintStatement, RangerAstType, isObjekt } from './generated/ast';
+import { Document, isObjekt, Objekt, RangerAstType } from './generated/ast';
 import { Config } from './ranger-config';
 import { RangerServices } from './ranger-module';
 
@@ -16,7 +15,6 @@ export function registerValidationChecks(services: RangerServices) {
     const checks: ValidationChecks<RangerAstType> = {
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_EntityNamesStartsWithCapital],
         Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_ShowDebugInfo],
-        PrintStatement: validator.checkPrintStatement_ShowDebugInfo,
     };
     registry.register(checks, validator);
 }
@@ -69,18 +67,6 @@ export class RangerValidator {
             if (value === undefined) return;
             accept('info', JSON.stringify(value), { node: prop, property: 'value', code: Issues.DebugInfo.code });
         }
-    }
-
-    checkPrintStatement_ShowDebugInfo(print: PrintStatement, accept: ValidationAcceptor) {
-        let element = print.propertyReference.element.ref;
-        let value = getValue(element);
-        if (value === undefined) return;
-        let range = cloneDeep(print.$cstNode?.range);
-        if (range) {
-            range.start.character += 6;
-            range.end.character -= 1;
-        }
-        accept('info', JSON.stringify(value), { node: print, range: range, code: Issues.DebugInfo.code });
     }
 
     findDuplicates<T extends { name: string }>(elements: T[]): T[] {

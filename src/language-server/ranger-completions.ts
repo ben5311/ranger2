@@ -18,9 +18,9 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
     };
     KeywordSnippets: Record<string, string> = {
         'Entity {}': 'Entity $0 {\n\t\n}',
-        'print()': 'print($0)',
-        'random()': 'random([$0])',
+        'random()': 'random($0)',
         'random(a..b)': 'random($1..$0)',
+        'map(=>)': 'map($1 => [$0])',
     };
 
     /**

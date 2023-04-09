@@ -1,7 +1,7 @@
 grammar Ranger
 
 entry Document:
-    (entities+=Entity | printStatements+=PrintStatement)*;
+    (entities+=Entity)*;
 
 Entity returns Entity:
     "Entity" name=ID value=Objekt;
@@ -15,7 +15,7 @@ Property returns Property:
     name=(STRING|ID) ":" value=(Value|PropertyReference) ","?;
 
 Value:
-     Objekt | List | Literal | Num | Func | Null;
+     Objekt | List | Func | Literal | Num | Null;
 
 PropertyReference:
     element=[Property:ID] ({infer PropertyReference.previous=current} "." element=[Property:ID])*;
@@ -43,7 +43,7 @@ Null:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Func:
-    Random | PrintStatement;
+    Random | MapFunc;
 
 Random:
     "random" "(" (range=Range | list=ListWithoutBrackets)  ")";     // TODO: Allow references for range and list
@@ -54,8 +54,9 @@ Range:
 ListWithoutBrackets returns List:
     (values+=(Value|PropertyReference) ("," values+=(Value|PropertyReference))* ","?)?;
 
-PrintStatement:
-    "print" "(" propertyReference=PropertyReference ")";
+MapFunc:
+    "map" "(" ref=PropertyReference "=>" values=List ")";
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Interfaces

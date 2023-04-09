@@ -38,18 +38,4 @@ describe('RangerFormatter', () => {
             }`,
         });
     });
-
-    test('New line after print statements', async () => {
-        await testFormatting({
-            before: dedent`
-            Entity Customer {}
-            print(Customer) print(Customer)`,
-            after: dedent`
-            Entity Customer {
-            }
-
-            print(Customer)
-            print(Customer)`,
-        });
-    });
 });

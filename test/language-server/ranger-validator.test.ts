@@ -77,29 +77,4 @@ describe('RangerValidator', () => {
             expectInfo(validation, Issues.DebugInfo.code, { node: props[3], property: 'value', message: 'null' });
         });
     });
-
-    describe('checkPrintStatement', () => {
-        test('ShowDebugInfo', async () => {
-            let validation = await validate(`
-            Entity Customer {
-                name: "John Doe"
-                age: 28
-                married: false
-                address: {
-                    state: "CA"
-                    city: "Los Angeles"
-                }
-            }
-            print(Customer)
-            print(Customer.address)`);
-            expectInfo(validation, Issues.DebugInfo.code, {
-                range: { start: { line: 10, character: 18 }, end: { line: 10, character: 26 } },
-                message: '{"name":"John Doe","age":28,"married":false,"address":{"state":"CA","city":"Los Angeles"}}',
-            });
-            expectInfo(validation, Issues.DebugInfo.code, {
-                range: { start: { line: 11, character: 18 }, end: { line: 11, character: 34 } },
-                message: '{"state":"CA","city":"Los Angeles"}',
-            });
-        });
-    });
 });

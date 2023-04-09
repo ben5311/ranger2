@@ -30,8 +30,6 @@ export class RangerFormatter extends AbstractFormatter {
             if (ast.isDocument(node.$container?.$container)) {
                 bracesClose.append(Formatting.newLines(2));
             }
-        } else if (ast.isPrintStatement(node)) {
-            formatter.node(node).append(Formatting.newLines(1));
         }
     }
 
