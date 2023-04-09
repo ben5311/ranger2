@@ -625,7 +625,7 @@ export function quickFixHelper<T extends AstNode = AstNode>(
 
 export type Predicate<T> = (arg: T) => boolean;
 
-function isRangeEqual(lhs: Range, rhs: Range): boolean {
+export function isRangeEqual(lhs: Range, rhs: Range): boolean {
     return (
         lhs.start.character === rhs.start.character &&
         lhs.start.line === rhs.start.line &&
@@ -634,7 +634,7 @@ function isRangeEqual(lhs: Range, rhs: Range): boolean {
     );
 }
 
-function isRangeInside(outer: Range, inner: Range): boolean {
+export function isRangeInside(outer: Range, inner: Range): boolean {
     if (outer.start.line > inner.start.line) return false;
     if (outer.end.line < inner.end.line) return false;
     if (outer.start.line == inner.start.line && outer.start.character > inner.start.character) return false;

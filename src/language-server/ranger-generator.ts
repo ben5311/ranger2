@@ -4,6 +4,10 @@ import { DynamicObject } from '../utils/types';
 import * as ast from './generated/ast';
 import { resolveReference, ValueOrProperty } from './ranger-scope';
 
+//const cache = new Map();
+
+// TODO: implement get() and reset() mechanism using cache
+
 /**
  * Returns the next generated value.
  */

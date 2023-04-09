@@ -1,6 +1,6 @@
 import { AstNode } from 'langium';
 
-import { isEntity, isObjekt, isProperty, isPropertyReference, Property } from '../language-server/generated/ast';
+import { isEntity, isObjekt, isProperty, Property } from '../language-server/generated/ast';
 
 /**
  * Allows to enforce types without throwing away information about any more specific type
