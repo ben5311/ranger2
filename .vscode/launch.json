@@ -27,7 +27,15 @@
                 "${workspaceFolder}/out/**/*.js",
                 "${workspaceFolder}/node_modules/langium"
             ]
-        }
+        },
+        {
+            "name": "Debug CLI",
+            "type": "node",
+            "request": "launch",
+            "args": [
+                "${workspaceFolder}/out/cli/index.js"
+            ]
+    }
     ],
     "compounds": [
         {

@@ -1,7 +1,7 @@
 import chalk from 'chalk';
-import path from 'path';
 import fs from 'fs';
 import { AstNode, LangiumDocument, LangiumServices } from 'langium';
+import path from 'path';
 import { URI } from 'vscode-uri';
 
 export async function extractDocument(fileName: string, services: LangiumServices): Promise<LangiumDocument> {
@@ -19,13 +19,13 @@ export async function extractDocument(fileName: string, services: LangiumService
     const document = services.shared.workspace.LangiumDocuments.getOrCreateDocument(URI.file(path.resolve(fileName)));
     await services.shared.workspace.DocumentBuilder.build([document], { validationChecks: 'all' });
 
-    const validationErrors = (document.diagnostics ?? []).filter(e => e.severity === 1);
+    const validationErrors = (document.diagnostics ?? []).filter((e) => e.severity === 1);
     if (validationErrors.length > 0) {
         console.error(chalk.red('There are validation errors:'));
         for (const validationError of validationErrors) {
-            console.error(chalk.red(
-                `line ${validationError.range.start.line + 1}: ${validationError.message} [${document.textDocument.getText(validationError.range)}]`
-            ));
+            const lineNumber = validationError.range.start.line + 1;
+            const text = document.textDocument.getText(validationError.range);
+            console.error(chalk.red(`line ${lineNumber}: ${validationError.message} [${text}]`));
         }
         process.exit(1);
     }
@@ -37,15 +37,11 @@ export async function extractAstNode<T extends AstNode>(fileName: string, servic
     return (await extractDocument(fileName, services)).parseResult?.value as T;
 }
 
-interface FilePathData {
-    destination: string,
-    name: string
-}
-
-export function extractDestinationAndName(filePath: string, destination: string | undefined): FilePathData {
-    filePath = path.basename(filePath, path.extname(filePath)).replace(/[.-]/g, '');
-    return {
-        destination: destination ?? path.join(path.dirname(filePath), 'generated'),
-        name: path.basename(filePath)
-    };
+export function parseIntg(text: string): number {
+    const parsedNumber = parseInt(text);
+    if (isNaN(parsedNumber)) {
+        console.log(chalk.red(`Not a valid integer: ${text}`));
+        process.exit(1);
+    }
+    return parsedNumber;
 }
