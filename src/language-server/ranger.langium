@@ -12,20 +12,26 @@ Objekt:
     "}";
 
 Property returns Property:
-    name=(STRING|ID) ":" value=(Value|PropertyReference) ","?;
+    name=(STRING|ID) ":" value=ValueOrPropertyReference ","?;
+
+ValueOrPropertyReference:
+     Value | PropertyReference;
 
 Value:
-     Objekt | List | Func | Literal | Num | Null;
+     Objekt | List | Func | Literal;
 
 PropertyReference:
     element=[Property:ID] ({infer PropertyReference.previous=current} "." element=[Property:ID])*;
 
 List returns List:
     "["
-        (values+=(Value|PropertyReference) ("," values+=(Value|PropertyReference))* ","?)?
+        (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?
     "]";
 
 Literal:
+    Primitive | Num | Null;
+
+Primitive:
     value=(STRING | BOOL | DATE);
 
 Num:
@@ -43,19 +49,25 @@ Null:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Func:
-    Random | MapFunc;
+    RandomFunc | MapFunc;
 
-Random:
+RandomFunc:
     "random" "(" (range=Range | list=ListWithoutBrackets)  ")";     // TODO: Allow references for range and list
+
+MapFunc:
+    "map" "(" source=PropertyReference "=>" (values=List | values=MapObj) ")";
 
 Range:
     min=Num ".." max=Num;
 
 ListWithoutBrackets returns List:
-    (values+=(Value|PropertyReference) ("," values+=(Value|PropertyReference))* ","?)?;
+    (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?;
 
-MapFunc:
-    "map" "(" ref=PropertyReference "=>" values=List ")";
+MapObj:
+    "{" (pairs+=KeyValuePair)* "}";
+
+KeyValuePair:
+    key=Literal ":" value=ValueOrPropertyReference ","?;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,8 +75,8 @@ MapFunc:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 interface Entity extends Property {}
-interface Property { name: string; value: Value | PropertyReference}
-interface List { values: (Value|PropertyReference)[] }
+interface Property { name: string; value: ValueOrPropertyReference }
+interface List { values: ValueOrPropertyReference[] }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Terminals

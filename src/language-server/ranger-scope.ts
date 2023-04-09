@@ -10,7 +10,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
             if (!previousElement) {
                 return super.getScope(context);
             }
-            const resolved = resolveValue(previousElement);
+            const resolved = resolveReference(previousElement);
             return this.scopeValue(resolved);
         }
         return super.getScope(context);
@@ -30,7 +30,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
  * Resolves the Value behind a Property or PropertyReference.
  * Supports transitive references.
  */
-export function resolveValue(element?: ValueOrProperty, onError?: (errorMsg: string) => void): Value | undefined {
+export function resolveReference(element?: ValueOrProperty, onError?: (errorMsg: string) => void): Value | undefined {
     let i = 1;
     while (isProperty(element) || isPropertyReference(element)) {
         element = isProperty(element) ? element.value : element.element.ref;

@@ -1,9 +1,9 @@
 import { AstNode, AstNodeHoverProvider, DocumentationProvider, LangiumServices, MaybePromise } from 'langium';
 import { Hover } from 'vscode-languageserver';
 
-import { getValueAsJson } from '../generator/ranger-generator';
 import { isPureProperty } from '../utils/types';
 import { isProperty, isPropertyReference, isValue } from './generated/ast';
+import { getValueAsJson } from './ranger-generator';
 
 export class RangerHoverProvider extends AstNodeHoverProvider {
     protected readonly documentationProvider: DocumentationProvider;

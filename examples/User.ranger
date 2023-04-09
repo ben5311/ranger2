@@ -1,16 +1,21 @@
 Entity Kunde {
     id: 1
-    name: random("Max", "Peter", "John")
+    gender: random("male", "female")
+    firstname: map(gender => {"male": Names.male, "female": Names.female})
+    lastname: Names.lastname
     age: random(20..60)
-    createdAt: "2023-04-02"
     account: Account
 }
 
 Entity Account {
     balance: 15000
     currency: "EUR"
-    cards: [1, 2, 3]
-    isActive: true
+}
+
+Entity Names {
+    male: random("Max", "John", "Adam", "Alfred")
+    female: random("Alia", "Amanda", "Clara", "Elisa")
+    lastname: random("Ackermann", "Dietz", "Fischer", "Grube")
 }
 
 Entity References {

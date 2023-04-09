@@ -1,8 +1,8 @@
 import { AstNode, DefaultDocumentSymbolProvider, LangiumDocument } from 'langium';
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 
-import { getValueAsJson } from '../generator/ranger-generator';
 import { isSimpleProperty } from '../utils/types';
+import { getValueAsJson } from './ranger-generator';
 
 export class RangerSymbolProvider extends DefaultDocumentSymbolProvider {
     override getSymbol(document: LangiumDocument, astNode: AstNode): DocumentSymbol[] {

@@ -1,11 +1,11 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
 
-import { getValue } from '../generator/ranger-generator';
 import { Issue, satisfies } from '../utils/types';
-import { Document, isObjekt, Objekt, PropertyReference, RangerAstType } from './generated/ast';
+import { Document, Objekt, PropertyReference, RangerAstType, isObjekt } from './generated/ast';
 import { Config } from './ranger-config';
+import { getValue } from './ranger-generator';
 import { RangerServices } from './ranger-module';
-import { resolveValue } from './ranger-scope';
+import { resolveReference } from './ranger-scope';
 
 /**
  * Register custom validation checks.
@@ -74,7 +74,7 @@ export class RangerValidator {
 
     checkPropertyReference_NoCircularReferences(ref: PropertyReference, accept: ValidationAcceptor): void {
         const issue = Issues.PropertyReference_CircularReference;
-        resolveValue(ref, (_) => {
+        resolveReference(ref, (_) => {
             accept('error', issue.msg, { node: ref, code: issue.code });
         });
     }
