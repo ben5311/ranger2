@@ -1,8 +1,35 @@
 import chalk from 'chalk';
 import fs from 'fs';
-import { AstNode, LangiumDocument, LangiumServices } from 'langium';
+import { LangiumDocument, LangiumServices } from 'langium';
+import { NodeFileSystem } from 'langium/node';
 import path from 'path';
 import { URI } from 'vscode-uri';
+
+import { Document } from '../language-server/generated/ast';
+import { getValue, resetValues } from '../language-server/ranger-generator';
+import { createRangerServices } from '../language-server/ranger-module';
+
+export interface ObjectGenerator {
+    next: () => object;
+}
+
+/**
+ * Creates an ObjectGenerator that generates JavaScript objects based on a Ranger configuration file.
+ *
+ * @param filePath Path to the .ranger file.
+ */
+export async function createObjectGenerator(filePath: string): Promise<ObjectGenerator> {
+    const services = createRangerServices(NodeFileSystem).Ranger;
+    const document = (await extractDocument(filePath, services)).parseResult.value as Document;
+    const outputEntity = document.entities[0]; // Pick the first entity of the document
+    return {
+        next: () => {
+            const nextValue = getValue(outputEntity) as object;
+            resetValues();
+            return nextValue;
+        },
+    };
+}
 
 export async function extractDocument(fileName: string, services: LangiumServices): Promise<LangiumDocument> {
     const extensions = services.LanguageMetaData.fileExtensions;
@@ -31,10 +58,6 @@ export async function extractDocument(fileName: string, services: LangiumService
     }
 
     return document;
-}
-
-export async function extractAstNode<T extends AstNode>(fileName: string, services: LangiumServices): Promise<T> {
-    return (await extractDocument(fileName, services)).parseResult?.value as T;
 }
 
 export function parseIntg(text: string): number {
