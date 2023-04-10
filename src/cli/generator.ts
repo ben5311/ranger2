@@ -4,26 +4,25 @@ import { NodeFileSystem } from 'langium/node';
 import path from 'path';
 import * as stream from 'stream';
 
-import { Document } from '../language-server/generated/ast';
 import { getValue, resetValues } from '../language-server/ranger-generator';
 import { createRangerServices } from '../language-server/ranger-module';
-import { extractAstNode } from '../utils/documents';
+import { DocumentSpec, parseDocument } from '../utils/documents';
 import { Format } from './';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Object Generator for use when outside of the LSP server
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-type ObjectGenerator = { next(): object };
+type ObjectGenerator = { next(): any };
 /**
  * Creates an ObjectGenerator that generates JavaScript objects based on a Ranger configuration file.
  *
  * @param filePath Path to the .ranger file.
  */
-export async function createObjectGenerator(filePath: string): Promise<ObjectGenerator> {
+export async function createObjectGenerator(doc: DocumentSpec): Promise<ObjectGenerator> {
     const services = createRangerServices(NodeFileSystem).Ranger;
-    const document = await extractAstNode<Document>(filePath, services);
-    const outputEntity = document.entities[0]; // Pick the first entity of the document
+    const { parseResult } = await parseDocument(services, doc);
+    const outputEntity = parseResult.entities[0]; // Pick the first entity of the document
     return {
         next: () => {
             const nextValue = getValue(outputEntity) as object;

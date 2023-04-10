@@ -1,5 +1,4 @@
 import dedent from 'dedent-js';
-import fs from 'fs';
 import { describe, test } from 'vitest';
 
 import { generateOutputFile } from '../../src/cli';
@@ -17,10 +16,9 @@ Entity User {
 describe('CLI', () => {
     test('Generate JSONL file', async () => {
         const tempDir = createTempDir();
-        const inputFile = `${tempDir.name}/User.ranger`;
-        fs.writeFileSync(inputFile, testEntity);
+        tempDir.createFile('User.ranger', testEntity);
 
-        await generateOutputFile(inputFile, { count: 5, format: 'jsonl', outputDir: tempDir.name });
+        await generateOutputFile(`${tempDir.name}/User.ranger`, { count: 5, format: 'jsonl', outputDir: tempDir.name });
         expectFileContent(
             `${tempDir.name}/User.jsonl`,
             dedent`
@@ -36,10 +34,9 @@ describe('CLI', () => {
 
     test('Generate CSV file', async () => {
         const tempDir = createTempDir();
-        const inputFile = `${tempDir.name}/User.ranger`;
-        fs.writeFileSync(inputFile, testEntity);
+        tempDir.createFile('User.ranger', testEntity);
 
-        await generateOutputFile(inputFile, { count: 5, format: 'csv', outputDir: tempDir.name });
+        await generateOutputFile(`${tempDir.name}/User.ranger`, { count: 5, format: 'csv', outputDir: tempDir.name });
         expectFileContent(
             `${tempDir.name}/User.csv`,
             dedent`

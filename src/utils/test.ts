@@ -17,6 +17,7 @@ import {
     Properties,
     SemanticTokensDecoder,
 } from 'langium';
+import path from 'path';
 import tmp from 'tmp';
 import { expect as expectFunction } from 'vitest';
 import {
@@ -95,7 +96,12 @@ export function createTempFile(options?: tmp.FileOptions & { data?: string }) {
 
 export function createTempDir(options?: tmp.DirOptions) {
     const tmpDir = tmp.dirSync({ unsafeCleanup: true, ...options });
-    return tmpDir;
+    return {
+        ...tmpDir,
+        createFile: function (fileName: string, data = '') {
+            fs.writeFileSync(path.join(tmpDir.name, fileName), data);
+        },
+    };
 }
 
 export function expectFileContent(filePath: string, expectedContent: string) {

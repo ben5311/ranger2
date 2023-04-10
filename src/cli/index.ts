@@ -43,7 +43,7 @@ function parseIntg(text: string): number {
 //generateOutputFile('examples/User.ranger', { count: 20, format: 'jsonl', outputDir: 'generated' });
 
 export async function generateOutputFile(filePath: string, opts: Options): Promise<void> {
-    const generator = await createObjectGenerator(filePath);
+    const generator = await createObjectGenerator({ filePath });
     const outputFileName = path.basename(filePath, path.extname(filePath));
     const outputFilePath = path.join(opts.outputDir, `${outputFileName}.${opts.format}`);
     const outputWriter = createWriter(outputFilePath, opts.format);

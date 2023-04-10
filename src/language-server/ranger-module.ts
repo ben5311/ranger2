@@ -2,6 +2,7 @@ import {
     createDefaultModule,
     createDefaultSharedModule,
     DefaultSharedModuleContext,
+    DefaultValueConverter,
     inject,
     LangiumServices,
     LangiumSharedServices,
@@ -53,6 +54,9 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
         Formatter: () => new RangerFormatter(),
         HoverProvider: (services) => new RangerHoverProvider(services),
         SemanticTokenProvider: (services) => new RangerTokenProvider(services),
+    },
+    parser: {
+        ValueConverter: () => new DefaultValueConverter(),
     },
     references: {
         ScopeProvider: (services) => new RangerScopeProvider(services),
