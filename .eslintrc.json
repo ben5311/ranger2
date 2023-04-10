@@ -17,7 +17,7 @@
     ],
     "rules": {
         // List of [ESLint rules](https://eslint.org/docs/rules/)
-        "@typescript-eslint/no-unused-vars": ["error", {    // Disallow unused Variables
+        "@typescript-eslint/no-unused-vars": ["warn", {    // Disallow unused Variables
             "argsIgnorePattern": "^_",
             "varsIgnorePattern": "^[A-Z]$"
         }],

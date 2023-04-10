@@ -1,13 +1,10 @@
 import chalk from 'chalk';
 import { Presets, SingleBar } from 'cli-progress';
 import { Command, Option } from 'commander';
-import * as csv from 'csv-stringify';
-import fs from 'fs';
 import path from 'path';
-import * as stream from 'stream';
 
 import { RangerLanguageMetaData } from '../language-server/generated/module';
-import { createObjectGenerator } from '../language-server/ranger-generator';
+import { createObjectGenerator, createWriter } from './generator';
 
 export type Options = {
     count: number;
@@ -20,6 +17,7 @@ export type Format = typeof formats[number];
 export default function (): void {
     const program = new Command();
     const fileExtensions = RangerLanguageMetaData.fileExtensions.join(', ');
+
     program
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         .version(require('../../package.json').version)
@@ -31,6 +29,15 @@ export default function (): void {
         .action(generateOutputFile);
 
     program.parse(process.argv);
+}
+
+function parseIntg(text: string): number {
+    const parsedNumber = parseInt(text);
+    if (isNaN(parsedNumber)) {
+        console.log(chalk.red(`Not a valid integer: ${text}`));
+        process.exit(1);
+    }
+    return parsedNumber;
 }
 
 //generateOutputFile('examples/User.ranger', { count: 20, format: 'jsonl', outputDir: 'generated' });
@@ -54,44 +61,4 @@ export async function generateOutputFile(filePath: string, opts: Options): Promi
     outputWriter.end();
     progressBar.stop();
     console.log(chalk.green(`Output file generated successfully: ${outputFilePath}`));
-}
-
-export function createWriter(filePath: string, format: Format): stream.Writable {
-    const parentDir = path.dirname(filePath);
-    if (!fs.existsSync(parentDir)) {
-        fs.mkdirSync(parentDir, { recursive: true });
-    }
-    const transformer = transformers[format]();
-    const outputStream = fs.createWriteStream(filePath, { flags: 'w', encoding: 'utf-8' });
-    transformer.pipe(outputStream);
-    return transformer;
-}
-
-const transformers: { [key: string]: () => stream.Transform } = {
-    jsonl: createJsonlTransformer,
-    csv: createCsvTransformer,
-};
-
-function createJsonlTransformer(): stream.Transform {
-    return new stream.Transform({
-        objectMode: true,
-        transform(chunk, _encoding, callback) {
-            this.push(JSON.stringify(chunk));
-            this.push('\n');
-            callback();
-        },
-    });
-}
-
-function createCsvTransformer(): stream.Transform {
-    return csv.stringify({ header: true, delimiter: ',' });
-}
-
-function parseIntg(text: string): number {
-    const parsedNumber = parseInt(text);
-    if (isNaN(parsedNumber)) {
-        console.log(chalk.red(`Not a valid integer: ${text}`));
-        process.exit(1);
-    }
-    return parsedNumber;
 }
