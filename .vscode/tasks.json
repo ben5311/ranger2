@@ -7,7 +7,7 @@
         "command": "npm run watch",
         "presentation": {
             "reveal": "always",
-            "panel": "new"
+            "panel": "shared"
         },
         "runOptions": { "runOn": "folderOpen" }
         }

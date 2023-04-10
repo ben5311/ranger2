@@ -23,7 +23,6 @@ export default function (): void {
         .addOption(new Option('-f, --format <format>', 'The output format').choices(['jsonl', 'csv']).default('jsonl'))
         .addOption(new Option('-o, --outputDir <dir>', 'The desired output directory').default('generated'))
         .action(generateAction);
-
     program.parse(process.argv);
 }
 
@@ -49,7 +48,8 @@ export function generateOutputFile(document: Document, filePath: string, opts: O
     const entity = document.entities[0];
 
     if (!fs.existsSync(opts.outputDir)) fs.mkdirSync(opts.outputDir, { recursive: true });
-    const progressBar = new SingleBar({}, Presets.shades_classic);
+    const progressBarFormat = ' {bar} {percentage}% | T: {duration_formatted} | ETA: {eta_formatted} | {value}/{total}';
+    const progressBar = new SingleBar({ format: progressBarFormat }, Presets.shades_classic);
     progressBar.start(opts.count, 0);
     for (let i = 1; i <= opts.count; i++) {
         const value = getValue(entity);
