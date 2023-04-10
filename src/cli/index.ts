@@ -5,7 +5,13 @@ import fs from 'fs';
 import path from 'path';
 
 import { RangerLanguageMetaData } from '../language-server/generated/module';
-import { createObjectGenerator, parseIntg } from './cli-util';
+import { createObjectGenerator } from '../language-server/ranger-generator';
+
+export type Options = {
+    count: number;
+    format: 'jsonl' | 'csv';
+    outputDir: string;
+};
 
 export default function (): void {
     const program = new Command();
@@ -21,12 +27,6 @@ export default function (): void {
         .action(generateOutputFile);
     program.parse(process.argv);
 }
-
-export type Options = {
-    count: number;
-    format: 'jsonl' | 'csv';
-    outputDir: string;
-};
 
 // generateOutputFile('examples/User.ranger', { count: 20, format: 'jsonl', outputDir: 'generated' });
 
@@ -51,4 +51,13 @@ export async function generateOutputFile(filePath: string, opts: Options): Promi
     outputFile.close();
     progressBar.stop();
     console.log(chalk.green(`Output file generated successfully: ${outputFilePath}`));
+}
+
+export function parseIntg(text: string): number {
+    const parsedNumber = parseInt(text);
+    if (isNaN(parsedNumber)) {
+        console.log(chalk.red(`Not a valid integer: ${text}`));
+        process.exit(1);
+    }
+    return parsedNumber;
 }

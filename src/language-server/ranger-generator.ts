@@ -1,5 +1,9 @@
+import { NodeFileSystem } from 'langium/node';
 import { nativeMath, Random } from 'random-js';
 
+import { Document } from '../language-server/generated/ast';
+import { createRangerServices } from '../language-server/ranger-module';
+import { extractAstNode } from '../utils/documents';
 import { DynamicObject } from '../utils/types';
 import * as ast from './generated/ast';
 import { resolveReference, ValueOrProperty } from './ranger-scope';
@@ -98,4 +102,27 @@ function getMapFuncValue(func: ast.MapFunc) {
     if (ast.isList(func.values)) {
         return undefined;
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Object Generator for use when outside of the LSP server
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+type ObjectGenerator = { next: () => object };
+/**
+ * Creates an ObjectGenerator that generates JavaScript objects based on a Ranger configuration file.
+ *
+ * @param filePath Path to the .ranger file.
+ */
+export async function createObjectGenerator(filePath: string): Promise<ObjectGenerator> {
+    const services = createRangerServices(NodeFileSystem).Ranger;
+    const document = await extractAstNode<Document>(filePath, services);
+    const outputEntity = document.entities[0]; // Pick the first entity of the document
+    return {
+        next: () => {
+            const nextValue = getValue(outputEntity) as object;
+            resetValues();
+            return nextValue;
+        },
+    };
 }
