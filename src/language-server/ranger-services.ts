@@ -1,18 +1,25 @@
 import {
-	AstNode,
-	AstNodeDescription,
-	AstNodeLocator,
-	DefaultDocumentBuilder,
-	DocumentBuilder,
-	IndexManager,
-	LangiumDocuments,
-	ScopeComputation,
+    AstNode,
+    AstNodeDescription,
+    AstNodeLocator,
+    DefaultDocumentBuilder,
+    DocumentBuilder,
+    IndexManager,
+    LangiumDocuments,
+    LangiumSharedServices,
+    ScopeComputation,
 } from 'langium';
 
 import { RangerAstType } from './generated/ast';
+import { resetValues } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 
 export class RangerDocumentBuilder extends DefaultDocumentBuilder {
+    constructor(services: LangiumSharedServices) {
+        super(services);
+        this.onUpdate((_changed, _deleted) => resetValues());
+    }
+
     invalidateAllDocuments() {
         const documentUris = this.langiumDocuments.all.map((doc) => doc.uri).toArray();
         this.update(documentUris, []);

@@ -4,31 +4,41 @@ import { DynamicObject } from '../utils/types';
 import * as ast from './generated/ast';
 import { resolveReference, ValueOrProperty } from './ranger-scope';
 
-//const cache = new Map();
-
-// TODO: implement get() and reset() mechanism using cache
+const cache = new Map();
 
 /**
- * Returns the next generated value.
+ * Returns the generated value.
+ *
+ * Values are cached, so all property references are resolved to the same value.
  */
 export function getValue(element?: ValueOrProperty): unknown {
-    element = resolveReference(element);
-    if (element === undefined) return undefined;
-    if (ast.isNull(element) || element === null) return null;
-    if (ast.isPrimitive(element)) return element.value;
-    if (ast.isNum(element)) return element.value;
-    if (ast.isList(element)) return element.values.map(getValue);
-    if (ast.isFunc(element)) return getFuncValue(element);
-    // Element must be an Objekt
-    let result: DynamicObject = {};
-    for (let prop of element.properties) {
-        result[prop.name] = getValue(prop.value);
+    let value = resolveReference(element);
+    if (!cache.has(value)) {
+        cache.set(value, doGetValue(value));
     }
-    return result;
+    let cached = cache.get(value);
+    return cached;
+}
+
+function doGetValue(value?: ast.Value): unknown {
+    if (value === undefined) return undefined;
+    if (ast.isNull(value) || value === null) return null;
+    if (ast.isPrimitive(value)) return value.value;
+    if (ast.isNum(value)) return value.value;
+    if (ast.isList(value)) return value.values.map(getValue);
+    if (ast.isFunc(value)) return getFuncValue(value);
+    if (ast.isObjekt(value)) {
+        let result: DynamicObject = {};
+        for (let prop of value.properties) {
+            result[prop.name] = getValue(prop.value);
+        }
+        return result;
+    }
+    return undefined;
 }
 
 /**
- * Returns the next generated value as JSON string or undefined if an error occured.
+ * Returns the generated value as JSON string or undefined if an error occured.
  */
 export function getValueAsJson(element?: ValueOrProperty) {
     try {
@@ -38,6 +48,17 @@ export function getValueAsJson(element?: ValueOrProperty) {
         return undefined;
     }
 }
+
+/**
+ * Reset all generated values.
+ */
+export function resetValues() {
+    cache.clear();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Function values
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getFuncValue(func: ast.Func) {
     switch (func.$type) {
@@ -64,7 +85,6 @@ function getRandomFuncValue(func: ast.RandomFunc) {
 }
 
 function getMapFuncValue(func: ast.MapFunc) {
-    if (ast.isList(func.values)) return undefined;
     if (ast.isMapObj(func.values)) {
         const source = getValue(func.source);
         for (let pair of func.values.pairs) {
@@ -73,6 +93,9 @@ function getMapFuncValue(func: ast.MapFunc) {
                 return target;
             }
         }
+        return undefined;
+    }
+    if (ast.isList(func.values)) {
         return undefined;
     }
 }

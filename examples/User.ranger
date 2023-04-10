@@ -1,26 +1,15 @@
 Entity Kunde {
-    id: 1
+    age: random(18..60)
     gender: random("male", "female")
-    firstname: map(gender => {"male": Names.male, "female": Names.female})
-    lastname: Names.lastname
-    age: random(20..60)
-    account: Account
+    firstname: map(gender => {
+        "male": random("Max", "Jonas", "Sebastian")
+        "female": random("Anna", "Lea", "Sofia")
+        })
+    lastname: random("Ackermann", "Dietz", "Fischer")
+    account: BankAccount
 }
 
-Entity Account {
-    balance: 15000
-    currency: "EUR"
-}
-
-Entity Names {
-    male: random("Max", "John", "Adam", "Alfred")
-    female: random("Alia", "Amanda", "Clara", "Elisa")
-    lastname: random("Ackermann", "Dietz", "Fischer", "Grube")
-}
-
-Entity References {
-    first: 1
-    second: first
-    third: second
-    currency: Kunde.account.currency
+Entity BankAccount {
+    balance: random(1000..15000)
+    currency: random("EUR", "USD", "CHF")
 }

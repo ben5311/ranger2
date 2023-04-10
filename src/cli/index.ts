@@ -7,7 +7,7 @@ import path from 'path';
 
 import { Document } from '../language-server/generated/ast';
 import { RangerLanguageMetaData } from '../language-server/generated/module';
-import { getValue } from '../language-server/ranger-generator';
+import { getValue, resetValues } from '../language-server/ranger-generator';
 import { createRangerServices } from '../language-server/ranger-module';
 import { extractAstNode, parseIntg } from './cli-util';
 
@@ -56,6 +56,7 @@ export function generateOutputFile(document: Document, filePath: string, opts: O
         outputFile.write(JSON.stringify(value));
         outputFile.write('\n');
         progressBar.increment();
+        resetValues();
     }
     outputFile.close();
     progressBar.stop();
