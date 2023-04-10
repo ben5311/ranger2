@@ -58,7 +58,7 @@ export async function generateOutputFile(filePath: string, opts: Options): Promi
         progressBar.increment();
     }
 
-    outputWriter.end();
+    await outputWriter.close();
     progressBar.stop();
     console.log(chalk.green(`Output file generated successfully: ${outputFilePath}`));
 }

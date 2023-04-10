@@ -6,6 +6,7 @@
  * terms of the MIT License, which is available in the project root.
  ******************************************************************************/
 
+import fs from 'fs';
 import {
     AstNode,
     EmptyFileSystem,
@@ -16,6 +17,7 @@ import {
     Properties,
     SemanticTokensDecoder,
 } from 'langium';
+import tmp from 'tmp';
 import { expect as expectFunction } from 'vitest';
 import {
     CancellationTokenSource,
@@ -80,6 +82,26 @@ export const clearIndex = () => {
     services.shared.workspace.IndexManager.remove(testURIs);
     testURIs.length = 0;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Temporary files
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function createTempFile(options?: tmp.FileOptions & { data?: string }) {
+    const tmpFile = tmp.fileSync(options);
+    fs.writeFileSync(tmpFile.fd, options?.data || '');
+    return tmpFile;
+}
+
+export function createTempDir(options?: tmp.DirOptions) {
+    const tmpDir = tmp.dirSync({ unsafeCleanup: true, ...options });
+    return tmpDir;
+}
+
+export function expectFileContent(filePath: string, expectedContent: string) {
+    const actualContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
+    expectEqual(actualContent, expectedContent);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Issues (Validation Errors, Warnings, etc.)

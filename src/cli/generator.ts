@@ -37,7 +37,7 @@ export async function createObjectGenerator(filePath: string): Promise<ObjectGen
 // File writers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function createWriter(filePath: string, format: Format): stream.Writable {
+export function createWriter(filePath: string, format: Format) {
     const parentDir = path.dirname(filePath);
     if (!fs.existsSync(parentDir)) {
         fs.mkdirSync(parentDir, { recursive: true });
@@ -45,7 +45,10 @@ export function createWriter(filePath: string, format: Format): stream.Writable 
     const transformer = transformers[format]();
     const outputStream = fs.createWriteStream(filePath, { flags: 'w', encoding: 'utf-8' });
     transformer.pipe(outputStream);
-    return transformer;
+    return {
+        write: (obj: object) => transformer.write(obj),
+        close: () => closeWriter(transformer, outputStream),
+    };
 }
 
 const transformers: { [key in Format]: () => stream.Transform } = {
@@ -65,5 +68,24 @@ function createJsonlTransformer(): stream.Transform {
 }
 
 function createCsvTransformer(): stream.Transform {
-    return csv.stringify({ header: true, delimiter: ',' });
+    return csv.stringify({
+        header: true,
+        delimiter: ',',
+        cast: {
+            boolean: (bool, _) => bool.toString(),
+        },
+    });
+}
+
+export async function closeWriter(...writers: stream.Writable[]): Promise<void> {
+    const promises: Promise<void>[] = [];
+    writers.forEach((writer) =>
+        promises.push(
+            new Promise((resolve, _reject) => {
+                writer.end();
+                writer.on('finish', () => resolve());
+            }),
+        ),
+    );
+    await Promise.all(promises);
 }
