@@ -14,18 +14,6 @@ import { RangerAstType } from './generated/ast';
 import { resetValues } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 
-export class RangerDocumentBuilder extends DefaultDocumentBuilder {
-    constructor(services: LangiumSharedServices) {
-        super(services);
-        this.onUpdate((_changed, _deleted) => resetValues());
-    }
-
-    invalidateAllDocuments() {
-        const documentUris = this.langiumDocuments.all.map((doc) => doc.uri).toArray();
-        this.update(documentUris, []);
-    }
-}
-
 export class IndexAccess {
     protected readonly documentBuilder: DocumentBuilder;
     protected readonly documents: LangiumDocuments;
@@ -64,5 +52,17 @@ export class IndexAccess {
         }
         const doc = this.documents.getOrCreateDocument(nodeDescription.documentUri);
         return this.astNodeLocator.getAstNode(doc.parseResult.value, nodeDescription.path);
+    }
+}
+
+export class RangerDocumentBuilder extends DefaultDocumentBuilder {
+    constructor(services: LangiumSharedServices) {
+        super(services);
+        this.onUpdate((_changed, _deleted) => resetValues());
+    }
+
+    invalidateAllDocuments() {
+        const documentUris = this.langiumDocuments.all.map((doc) => doc.uri).toArray();
+        this.update(documentUris, []);
     }
 }

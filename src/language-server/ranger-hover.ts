@@ -1,7 +1,6 @@
 import { AstNode, AstNodeHoverProvider, DocumentationProvider, LangiumServices, MaybePromise } from 'langium';
 import { Hover } from 'vscode-languageserver';
 
-import { isPureProperty } from '../utils/types';
 import { isProperty, isPropertyReference, isValue } from './generated/ast';
 import { getValueAsJson } from './ranger-generator';
 
@@ -19,13 +18,14 @@ export class RangerHoverProvider extends AstNodeHoverProvider {
     protected getAstNodeHoverContent(node: AstNode): MaybePromise<Hover | undefined> {
         if (isValue(node) || isProperty(node) || isPropertyReference(node)) {
             const value = getValueAsJson(node);
-            const prefix = isPureProperty(node) ? `${node.name}: ` : '';
-            return {
-                contents: {
-                    kind: 'plaintext',
-                    value: prefix + value,
-                },
-            };
+            if (value !== undefined) {
+                return {
+                    contents: {
+                        kind: 'plaintext',
+                        value: isProperty(node) ? `${node.name}: ${value}` : value,
+                    },
+                };
+            }
         }
         return undefined;
     }

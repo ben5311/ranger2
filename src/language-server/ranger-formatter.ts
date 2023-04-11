@@ -27,7 +27,7 @@ export class RangerFormatter extends AbstractFormatter {
             const interior = formatter.interior(bracesOpen, bracesClose);
             interior.prepend(Formatting.indent({ allowMore: true }));
             bracesClose.prepend(Formatting.newLine());
-            if (ast.isDocument(node.$container?.$container)) {
+            if (ast.isEntity(node.$container)) {
                 bracesClose.append(Formatting.newLines(2));
             }
         }
@@ -40,7 +40,7 @@ export class RangerFormatter extends AbstractFormatter {
         context: FormattingContext,
     ): TextEdit[] {
         // Add trailing commas to properties
-        /*         if (ast.isProperty(b.element) && !b.text.endsWith(',')) {
+        /*  if (ast.isProperty(b.element) && !b.text.endsWith(',')) {
             const textEdit: TextEdit = {
                 range: b.range,
                 newText: b.text.trimEnd() + ',',

@@ -1,7 +1,7 @@
 import { AbstractExecuteCommandHandler, ExecuteCommandAcceptor, LangiumSharedServices } from 'langium';
 
 import { Config } from './ranger-config';
-import { RangerDocumentBuilder } from './ranger-services';
+import { RangerDocumentBuilder } from './ranger-index';
 
 export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
     protected readonly documentBuilder: RangerDocumentBuilder;

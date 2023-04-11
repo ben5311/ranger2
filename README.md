@@ -50,21 +50,6 @@ This folder contains all necessary files for the Ranger DSL language extension.
 
 ## To Go Further
 
-Documentation about the Langium framework is available at <https://langium.org>.
+Documentation about the Langium framework is available at <https://langium.org/docs>.
 
 Langium GitHub-Repository with lots of sample code: <https://github.com/langium/langium>.
-
-### Useful Links
-
-* <https://langium.org/docs/langium-overview/>
-* <https://langium.org/docs/grammar-language/>
-* <https://langium.org/docs/sematic-model/>
-* <https://langium.org/docs/configuration-services/>
-* <https://langium.org/docs/document-lifecycle/>
-* <https://langium.org/guides/scoping/qualified-name/>
-* <https://langium.org/guides/scoping/class-member/>
-* <https://langium.org/tutorials/validation/>
-* <https://langium.org/tutorials/generation/>
-* <https://langium.org/tutorials/building_an_extension/>
-* <https://langium.org/tutorials/langium_and_monaco/>
-* <https://code.visualstudio.com/api/extension-guides/web-extensions>
