@@ -2,9 +2,10 @@ import chalk from 'chalk';
 import { Presets, SingleBar } from 'cli-progress';
 import { Command, Option } from 'commander';
 import path from 'path';
+import stream from 'stream';
 
 import { RangerLanguageMetaData } from '../language-server/generated/module';
-import { createObjectGenerator, createWriter } from './generator';
+import { FileWriter, ObjectGenerator, ProxyTransformer, Transformer } from './generator';
 
 export type Options = {
     count: number;
@@ -14,7 +15,7 @@ export type Options = {
 const formats = ['jsonl', 'csv'] as const;
 export type Format = typeof formats[number];
 
-export default function (): void {
+export function run(): void {
     const program = new Command();
     const fileExtensions = RangerLanguageMetaData.fileExtensions.join(', ');
 
@@ -40,25 +41,35 @@ function parseIntg(text: string): number {
     return parsedNumber;
 }
 
-//generateOutputFile('examples/User.ranger', { count: 20, format: 'jsonl', outputDir: 'generated' });
-
 export async function generateOutputFile(filePath: string, opts: Options): Promise<void> {
-    const generator = await createObjectGenerator({ filePath });
-    const outputFileName = path.basename(filePath, path.extname(filePath));
-    const outputFilePath = path.join(opts.outputDir, `${outputFileName}.${opts.format}`);
-    const outputWriter = createWriter(outputFilePath, opts.format);
+    const outputFileName = `${path.parse(filePath).name}.${opts.format}`;
+    const outputFilePath = path.join(opts.outputDir, outputFileName);
 
     const progressBarFormat = ' {bar} {percentage}% | T: {duration_formatted} | ETA: {eta_formatted} | {value}/{total}';
     const progressBar = new SingleBar({ format: progressBarFormat }, Presets.shades_classic);
     progressBar.start(opts.count, 0);
 
-    for (let i = 1; i <= opts.count; i++) {
-        const generated = generator.next();
-        outputWriter.write(generated);
-        progressBar.increment();
-    }
+    const generator = await ObjectGenerator({ filePath }, opts.count);
+    const proxy = ProxyTransformer(() => progressBar.increment());
+    const transformer = Transformer(opts.format);
+    const writer = FileWriter(outputFilePath);
 
-    await outputWriter.close();
-    progressBar.stop();
-    console.log(chalk.green(`Output file generated successfully: ${outputFilePath}`));
+    return new Promise((resolve, reject) => {
+        stream.pipeline(generator, proxy, transformer, writer, (error) => {
+            progressBar.stop();
+            if (error) {
+                console.error(chalk.red(`Error generating [${outputFilePath}]: ${error}`));
+                reject(error);
+            } else {
+                console.log(chalk.green(`Output file generated successfully: ${outputFilePath}`));
+                resolve();
+            }
+        });
+    });
+}
+
+//generateOutputFile('examples/User.ranger', { count: 20, format: 'jsonl', outputDir: 'generated' }); // For Debugging
+
+if (require.main === module) {
+    run();
 }

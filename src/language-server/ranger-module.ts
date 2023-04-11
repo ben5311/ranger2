@@ -75,11 +75,11 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
     references: {
         ScopeProvider: (services) => new RangerScopeProvider(services),
     },
-    workspace: {
-        IndexAccess: (services) => new IndexAccess(services),
-    },
     validation: {
         RangerValidator: () => new RangerValidator(),
+    },
+    workspace: {
+        IndexAccess: (services) => new IndexAccess(services),
     },
 };
 
