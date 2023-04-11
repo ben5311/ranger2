@@ -24,22 +24,13 @@
             "path": "./syntaxes/ranger.tmLanguage.json"
         }],
         "commands": [
-            {"command": "ranger.generateCurrentFile", "title": "Ranger: Generate File"},
             {"command": "ranger.toggleDebugView", "title": "Ranger: Toggle Debug View"}
         ],
         "menus": {
             "editor/context": [
-                {"command": "ranger.generateCurrentFile", "group": "navigation","when": "resourceLangId == ranger"},
                 {"command": "ranger.toggleDebugView", "group": "navigation","when": "resourceLangId == ranger"}
             ]
-        },
-        "colors": [
-            {
-                "id": "ranger.inlineText",
-				"defaults": {"dark": "#ffffff", "light": "#00b7e4", "highContrast": "#00b7e4"},
-				"description": "Text color for inline values."
-			}
-        ]
+        }
     },
     "activationEvents": ["onLanguage:ranger"],
     "files": [
