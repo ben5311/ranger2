@@ -19,9 +19,9 @@ type ObjectGenerator = { next(): any };
  *
  * @param filePath Path to the .ranger file.
  */
-export async function createObjectGenerator(doc: DocumentSpec): Promise<ObjectGenerator> {
+export async function createObjectGenerator(docSpec: DocumentSpec): Promise<ObjectGenerator> {
     const services = createRangerServices(NodeFileSystem).Ranger;
-    const { parseResult } = await parseDocument(services, doc);
+    const { parseResult } = await parseDocument(services, docSpec);
     const outputEntity = parseResult.entities[0]; // Pick the first entity of the document
     return {
         next: () => {
@@ -39,8 +39,8 @@ export async function createObjectGenerator(doc: DocumentSpec): Promise<ObjectGe
 /**
  * Creates a ReadableStream that outputs objects generated from a Ranger configuration file.
  */
-export async function ObjectGenerator(doc: DocumentSpec, count: number): Promise<stream.Readable> {
-    const generator = await createObjectGenerator(doc);
+export async function ObjectGenerator(docSpec: DocumentSpec, count: number): Promise<stream.Readable> {
+    const generator = await createObjectGenerator(docSpec);
     let i = 1;
     return new stream.Readable({
         objectMode: true,

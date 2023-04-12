@@ -7,32 +7,35 @@ import { URI } from 'vscode-uri';
 
 import { Document } from '../language-server/generated/ast';
 
+/**
+ * A Ranger Document spec that can be provided either as file path or file content.
+ */
 export type DocumentSpec = { filePath: string } | { text: string };
 
 /**
  * Parse a Ranger document from file or string.
  */
-export async function parseDocument(services: LangiumServices, doc: DocumentSpec) {
+export async function parseDocument(services: LangiumServices, docSpec: DocumentSpec) {
     const extensions = services.LanguageMetaData.fileExtensions;
     const { LangiumDocuments, LangiumDocumentFactory, DocumentBuilder } = services.shared.workspace;
     let documentUri: URI;
     let document: LangiumDocument<Document>;
 
-    if ('filePath' in doc) {
-        if (!extensions.includes(path.extname(doc.filePath))) {
+    if ('filePath' in docSpec) {
+        if (!extensions.includes(path.extname(docSpec.filePath))) {
             throw `Please choose a file with one of these extensions: [${extensions}].`;
         }
 
-        if (!fs.existsSync(doc.filePath)) {
-            throw `File [${doc.filePath}] does not exist.`;
+        if (!fs.existsSync(docSpec.filePath)) {
+            throw `File [${docSpec.filePath}] does not exist.`;
         }
 
-        documentUri = URI.file(path.resolve(doc.filePath));
+        documentUri = URI.file(path.resolve(docSpec.filePath));
         document = LangiumDocuments.getOrCreateDocument(documentUri) as LangiumDocument<Document>;
     } else {
         const randomNumber = Math.floor(Math.random() * 10000000) + 1000000;
         documentUri = URI.parse(`file:///${randomNumber}${extensions[0]}`);
-        document = LangiumDocumentFactory.fromString(doc.text, documentUri);
+        document = LangiumDocumentFactory.fromString(docSpec.text, documentUri);
         LangiumDocuments.addDocument(document);
     }
 

@@ -18,7 +18,10 @@ describe('CLI', () => {
         const tempDir = createTempDir();
         tempDir.createFile('User.ranger', testEntity);
 
-        await generateOutputFile(`${tempDir.name}/User.ranger`, { count: 5, format: 'jsonl', outputDir: tempDir.name });
+        await generateOutputFile(
+            { filePath: `${tempDir.name}/User.ranger` },
+            { count: 5, format: 'jsonl', outputDir: tempDir.name },
+        );
         expectFileContent(
             `${tempDir.name}/User.jsonl`,
             dedent`
@@ -36,7 +39,10 @@ describe('CLI', () => {
         const tempDir = createTempDir();
         tempDir.createFile('User.ranger', testEntity);
 
-        await generateOutputFile(`${tempDir.name}/User.ranger`, { count: 5, format: 'csv', outputDir: tempDir.name });
+        await generateOutputFile(
+            { filePath: `${tempDir.name}/User.ranger` },
+            { count: 5, format: 'csv', outputDir: tempDir.name },
+        );
         expectFileContent(
             `${tempDir.name}/User.csv`,
             dedent`

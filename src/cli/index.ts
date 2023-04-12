@@ -5,12 +5,7 @@ import path from 'path';
 import stream from 'stream';
 
 import { RangerLanguageMetaData } from '../language-server/generated/module';
-import {
-	FileWriter,
-	ObjectGenerator,
-	ProxyTransformer,
-	Transformer,
-} from './generator';
+import { FileWriter, ObjectGenerator, ProxyTransformer, Transformer } from './generator';
 
 export type Options = {
     count: number;
@@ -53,14 +48,20 @@ function parseIntg(text: string): number {
     return parsedNumber;
 }
 
-export async function generateOutputFile(filePath: string, opts: Options): Promise<void> {
-    const outputFileName = `${path.parse(filePath).name}.${opts.format}`;
-    const outputFilePath = path.join(opts.outputDir, outputFileName);
+export type DocumentSpec = { filePath: string } | { text: string; fileName: string };
+/**
+ * Generate test data based on a Ranger configuration file.
+ *
+ * Provide either the path to the Ranger file or its content and the desired output file name.
+ */
+export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): Promise<void> {
+    const outputFileName = path.parse('fileName' in docSpec ? docSpec.fileName : docSpec.filePath).name;
+    const outputFilePath = path.join(opts.outputDir, `${outputFileName}.${opts.format}`);
 
     const progressBarFormat = ' {bar} {percentage}% | T: {duration_formatted} | ETA: {eta_formatted} | {value}/{total}';
     const progressBar = new SingleBar({ format: progressBarFormat }, Presets.shades_classic);
 
-    const generator = await ObjectGenerator({ filePath }, opts.count);
+    const generator = await ObjectGenerator(docSpec, opts.count);
     const reporter = ProxyTransformer(() => progressBar.increment());
     const transformer = Transformer(opts.format);
     const writer = FileWriter(outputFilePath);
