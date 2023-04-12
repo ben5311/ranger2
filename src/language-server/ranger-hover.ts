@@ -15,7 +15,7 @@ export class RangerHoverProvider extends AstNodeHoverProvider {
     /**
      * Returns generated Value on hover over Property.
      */
-    protected getAstNodeHoverContent(node: AstNode): MaybePromise<Hover | undefined> {
+    public getAstNodeHoverContent(node: AstNode): MaybePromise<Hover | undefined> {
         if (isValue(node) || isProperty(node) || isPropertyReference(node)) {
             const value = getValueAsJson(node);
             if (value !== undefined) {

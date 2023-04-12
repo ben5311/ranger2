@@ -5,7 +5,7 @@ import { isSimpleProperty } from '../utils/types';
 import { getValueAsJson } from './ranger-generator';
 
 export class RangerSymbolProvider extends DefaultDocumentSymbolProvider {
-    override getSymbol(document: LangiumDocument, astNode: AstNode): DocumentSymbol[] {
+    public override getSymbol(document: LangiumDocument, astNode: AstNode): DocumentSymbol[] {
         const node = astNode.$cstNode;
         const nameNode = this.nameProvider.getNameNode(astNode);
         if (nameNode && node) {
@@ -26,7 +26,7 @@ export class RangerSymbolProvider extends DefaultDocumentSymbolProvider {
         }
     }
 
-    override getSymbolKind(type: string): SymbolKind {
+    public override getSymbolKind(type: string): SymbolKind {
         switch (type) {
             case 'Entity':
             case 'Objekt':
