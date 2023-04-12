@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import fs from 'fs';
 import { LangiumDocument, LangiumServices } from 'langium';
 import path from 'path';
+import { DiagnosticSeverity } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
 import { Document } from '../language-server/generated/ast';
@@ -19,13 +20,11 @@ export async function parseDocument(services: LangiumServices, doc: DocumentSpec
 
     if ('filePath' in doc) {
         if (!extensions.includes(path.extname(doc.filePath))) {
-            console.error(chalk.yellow(`Please choose a file with one of these extensions: ${extensions}.`));
-            process.exit(1);
+            throw `Please choose a file with one of these extensions: [${extensions}].`;
         }
 
         if (!fs.existsSync(doc.filePath)) {
-            console.error(chalk.red(`File ${doc.filePath} does not exist.`));
-            process.exit(1);
+            throw `File [${doc.filePath}] does not exist.`;
         }
 
         documentUri = URI.file(path.resolve(doc.filePath));
@@ -52,4 +51,18 @@ export async function parseDocument(services: LangiumServices, doc: DocumentSpec
 
     const parseResult = document.parseResult?.value;
     return { document, parseResult };
+}
+
+/**
+ * Returns true if the LangiumDocument has validation errors.
+ */
+export function hasErrors(document: LangiumDocument): boolean {
+    return !!document.diagnostics?.filter((d) => d.severity === DiagnosticSeverity.Error).length;
+}
+
+/**
+ * Returns true if the LangiumDocument has no validation errors.
+ */
+export function hasNoErrors(document: LangiumDocument): boolean {
+    return !hasErrors(document);
 }

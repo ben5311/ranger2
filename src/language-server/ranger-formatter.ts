@@ -8,15 +8,15 @@ import {
     isRootCstNode,
     LangiumDocument,
 } from 'langium';
-import { DiagnosticSeverity, FormattingOptions, Range, TextEdit } from 'vscode-languageserver';
+import { FormattingOptions, Range, TextEdit } from 'vscode-languageserver';
 
+import { hasErrors } from '../utils/documents';
 import * as ast from './generated/ast';
 
 export class RangerFormatter extends AbstractFormatter {
     override doDocumentFormat(document: LangiumDocument, options: FormattingOptions, range?: Range): TextEdit[] {
-        // Do not format if document has validation errors
-        const errors = document.diagnostics?.filter((d) => d.severity === DiagnosticSeverity.Error).length;
-        return errors ? [] : super.doDocumentFormat(document, options, range);
+        // Do not format a document if it has validation errors
+        return hasErrors(document) ? [] : super.doDocumentFormat(document, options, range);
     }
 
     protected format(node: AstNode): void {

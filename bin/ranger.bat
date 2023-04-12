@@ -1,2 +1,2 @@
 @echo off
-call npm exec ranger -- %*
+call node .\out\cli\ %*

@@ -5,7 +5,12 @@ import path from 'path';
 import stream from 'stream';
 
 import { RangerLanguageMetaData } from '../language-server/generated/module';
-import { FileWriter, ObjectGenerator, ProxyTransformer, Transformer } from './generator';
+import {
+	FileWriter,
+	ObjectGenerator,
+	ProxyTransformer,
+	Transformer,
+} from './generator';
 
 export type Options = {
     count: number;
@@ -27,7 +32,14 @@ export function run(): void {
         .addOption(new Option('-c --count <count>', 'The count of rows to generate').default('10').argParser(parseIntg))
         .addOption(new Option('-f, --format <format>', 'The output format').choices(formats).default('jsonl'))
         .addOption(new Option('-o, --outputDir <dir>', 'The desired output directory').default('generated'))
-        .action(generateOutputFile);
+        .action(async (rangerFile, opts) => {
+            try {
+                await generateOutputFile(rangerFile, opts);
+            } catch (error) {
+                console.log(chalk.red(error));
+                process.exit(1);
+            }
+        });
 
     program.parse(process.argv);
 }
@@ -47,15 +59,16 @@ export async function generateOutputFile(filePath: string, opts: Options): Promi
 
     const progressBarFormat = ' {bar} {percentage}% | T: {duration_formatted} | ETA: {eta_formatted} | {value}/{total}';
     const progressBar = new SingleBar({ format: progressBarFormat }, Presets.shades_classic);
-    progressBar.start(opts.count, 0);
 
     const generator = await ObjectGenerator({ filePath }, opts.count);
-    const proxy = ProxyTransformer(() => progressBar.increment());
+    const reporter = ProxyTransformer(() => progressBar.increment());
     const transformer = Transformer(opts.format);
     const writer = FileWriter(outputFilePath);
 
+    progressBar.start(opts.count, 0);
+
     return new Promise((resolve, reject) => {
-        stream.pipeline(generator, proxy, transformer, writer, (error) => {
+        stream.pipeline(generator, reporter, transformer, writer, (error) => {
             progressBar.stop();
             if (error) {
                 console.error(chalk.red(`Error generating [${outputFilePath}]: ${error}`));

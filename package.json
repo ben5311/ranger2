@@ -4,7 +4,7 @@
     "description": "A Test data generator",
     "version": "0.0.1",
     "publisher": "Benjamin Heimann",
-    "icon": "./resources/langium-logo.png",
+    "icon": "./icon.png",
     "categories": ["Testing"],
     "engines": {"vscode": "^1.67.0"},
     "repository": {
@@ -25,11 +25,13 @@
         }],
         "commands": [
             {"command": "ranger.generateFile", "title": "Ranger: Generate File", "enablement": "textInputFocus"},
+            {"command": "ranger.toggleWatchFile", "title": "Ranger: Watch File", "enablement": "textInputFocus"},
             {"command": "ranger.toggleDebugView", "title": "Ranger: Toggle Debug View", "enablement": "textInputFocus"}
         ],
         "menus": {
             "editor/context": [
                 {"command": "ranger.generateFile", "group": "navigation","when": "resourceLangId == ranger"},
+                {"command": "ranger.toggleWatchFile", "group": "navigation","when": "resourceLangId == ranger"},
                 {"command": "ranger.toggleDebugView", "group": "navigation","when": "resourceLangId == ranger"}
             ]
         },
@@ -40,11 +42,11 @@
                     "type":"string",
                     "enum": ["jsonl", "csv"],
                     "default": "jsonl",
-                    "markdownDescription": "Output format for right click -> `Ranger: Generate File`"
+                    "markdownDescription": "Output format for right click > `Ranger: Generate File`"
                 },
                 "ranger.generate.count": {
                     "type":"integer",
-                    "markdownDescription": "Count of rows for right click -> `Ranger: Generate File`.\n\n If you want more than 10000 rows, use the ranger CLI instead.",
+                    "markdownDescription": "Count of rows for right click > `Ranger: Generate File`.\n\n If you want more than 10000 rows, use the ranger CLI instead.",
                     "minimum": 0,
                     "maximum": 10000,
                     "default": 10
