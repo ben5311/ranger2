@@ -1,10 +1,17 @@
-import { AstNode, DefaultDocumentSymbolProvider, LangiumDocument } from 'langium';
-import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
+import { AstNode, DefaultDocumentSymbolProvider, LangiumDocument, MaybePromise } from 'langium';
+import {
+    CancellationToken,
+    DocumentSymbol,
+    SymbolKind,
+    WorkspaceSymbol,
+    WorkspaceSymbolParams,
+} from 'vscode-languageserver';
 
 import { isSimpleProperty } from '../utils/types';
 import { getValueAsJson } from './ranger-generator';
+import { RangerServices } from './ranger-module';
 
-export class RangerSymbolProvider extends DefaultDocumentSymbolProvider {
+export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider {
     public override getSymbol(document: LangiumDocument, astNode: AstNode): DocumentSymbol[] {
         const node = astNode.$cstNode;
         const nameNode = this.nameProvider.getNameNode(astNode);
@@ -27,14 +34,45 @@ export class RangerSymbolProvider extends DefaultDocumentSymbolProvider {
     }
 
     public override getSymbolKind(type: string): SymbolKind {
-        switch (type) {
-            case 'Entity':
-            case 'Objekt':
-                return SymbolKind.Class;
-            case 'Property':
-                return SymbolKind.Key;
-            default:
-                return SymbolKind.Field;
-        }
+        return getSymbolKind(type);
     }
+}
+
+export class RangerWorkspaceSymbolProvider implements WorkspaceSymbolProvider {
+    constructor(protected services: RangerServices) {
+        services.shared.lsp.Connection?.onWorkspaceSymbol((params, token) => this.provideSymbols(params, token));
+    }
+
+    provideSymbols(_params: WorkspaceSymbolParams, _cancelToken?: CancellationToken) {
+        const symbols: WorkspaceSymbol[] = [];
+        for (const element of this.services.shared.workspace.IndexManager.allElements()) {
+            symbols.push({
+                name: element.name,
+                kind: getSymbolKind(element.type),
+                location: {
+                    uri: element.documentUri.toString(),
+                },
+            });
+        }
+        return symbols;
+    }
+}
+
+export function getSymbolKind(type: string): SymbolKind {
+    switch (type) {
+        case 'Entity':
+        case 'Objekt':
+            return SymbolKind.Class;
+        case 'Property':
+            return SymbolKind.Key;
+        default:
+            return SymbolKind.Field;
+    }
+}
+
+export interface WorkspaceSymbolProvider {
+    provideSymbols(
+        params: WorkspaceSymbolParams,
+        cancelToken?: CancellationToken,
+    ): MaybePromise<WorkspaceSymbol[] | undefined>;
 }

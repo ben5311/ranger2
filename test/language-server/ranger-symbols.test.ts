@@ -1,14 +1,15 @@
-import { NodeFileSystem } from 'langium/node';
-import { describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
-import { createRangerServices } from '../../src/language-server/ranger-module';
-import { RangerSymbolProvider } from '../../src/language-server/ranger-symbols';
-import { validate } from '../../src/utils/test';
+import { RangerDocumentSymbolProvider, RangerWorkspaceSymbolProvider } from '../../src/language-server/ranger-symbols';
+import { clearIndex, services, validate } from '../../src/utils/test';
 
-describe('RangerSymbolProvider', () => {
+beforeEach(() => {
+    clearIndex();
+});
+
+describe('RangerDocumentSymbolProvider', () => {
     test('Symbols', async () => {
-        const services = createRangerServices(NodeFileSystem);
-        const symbolProvider = new RangerSymbolProvider(services.Ranger);
+        const symbolProvider = new RangerDocumentSymbolProvider(services.Ranger);
         let { document } = await validate(`
         Entity User {
             name: "John Doe"
@@ -121,6 +122,45 @@ describe('RangerSymbolProvider', () => {
                         ],
                     },
                 ],
+            },
+        ]);
+    });
+});
+
+describe('RangerWorkspaceSymbolProvider', () => {
+    test('Symbols', async () => {
+        const symbolProvider = new RangerWorkspaceSymbolProvider(services.Ranger);
+        await validate({
+            filePath: 'User.ranger',
+            text: `
+            Entity User {}
+            Entity Account {}
+            Entity Address {}
+            `,
+        });
+
+        let symbols = symbolProvider.provideSymbols({ query: '' });
+        expect(symbols).toStrictEqual([
+            {
+                name: 'User',
+                kind: 5,
+                location: {
+                    uri: 'file:///User.ranger',
+                },
+            },
+            {
+                name: 'Account',
+                kind: 5,
+                location: {
+                    uri: 'file:///User.ranger',
+                },
+            },
+            {
+                name: 'Address',
+                kind: 5,
+                location: {
+                    uri: 'file:///User.ranger',
+                },
             },
         ]);
     });

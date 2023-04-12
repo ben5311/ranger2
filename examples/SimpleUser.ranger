@@ -1,0 +1,7 @@
+Entity SimpleUser {
+    name: "John Doe"
+    age: 28
+    married: false
+    phone: "0176 12345678"
+    email: "john.doe@gmail.com"
+}

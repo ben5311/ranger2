@@ -18,6 +18,7 @@ import {
     SemanticTokensDecoder,
 } from 'langium';
 import path from 'path';
+import { nativeMath, Random } from 'random-js';
 import tmp from 'tmp';
 import { expect as expectFunction } from 'vitest';
 import {
@@ -43,23 +44,6 @@ import { URI } from 'vscode-uri';
 import { Document } from '../language-server/generated/ast';
 import { createRangerServices } from '../language-server/ranger-module';
 
-const testURIs: URI[] = [];
-export function parseHelper<T extends AstNode = AstNode>(
-    services: LangiumServices,
-): (input: string) => Promise<LangiumDocument<T>> {
-    const metaData = services.LanguageMetaData;
-    const documentBuilder = services.shared.workspace.DocumentBuilder;
-    return async (input) => {
-        const randomNumber = Math.floor(Math.random() * 10000000) + 1000000;
-        const uri = URI.parse(`file:///${randomNumber}${metaData.fileExtensions[0]}`);
-        const document = services.shared.workspace.LangiumDocumentFactory.fromString<T>(input, uri);
-        services.shared.workspace.LangiumDocuments.addDocument(document);
-        await documentBuilder.build([document]);
-        testURIs.push(uri);
-        return document;
-    };
-}
-
 function expectEqual(actual: unknown, expected: unknown, message?: string) {
     expectFunction(actual, message).toEqual(expected);
 }
@@ -76,6 +60,7 @@ export interface ExpectedSymbols extends ExpectedBase {
 }
 
 export const services = createRangerServices(EmptyFileSystem);
+export const parse = parseHelper<Document>(services.Ranger);
 export const validate = validationHelper<Document>(services.Ranger);
 export const testQuickFix = quickFixHelper<Document>(services.Ranger);
 export const testFormatting = expectFormatting(services.Ranger);
@@ -611,9 +596,30 @@ export interface ValidationResult<T extends AstNode = AstNode> {
     result: T;
 }
 
+type ParseInput = string | { text: string; filePath?: string };
+
+const random = new Random(nativeMath);
+const testURIs: URI[] = [];
+export function parseHelper<T extends AstNode = AstNode>(
+    services: LangiumServices,
+): (input: ParseInput) => Promise<LangiumDocument<T>> {
+    const metaData = services.LanguageMetaData;
+    const documentBuilder = services.shared.workspace.DocumentBuilder;
+    return async (input) => {
+        input = typeof input === 'object' ? input : { text: input };
+        const filePath = input?.filePath || `${random.integer(1000000, 2000000)}${metaData.fileExtensions[0]}`;
+        const uri = URI.parse(`file:///${filePath}`);
+        const document = services.shared.workspace.LangiumDocumentFactory.fromString<T>(input.text, uri);
+        services.shared.workspace.LangiumDocuments.addDocument(document);
+        await documentBuilder.build([document]);
+        testURIs.push(uri);
+        return document;
+    };
+}
+
 export function validationHelper<T extends AstNode = AstNode>(
     services: LangiumServices,
-): (input: string) => Promise<ValidationResult<T>> {
+): (input: ParseInput) => Promise<ValidationResult<T>> {
     const parse = parseHelper<T>(services);
     return async (input) => {
         const document = await parse(input);

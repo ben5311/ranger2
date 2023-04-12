@@ -19,7 +19,8 @@ import { RangerFormatter } from './ranger-formatter';
 import { RangerHoverProvider } from './ranger-hover';
 import { IndexAccess, RangerDocumentBuilder } from './ranger-index';
 import { RangerScopeProvider } from './ranger-scope';
-import { RangerSymbolProvider } from './ranger-symbols';
+import { RangerLanguageServer } from './ranger-server';
+import { RangerDocumentSymbolProvider, RangerWorkspaceSymbolProvider, WorkspaceSymbolProvider } from './ranger-symbols';
 import { RangerTokenProvider } from './ranger-tokens';
 import { RangerValidator, registerValidationChecks } from './ranger-validator';
 
@@ -38,6 +39,7 @@ export type RangerAddedServices = {
     };
     workspace: {
         IndexAccess: IndexAccess;
+        WorkspaceSymbolProvider: WorkspaceSymbolProvider;
     };
 };
 
@@ -49,6 +51,7 @@ export type RangerAddedServices = {
 export const RangerSharedModule: Module<LangiumSharedServices, PartialLangiumSharedServices> = {
     lsp: {
         ExecuteCommandHandler: (services) => new RangerExecuteCommandHandler(services),
+        LanguageServer: (services) => new RangerLanguageServer(services),
     },
     workspace: {
         DocumentBuilder: (services) => new RangerDocumentBuilder(services),
@@ -64,7 +67,7 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
     lsp: {
         CodeActionProvider: (services) => new RangerActionProvider(services),
         CompletionProvider: (services) => new RangerCompletionProvider(services),
-        DocumentSymbolProvider: (services) => new RangerSymbolProvider(services),
+        DocumentSymbolProvider: (services) => new RangerDocumentSymbolProvider(services),
         Formatter: () => new RangerFormatter(),
         HoverProvider: (services) => new RangerHoverProvider(services),
         SemanticTokenProvider: (services) => new RangerTokenProvider(services),
@@ -76,10 +79,11 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
         ScopeProvider: (services) => new RangerScopeProvider(services),
     },
     validation: {
-        RangerValidator: () => new RangerValidator(),
+        RangerValidator: (services) => new RangerValidator(services),
     },
     workspace: {
         IndexAccess: (services) => new IndexAccess(services),
+        WorkspaceSymbolProvider: (services) => new RangerWorkspaceSymbolProvider(services),
     },
 };
 

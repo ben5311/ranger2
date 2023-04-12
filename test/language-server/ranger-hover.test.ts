@@ -1,14 +1,11 @@
-import { NodeFileSystem } from 'langium/node';
 import { describe, expect, test } from 'vitest';
 
 import { Objekt } from '../../src/language-server/generated/ast';
 import { RangerHoverProvider } from '../../src/language-server/ranger-hover';
-import { createRangerServices } from '../../src/language-server/ranger-module';
-import { validate } from '../../src/utils/test';
+import { services, validate } from '../../src/utils/test';
 
 describe('RangerHoverProvider', () => {
     test('Hover Content', async () => {
-        const services = createRangerServices(NodeFileSystem);
         const hoverProvider = new RangerHoverProvider(services.Ranger);
         // @ts-ignore
         const hover = (node) => hoverProvider.getAstNodeHoverContent(node).contents.value;

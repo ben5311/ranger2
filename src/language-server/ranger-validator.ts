@@ -30,6 +30,8 @@ export const Issues = satisfies<Record<string, Issue>>()({
  * Implementation of custom validations.
  */
 export class RangerValidator {
+    constructor(protected services: RangerServices) {}
+
     checkDocument_EntityNamesStartsWithCapital(document: Document, accept: ValidationAcceptor): void {
         for (let entity of document.entities.filter((e) => e.name)) {
             const firstChar = entity.name.substring(0, 1);
