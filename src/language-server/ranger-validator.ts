@@ -1,9 +1,7 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { Issue, satisfies } from '../utils/types';
-import { Document, Objekt, PropertyReference, RangerAstType, isObjekt } from './generated/ast';
-import { Config } from './ranger-config';
-import { getValue } from './ranger-generator';
+import { Document, Objekt, PropertyReference, RangerAstType } from './generated/ast';
 import { RangerServices } from './ranger-module';
 import { resolveReference } from './ranger-scope';
 
@@ -15,7 +13,7 @@ export function registerValidationChecks(services: RangerServices) {
     const validator = services.validation.RangerValidator;
     const checks: ValidationChecks<RangerAstType> = {
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_EntityNamesStartsWithCapital],
-        Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_ShowDebugInfo],
+        Objekt: [validator.checkObjekt_NoDuplicateProperties],
         PropertyReference: [validator.checkPropertyReference_NoCircularReferences],
     };
     registry.register(checks, validator);
@@ -26,7 +24,6 @@ export const Issues = satisfies<Record<string, Issue>>()({
     Entity_NameNotCapitalized: { code: 'Entity.NameNotCapitalized', msg: 'Entity name should start with a capital.' },
     Objekt_DuplicateProperty: { code: 'Entity.DuplicateMember', msg: 'Duplicate Property:' },
     PropertyReference_CircularReference: { code: 'PropertyReference.CircularReference', msg: 'Circular reference' },
-    DebugInfo: { code: 'DebugInfo', msg: '' },
 });
 
 /**
@@ -60,15 +57,6 @@ export class RangerValidator {
         const duplicates = this.findDuplicates(objekt.properties);
         for (let dup of duplicates) {
             accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
-        }
-    }
-
-    checkObjekt_ShowDebugInfo(objekt: Objekt, accept: ValidationAcceptor): void {
-        if (!Config.debug) return;
-        for (let prop of objekt.properties.filter((p) => !isObjekt(p.value))) {
-            let value = getValue(prop.value);
-            if (value === undefined) return;
-            accept('info', JSON.stringify(value), { node: prop, property: 'value', code: Issues.DebugInfo.code });
         }
     }
 

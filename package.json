@@ -25,14 +25,12 @@
         }],
         "commands": [
             {"command": "ranger.generateFile", "title": "Ranger: Generate File", "enablement": "textInputFocus"},
-            {"command": "ranger.toggleWatchFile", "title": "Ranger: Watch File", "enablement": "textInputFocus"},
-            {"command": "ranger.toggleDebugView", "title": "Ranger: Toggle Debug View", "enablement": "textInputFocus"}
+            {"command": "ranger.toggleWatchFile", "title": "Ranger: Watch File", "enablement": "textInputFocus"}
         ],
         "menus": {
             "editor/context": [
                 {"command": "ranger.generateFile", "group": "navigation","when": "resourceLangId == ranger"},
-                {"command": "ranger.toggleWatchFile", "group": "navigation","when": "resourceLangId == ranger"},
-                {"command": "ranger.toggleDebugView", "group": "navigation","when": "resourceLangId == ranger"}
+                {"command": "ranger.toggleWatchFile", "group": "navigation","when": "resourceLangId == ranger"}
             ]
         },
         "configuration":{

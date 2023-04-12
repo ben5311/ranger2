@@ -11,7 +11,6 @@ import * as lsp from 'vscode-languageserver';
 
 import { generateOutputFile } from '../cli';
 import { hasNoErrors } from '../utils/documents';
-import { Config } from './ranger-config';
 import { RangerDocumentBuilder } from './ranger-index';
 
 export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
@@ -47,11 +46,6 @@ export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
             } else {
                 this.fileWatchers.add(fileUri);
             }
-        });
-
-        register('ranger.toggleDebugView', () => {
-            Config.debug = !Config.debug;
-            this.documentBuilder.invalidateAllDocuments();
         });
     }
 
