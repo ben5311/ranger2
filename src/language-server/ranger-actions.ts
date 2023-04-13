@@ -51,6 +51,21 @@ export class RangerActionProvider implements CodeActionProvider {
         };
     }
 
+    @Fix(Issues.MapToList_NotBasedOnAList.code)
+    private convertTo_MapToObject(diagnostic: Diagnostic, document: LangiumDocument): CodeAction {
+        return {
+            title: 'Convert to map(=>{})',
+            kind: CodeActionKind.QuickFix,
+            diagnostics: [diagnostic],
+            isPreferred: true,
+            edit: {
+                changes: {
+                    [document.textDocument.uri]: [diagnostic.data.suggestedChange],
+                },
+            },
+        };
+    }
+
     getCodeActions(document: LangiumDocument, params: CodeActionParams): MaybePromise<Array<Command | CodeAction>> {
         const result: CodeAction[] = [];
         for (const diagnostic of params.context.diagnostics) {

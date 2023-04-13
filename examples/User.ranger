@@ -5,7 +5,7 @@ Entity Kunde {
         "male": random("Max", "Jonas", "Sebastian")
         "female": random("Anna", "Lea", "Sofia")
         })
-    vorname: map(gender => [1, 2, 3])
+    vorname: map(age => {"val0":1,"val1":2,"val2":3})
     lastname: random("Ackermann", "Dietz", "Fischer")
     account: BankAccount
 }

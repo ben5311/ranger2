@@ -61,7 +61,20 @@ export class RangerValidator {
         const issue = Issues.MapToList_NotBasedOnAList;
         const sourceValue = resolveReference(mapFunc.source);
         if (!hasAList(sourceValue)) {
-            accept('error', issue.msg, { node: mapFunc, property: 'source', code: issue.code });
+            accept('error', issue.msg, {
+                node: mapFunc,
+                property: 'source',
+                code: issue.code,
+                data: {
+                    suggestedChange: {
+                        range: mapFunc.list.$cstNode?.range,
+                        newText:
+                            '{' +
+                            mapFunc.list.values.map((val, i) => `"val${i}":${val.$cstNode?.text}`).join(',') +
+                            '}',
+                    },
+                },
+            });
         }
     }
 
