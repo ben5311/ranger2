@@ -56,46 +56,82 @@ export function resetValues() {
     cache.clear();
 }
 
+/**
+ * Clear all generated values.
+ *
+ * Like resetValues() but also clears the state of Function values.
+ */
+export function clearValues() {
+    cache.clear();
+    valueGenerators.clear();
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function values
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Stores the state of Function values.
+ */
+const valueGenerators = new Map<ast.Func, ValueGenerator | undefined>();
+interface ValueGenerator {
+    nextValue: () => unknown;
+}
+
 function getFuncValue(func: ast.Func) {
+    if (!valueGenerators.has(func)) {
+        valueGenerators.set(func, createValueGenerator(func));
+    }
+    const value = valueGenerators.get(func)?.nextValue();
+    return value;
+}
+
+function createValueGenerator(func: ast.Func): ValueGenerator | undefined {
     switch (func.$type) {
-        case 'RandomFunc':
-            return getRandomFuncValue(func);
-        case 'MapFunc':
-            return getMapFuncValue(func);
+        case 'RandomOfRange':
+            return create_RandomOfRange_Generator(func);
+        case 'RandomOfList':
+            return create_RandomOfList_Generator(func);
+        case 'MapToObject':
+            return create_MapToObject_Generator(func);
+        case 'MapToList':
+            return createMapToListGenerator(func);
     }
 }
 
 const random = new Random(nativeMath);
-function getRandomFuncValue(func: ast.RandomFunc) {
-    if (func.range) {
-        const [min, max] = [func.range.min, func.range.max];
-        if (!min || !max) return undefined;
-        const isFloat = ast.isFloat(min) || ast.isFloat(max);
-        const randomNumber = isFloat ? random.real(min.value, max.value) : random.integer(min.value, max.value);
-        return randomNumber;
-    } else if (func.list) {
-        const list = func.list.values;
-        const randomIndex = random.integer(0, list.length - 1);
-        return getValue(list[randomIndex]);
-    }
+function create_RandomOfRange_Generator(func: ast.RandomOfRange): ValueGenerator | undefined {
+    const [min, max] = [func.range.min, func.range.max];
+    if (!min || !max) return undefined; // can be undefined if there are parsing errors
+    let randomGenerator = ast.isFloat(min) || ast.isFloat(max) ? random.real : random.integer;
+    randomGenerator = randomGenerator.bind(random);
+    return { nextValue: () => randomGenerator(min.value, max.value) };
 }
 
-function getMapFuncValue(func: ast.MapFunc) {
-    if (ast.isMapObj(func.values)) {
-        const source = getValue(func.source);
-        for (let pair of func.values.pairs) {
-            if (getValue(pair.key) === source) {
-                const target = getValue(pair.value);
-                return target;
+function create_RandomOfList_Generator(func: ast.RandomOfList): ValueGenerator | undefined {
+    const list = func.list.values;
+    return { nextValue: () => getValue(list[random.integer(0, list.length - 1)]) };
+}
+
+function create_MapToObject_Generator(func: ast.MapToObject): ValueGenerator | undefined {
+    return {
+        nextValue() {
+            const source = getValue(func.source);
+            for (let pair of func.object.pairs) {
+                if (getValue(pair.key) === source) {
+                    const target = getValue(pair.value);
+                    return target;
+                }
             }
-        }
-        return undefined;
-    }
-    if (ast.isList(func.values)) {
-        return undefined;
-    }
+            return undefined;
+        },
+    };
+}
+
+function createMapToListGenerator(func: ast.MapToList): ValueGenerator | undefined {
+    return undefined;
+}
+
+export function hasAList(value?: ast.Value): boolean {
+    return !!value && 'list' in value && ast.isList(value.list);
 }

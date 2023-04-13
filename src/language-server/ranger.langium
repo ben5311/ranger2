@@ -52,10 +52,18 @@ Func:
     RandomFunc | MapFunc;
 
 RandomFunc:
-    "random" "(" (range=Range | list=ListWithoutBrackets)  ")";     // TODO: Allow references for range and list
+    RandomOfRange | RandomOfList;     // TODO: Allow references for range and list
+RandomOfRange:
+    "random" "(" range=Range ")";
+RandomOfList:
+    "random" "(" list=(List|ListWithoutBrackets) ")";
 
 MapFunc:
-    "map" "(" source=PropertyReference "=>" (values=List | values=MapObj) ")";
+    MapToList | MapToObject;
+MapToList:
+    "map" "(" source=PropertyReference "=>" list=List ")";
+MapToObject:
+    "map" "(" source=PropertyReference "=>" object=MapObject ")";
 
 Range:
     min=Num ".." max=Num;
@@ -63,7 +71,7 @@ Range:
 ListWithoutBrackets returns List:
     (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?;
 
-MapObj:
+MapObject:
     "{" (pairs+=KeyValuePair)* "}";
 
 KeyValuePair:

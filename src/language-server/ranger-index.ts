@@ -11,7 +11,7 @@ import {
 } from 'langium';
 
 import { RangerAstType } from './generated/ast';
-import { resetValues } from './ranger-generator';
+import { clearValues } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 
 export class IndexAccess {
@@ -58,7 +58,7 @@ export class IndexAccess {
 export class RangerDocumentBuilder extends DefaultDocumentBuilder {
     constructor(services: LangiumSharedServices) {
         super(services);
-        this.onUpdate((_changed, _deleted) => resetValues());
+        this.onUpdate((_changed, _deleted) => clearValues());
     }
 
     invalidateAllDocuments() {
