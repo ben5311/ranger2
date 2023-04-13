@@ -2,7 +2,7 @@ import { ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { Issue, satisfies } from '../utils/types';
 import * as ast from './generated/ast';
-import { hasAList } from './ranger-generator';
+import { isListFunc } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 import { resolveReference } from './ranger-scope';
 
@@ -14,7 +14,8 @@ export function registerValidationChecks(services: RangerServices) {
     const validator = services.validation.RangerValidator;
     const checks: ValidationChecks<ast.RangerAstType> = {
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_EntityNamesStartsWithCapital],
-        MapToList: [validator.checkMapToList_IsBasedOnAList],
+        MapFunc: [validator.checkMapFunc_NoCircularReferences],
+        MapToList: [validator.checkMapToList_IsBasedOnAListFunc],
         Objekt: [validator.checkObjekt_NoDuplicateProperties],
         PropertyReference: [validator.checkPropertyReference_NoCircularReferences],
     };
@@ -24,7 +25,7 @@ export function registerValidationChecks(services: RangerServices) {
 export const Issues = satisfies<Record<string, Issue>>()({
     Document_DuplicateEntity: { code: 'Document.DuplicateEntity', msg: 'Duplicate Entity: ' },
     Entity_NameNotCapitalized: { code: 'Entity.NameNotCapitalized', msg: 'Entity name should start with a capital.' },
-    MapToList_NotBasedOnAList: { code: 'MapToList.NotBasedOnAList', msg: 'Unsupported value source' },
+    MapToList_NotBasedOnAListFunc: { code: 'MapToList.NotBasedOnAListFunc', msg: 'Unsupported value source' },
     Objekt_DuplicateProperty: { code: 'Entity.DuplicateMember', msg: 'Duplicate Property:' },
     PropertyReference_CircularReference: { code: 'PropertyReference.CircularReference', msg: 'Circular reference' },
 });
@@ -57,10 +58,17 @@ export class RangerValidator {
         }
     }
 
-    checkMapToList_IsBasedOnAList(mapFunc: ast.MapToList, accept: ValidationAcceptor): void {
-        const issue = Issues.MapToList_NotBasedOnAList;
+    checkMapFunc_NoCircularReferences(func: ast.MapFunc, accept: ValidationAcceptor): void {
+        const issue = Issues.PropertyReference_CircularReference;
+        if (func === resolveReference(func.source)) {
+            accept('error', issue.msg, { node: func, property: 'source', code: issue.code });
+        }
+    }
+
+    checkMapToList_IsBasedOnAListFunc(mapFunc: ast.MapToList, accept: ValidationAcceptor): void {
+        const issue = Issues.MapToList_NotBasedOnAListFunc;
         const sourceValue = resolveReference(mapFunc.source);
-        if (!hasAList(sourceValue)) {
+        if (!isListFunc(sourceValue)) {
             accept('error', issue.msg, {
                 node: mapFunc,
                 property: 'source',
@@ -87,6 +95,10 @@ export class RangerValidator {
     }
 
     checkPropertyReference_NoCircularReferences(ref: ast.PropertyReference, accept: ValidationAcceptor): void {
+        this.checkIsNoCircularReference(ref, accept);
+    }
+
+    checkIsNoCircularReference(ref: ast.PropertyReference, accept: ValidationAcceptor) {
         const issue = Issues.PropertyReference_CircularReference;
         resolveReference(ref, (_) => {
             accept('error', issue.msg, { node: ref, code: issue.code });

@@ -75,6 +75,7 @@ export function clearValues() {
  */
 const valueGenerators = new Map<ast.Func, ValueGenerator | undefined>();
 interface ValueGenerator {
+    data?: any;
     nextValue: () => unknown;
 }
 
@@ -110,7 +111,13 @@ function create_RandomOfRange_Generator(func: ast.RandomOfRange): ValueGenerator
 
 function create_RandomOfList_Generator(func: ast.RandomOfList): ValueGenerator | undefined {
     const list = func.list.values;
-    return { nextValue: () => getValue(list[random.integer(0, list.length - 1)]) };
+    return {
+        nextValue() {
+            const randomIndex = random.integer(0, list.length - 1);
+            this.data = randomIndex;
+            return getValue(list[randomIndex]);
+        },
+    };
 }
 
 function create_MapToObject_Generator(func: ast.MapToObject): ValueGenerator | undefined {
@@ -129,9 +136,23 @@ function create_MapToObject_Generator(func: ast.MapToObject): ValueGenerator | u
 }
 
 function createMapToListGenerator(func: ast.MapToList): ValueGenerator | undefined {
-    return undefined;
+    const sourceFunc = resolveReference(func.source);
+    if (!isListFunc(sourceFunc)) return undefined;
+
+    return {
+        nextValue() {
+            getValue(sourceFunc); // Ensure that sourceFunc's index is computed
+            const sourceIndex = valueGenerators.get(sourceFunc as ast.Func)?.data;
+            if (sourceIndex === undefined) {
+                return undefined;
+            }
+            this.data = sourceIndex;
+
+            return getValue(func.list.values[sourceIndex]);
+        },
+    };
 }
 
-export function hasAList(value?: ast.Value): boolean {
-    return !!value && 'list' in value && ast.isList(value.list);
+export function isListFunc(value?: ast.Value): boolean {
+    return ast.isFunc(value) && 'list' in value && ast.isList(value.list);
 }

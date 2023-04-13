@@ -82,6 +82,21 @@ describe('ObjectGenerator', () => {
         });
     });
 
+    test('map(=>[])', async () => {
+        const objectGenerator = await createObjectGenerator({
+            text: `
+            Entity Test {
+                lowercase: random("a", "b", "c", "d")
+                uppercase: map(lowercase => ["A", "B", "C", "D"])
+            }`,
+        });
+        range(20).forEach((_) => {
+            const output = objectGenerator.next();
+            expect(['a', 'b', 'c', 'd']).toContain(output.lowercase);
+            expect(output.uppercase).toBe(output.lowercase.toUpperCase());
+        });
+    });
+
     test('map(=>{})', async () => {
         const objectGenerator = await createObjectGenerator({
             text: `

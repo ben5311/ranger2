@@ -1,13 +1,15 @@
 Entity Kunde {
     age: random(18..60)
     gender: random("male", "female")
-    firstname: map(gender => {
-        "male": random("Max", "Jonas", "Sebastian")
-        "female": random("Anna", "Lea", "Sofia")
-        })
-    vorname: map(age => {"val0":1,"val1":2,"val2":3})
-    lastname: random("Ackermann", "Dietz", "Fischer")
+    firstname: map(gender => [Names.male, Names.female])
+    lastname: Names.lastname
     account: BankAccount
+}
+
+Entity Names {
+    male: random("Max", "Jonas", "Sebastian")
+    female: random("Anna", "Lea", "Sofia")
+    lastname: random("Ackermann", "Dietz", "Fischer")
 }
 
 Entity BankAccount {

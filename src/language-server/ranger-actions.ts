@@ -51,7 +51,7 @@ export class RangerActionProvider implements CodeActionProvider {
         };
     }
 
-    @Fix(Issues.MapToList_NotBasedOnAList.code)
+    @Fix(Issues.MapToList_NotBasedOnAListFunc.code)
     private convertTo_MapToObject(diagnostic: Diagnostic, document: LangiumDocument): CodeAction {
         return {
             title: 'Convert to map(=>{})',

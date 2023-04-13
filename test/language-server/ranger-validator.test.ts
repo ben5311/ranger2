@@ -38,6 +38,20 @@ describe('RangerValidator', () => {
         });
     });
 
+    describe('checkMapFunc', () => {
+        test('NoCircularReferences', async () => {
+            let validation = await validate(`
+            Entity Customer {
+                name: map(name => [1, 2, 3])
+            }`);
+            const name = (validation.result.entities[0].value as Objekt).properties[0];
+            expectError(validation, Issues.PropertyReference_CircularReference.code, {
+                node: name.value,
+                property: 'source',
+            });
+        });
+    });
+
     describe('checkMapToList', () => {
         test('IsBasedOnAList', async () => {
             let validation = await validate(`
@@ -52,7 +66,7 @@ describe('RangerValidator', () => {
                 gender: "male"
                 name: map(gender => ["Max", "Anna"])
             }`);
-            expectError(validation, Issues.MapToList_NotBasedOnAList.code, {
+            expectError(validation, Issues.MapToList_NotBasedOnAListFunc.code, {
                 node: (validation.result.entities[0].value as Objekt).properties[1].value,
                 property: 'source',
             });
