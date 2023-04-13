@@ -1,7 +1,8 @@
 import { ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { Issue, satisfies } from '../utils/types';
-import { Document, Objekt, PropertyReference, RangerAstType } from './generated/ast';
+import * as ast from './generated/ast';
+import { hasAList } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 import { resolveReference } from './ranger-scope';
 
@@ -11,8 +12,9 @@ import { resolveReference } from './ranger-scope';
 export function registerValidationChecks(services: RangerServices) {
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.RangerValidator;
-    const checks: ValidationChecks<RangerAstType> = {
+    const checks: ValidationChecks<ast.RangerAstType> = {
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_EntityNamesStartsWithCapital],
+        MapToList: [validator.checkMapToList_IsBasedOnAList],
         Objekt: [validator.checkObjekt_NoDuplicateProperties],
         PropertyReference: [validator.checkPropertyReference_NoCircularReferences],
     };
@@ -22,6 +24,7 @@ export function registerValidationChecks(services: RangerServices) {
 export const Issues = satisfies<Record<string, Issue>>()({
     Document_DuplicateEntity: { code: 'Document.DuplicateEntity', msg: 'Duplicate Entity: ' },
     Entity_NameNotCapitalized: { code: 'Entity.NameNotCapitalized', msg: 'Entity name should start with a capital.' },
+    MapToList_NotBasedOnAList: { code: 'MapToList.NotBasedOnAList', msg: 'Unsupported value source' },
     Objekt_DuplicateProperty: { code: 'Entity.DuplicateMember', msg: 'Duplicate Property:' },
     PropertyReference_CircularReference: { code: 'PropertyReference.CircularReference', msg: 'Circular reference' },
 });
@@ -32,7 +35,7 @@ export const Issues = satisfies<Record<string, Issue>>()({
 export class RangerValidator {
     constructor(protected services: RangerServices) {}
 
-    checkDocument_EntityNamesStartsWithCapital(document: Document, accept: ValidationAcceptor): void {
+    checkDocument_EntityNamesStartsWithCapital(document: ast.Document, accept: ValidationAcceptor): void {
         for (let entity of document.entities.filter((e) => e.name)) {
             const firstChar = entity.name.substring(0, 1);
             if (firstChar.toUpperCase() !== firstChar) {
@@ -45,7 +48,7 @@ export class RangerValidator {
         }
     }
 
-    checkDocument_NoDuplicateEntities(document: Document, accept: ValidationAcceptor) {
+    checkDocument_NoDuplicateEntities(document: ast.Document, accept: ValidationAcceptor) {
         const issue = Issues.Document_DuplicateEntity;
         const entities = document.entities;
         const duplicates = this.findDuplicates(entities);
@@ -54,7 +57,15 @@ export class RangerValidator {
         }
     }
 
-    checkObjekt_NoDuplicateProperties(objekt: Objekt, accept: ValidationAcceptor): void {
+    checkMapToList_IsBasedOnAList(mapFunc: ast.MapToList, accept: ValidationAcceptor): void {
+        const issue = Issues.MapToList_NotBasedOnAList;
+        const sourceValue = resolveReference(mapFunc.source);
+        if (!hasAList(sourceValue)) {
+            accept('error', issue.msg, { node: mapFunc, property: 'source', code: issue.code });
+        }
+    }
+
+    checkObjekt_NoDuplicateProperties(objekt: ast.Objekt, accept: ValidationAcceptor): void {
         const issue = Issues.Objekt_DuplicateProperty;
         const duplicates = this.findDuplicates(objekt.properties);
         for (let dup of duplicates) {
@@ -62,7 +73,7 @@ export class RangerValidator {
         }
     }
 
-    checkPropertyReference_NoCircularReferences(ref: PropertyReference, accept: ValidationAcceptor): void {
+    checkPropertyReference_NoCircularReferences(ref: ast.PropertyReference, accept: ValidationAcceptor): void {
         const issue = Issues.PropertyReference_CircularReference;
         resolveReference(ref, (_) => {
             accept('error', issue.msg, { node: ref, code: issue.code });

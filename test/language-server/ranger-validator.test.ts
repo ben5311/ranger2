@@ -38,6 +38,27 @@ describe('RangerValidator', () => {
         });
     });
 
+    describe('checkMapToList', () => {
+        test('IsBasedOnAList', async () => {
+            let validation = await validate(`
+            Entity Customer {
+                gender: random("male", "female")
+                name: map(gender => ["Max", "Anna"])
+            }`);
+            expectNoIssues(validation);
+
+            validation = await validate(`
+            Entity Customer {
+                gender: "male"
+                name: map(gender => ["Max", "Anna"])
+            }`);
+            expectError(validation, Issues.MapToList_NotBasedOnAList.code, {
+                node: (validation.result.entities[0].value as Objekt).properties[1].value,
+                property: 'source',
+            });
+        });
+    });
+
     describe('checkObjekt', () => {
         test('NoDuplicateProperties', async () => {
             let validation = await validate(`
