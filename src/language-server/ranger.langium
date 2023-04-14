@@ -49,7 +49,7 @@ Null:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Func:
-    RandomFunc | MapFunc;
+    RandomFunc | MapFunc | CsvFunc;
 
 RandomFunc:
     RandomOfRange | RandomOfList;     // TODO: Allow references for range and list
@@ -64,6 +64,11 @@ MapToList:
     "map" "(" source=PropertyReference "=>" list=List ")";
 MapToObject:
     "map" "(" source=PropertyReference "=>" object=MapObject ")";
+
+CsvFunc:
+    "csv" "(" source=FilePath (",""delimiter=" delimiter=STRING)? ("," noHeader?="noHeader")? ")";
+FilePath:
+    filePath=STRING;
 
 Range:
     min=Num ".." max=Num;

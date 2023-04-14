@@ -2,13 +2,63 @@ import { beforeEach, describe, test } from 'vitest';
 
 import { Objekt } from '../../src/language-server/generated/ast';
 import { Issues } from '../../src/language-server/ranger-validator';
-import { clearIndex, expectError, expectNoIssues, expectWarning, validate } from '../../src/utils/test';
+import { clearIndex, createTempFile, expectError, expectNoIssues, expectWarning, validate } from '../../src/utils/test';
 
 beforeEach(() => {
     clearIndex();
 });
 
 describe('RangerValidator', () => {
+    describe('checkCsvFunc', () => {
+        test('FileExists', async () => {
+            let validation = await validate(`
+            Entity Customer {
+                data: csv("customer.csv")
+            }`);
+            expectError(validation, Issues.FileDoesNotExist.code, {
+                node: (validation.result.entities[0].value as Objekt).properties[0].value,
+                property: 'source',
+            });
+
+            const csvFile = createTempFile({ postfix: '.csv' });
+            validation = await validate(`
+            Entity Customer {
+                data: csv("${escape(csvFile.name)}")
+            }`);
+            expectNoIssues(validation);
+        });
+
+        test('NoBackslashes', async () => {
+            let validation = await validate(`
+            Entity Customer {
+                data: csv(".\\folder\\customer.csv")
+            }`);
+            expectWarning(validation, Issues.FilePathWithBackslashes.code, {
+                node: (validation.result.entities[0].value as Objekt).properties[0].value,
+                property: 'source',
+            });
+        });
+
+        test('NoParseErrors', async () => {
+            let csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
+            let validation = await validate(`
+            Entity Customer {
+                data: csv("${escape(csvFile.name)}")
+            }`);
+            expectNoIssues(validation);
+
+            csvFile = createTempFile({ postfix: '.csv', data: '{"this": "is", "json": "content"}' });
+            validation = await validate(`
+            Entity Customer {
+                data: csv("${escape(csvFile.name)}")
+            }`);
+            expectError(validation, Issues.InvalidCsvFile.code, {
+                node: (validation.result.entities[0].value as Objekt).properties[0].value,
+                property: 'source',
+            });
+        });
+    });
+
     describe('checkDocument', () => {
         test('EntityNameStartsWithCapital', async () => {
             let validation = await validate(`
@@ -17,7 +67,7 @@ describe('RangerValidator', () => {
 
             validation = await validate(`
             Entity customer {}`);
-            expectWarning(validation, Issues.Entity_NameNotCapitalized.code, {
+            expectWarning(validation, Issues.NameNotCapitalized.code, {
                 node: validation.result.entities[0],
                 property: 'name',
             });
@@ -31,7 +81,7 @@ describe('RangerValidator', () => {
             validation = await validate(`
             Entity Customer {}
             Entity Customer {}`);
-            expectError(validation, Issues.Document_DuplicateEntity.code, {
+            expectError(validation, Issues.DuplicateEntity.code, {
                 node: validation.result.entities[0],
                 property: 'name',
             });
@@ -45,7 +95,7 @@ describe('RangerValidator', () => {
                 name: map(name => [1, 2, 3])
             }`);
             const name = (validation.result.entities[0].value as Objekt).properties[0];
-            expectError(validation, Issues.PropertyReference_CircularReference.code, {
+            expectError(validation, Issues.CircularReference.code, {
                 node: name.value,
                 property: 'source',
             });
@@ -86,7 +136,7 @@ describe('RangerValidator', () => {
                 name: "John Doe"
                 name: "John Doe"
             }`);
-            expectError(validation, Issues.Objekt_DuplicateProperty.code, {
+            expectError(validation, Issues.DuplicateProperty.code, {
                 node: (validation.result.entities[0].value as Objekt).properties[0],
                 property: 'name',
             });
@@ -99,7 +149,7 @@ describe('RangerValidator', () => {
             Entity Customer {
                 name: name
             }`);
-            expectError(validation, Issues.PropertyReference_CircularReference.code, {
+            expectError(validation, Issues.CircularReference.code, {
                 node: (validation.result.entities[0].value as Objekt).properties[0],
                 property: 'value',
             });
@@ -109,14 +159,21 @@ describe('RangerValidator', () => {
                 first: second
                 second: first
             }`);
-            expectError(validation, Issues.PropertyReference_CircularReference.code, {
+            expectError(validation, Issues.CircularReference.code, {
                 node: (validation.result.entities[0].value as Objekt).properties[0],
                 property: 'value',
             });
-            expectError(validation, Issues.PropertyReference_CircularReference.code, {
+            expectError(validation, Issues.CircularReference.code, {
                 node: (validation.result.entities[0].value as Objekt).properties[1],
                 property: 'value',
             });
         });
     });
 });
+
+/**
+ * Escape Backslashes in file path.
+ */
+function escape(filePath: string) {
+    return filePath.replace(/\\/g, '/');
+}

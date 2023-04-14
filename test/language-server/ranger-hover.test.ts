@@ -8,7 +8,7 @@ describe('RangerHoverProvider', () => {
     test('Hover Content', async () => {
         const hoverProvider = new RangerHoverProvider(services.Ranger);
         // @ts-ignore
-        const hover = (node) => hoverProvider.getAstNodeHoverContent(node).contents.value;
+        const hover = (node) => hoverProvider.getAstNodeHoverContent(node);
         let { result } = await validate(`
         Entity User {
             name: "John Doe"

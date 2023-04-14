@@ -22,6 +22,9 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'random(a..b)': 'random($1..$0)',
         'map(=>[])': 'map($1 => [$0])', // TODO: show only references having a list as completions for source ref
         'map(=>{})': 'map($1 => {$0})',
+        'csv()': 'csv("$0")',
+        'csv(delimiter)': 'csv("$0", delimiter=",")',
+        'csv(delimiter,noHeader)': 'csv("$0", delimiter=",", noHeader)',
     };
 
     /**

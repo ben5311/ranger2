@@ -1,10 +1,10 @@
 import { DefaultScopeProvider, EMPTY_SCOPE, ReferenceInfo, Scope } from 'langium';
 
-import { isObjekt, isProperty, isPropertyReference, Property, PropertyReference, Value } from './generated/ast';
+import * as ast from './generated/ast';
 
 export class RangerScopeProvider extends DefaultScopeProvider {
     override getScope(context: ReferenceInfo): Scope {
-        if (isPropertyReference(context.container) && context.property === 'element') {
+        if (ast.isPropertyReference(context.container) && context.property === 'element') {
             const propertyReference = context.container;
             const previousElement = propertyReference.previous?.element?.ref;
             if (!previousElement) {
@@ -16,8 +16,8 @@ export class RangerScopeProvider extends DefaultScopeProvider {
         return super.getScope(context);
     }
 
-    private scopeValue(value?: Value): Scope {
-        if (isObjekt(value)) {
+    private scopeValue(value?: ast.Value): Scope {
+        if (ast.isObjekt(value)) {
             return this.createScopeForNodes(value.properties);
         }
         // When the target of our reference isn't an Object, it must be a primitive type.
@@ -32,10 +32,10 @@ export class RangerScopeProvider extends DefaultScopeProvider {
  */
 export function resolveReference(element?: ValueOrProperty, onError?: (errorMsg: string) => void): Value | undefined {
     let i = 1;
-    while (isProperty(element) || isPropertyReference(element)) {
-        element = isProperty(element) ? element.value : element.element.ref;
+    while (ast.isProperty(element) || ast.isPropertyReference(element)) {
+        element = ast.isProperty(element) ? element.value : element.element.ref;
         if (i++ >= 100) {
-            const name = isProperty(element) ? element.name : undefined;
+            const name = ast.isProperty(element) ? element.name : undefined;
             onError = onError || console.log;
             onError(`Possibly circular refernce on [${name}]: Max reference depth exceeded`);
             return undefined;
@@ -44,4 +44,4 @@ export function resolveReference(element?: ValueOrProperty, onError?: (errorMsg:
     return element;
 }
 
-export type ValueOrProperty = Value | Property | PropertyReference;
+export type ValueOrProperty = ast.Value | ast.Property | ast.PropertyReference;

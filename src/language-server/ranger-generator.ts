@@ -1,3 +1,5 @@
+import * as csv from 'csv/sync';
+import fs from 'fs';
 import { nativeMath, Random } from 'random-js';
 
 import { DynamicObject } from '../utils/types';
@@ -44,7 +46,8 @@ export function getValueAsJson(element?: ValueOrProperty) {
     try {
         const value = getValue(element);
         return JSON.stringify(value);
-    } catch {
+    } catch (error) {
+        console.log(error);
         return undefined;
     }
 }
@@ -96,7 +99,9 @@ function createValueGenerator(func: ast.Func): ValueGenerator | undefined {
         case 'MapToObject':
             return create_MapToObject_Generator(func);
         case 'MapToList':
-            return createMapToListGenerator(func);
+            return create_MapToList_Generator(func);
+        case 'CsvFunc':
+            return create_CsvFunc_Generator(func);
     }
 }
 
@@ -135,7 +140,7 @@ function create_MapToObject_Generator(func: ast.MapToObject): ValueGenerator | u
     };
 }
 
-function createMapToListGenerator(func: ast.MapToList): ValueGenerator | undefined {
+function create_MapToList_Generator(func: ast.MapToList): ValueGenerator | undefined {
     const sourceFunc = resolveReference(func.source);
     if (!isListFunc(sourceFunc)) return undefined;
 
@@ -155,4 +160,21 @@ function createMapToListGenerator(func: ast.MapToList): ValueGenerator | undefin
 
 export function isListFunc(value?: ast.Value): boolean {
     return ast.isFunc(value) && 'list' in value && ast.isList(value.list);
+}
+
+function create_CsvFunc_Generator(func: ast.CsvFunc): ValueGenerator | undefined {
+    const data = fs.readFileSync(func.source.filePath, 'utf-8');
+    if (!func.delimiter) {
+        const numCommas = data.match(/,/g)?.length;
+        const numColons = data.match(/;/g)?.length;
+        const delimiter = Number(numCommas) >= Number(numColons) ? ',' : ';';
+        func.delimiter = delimiter;
+    }
+    const rows: any[] = csv.parse(data, { delimiter: func.delimiter, columns: !func.noHeader });
+    return {
+        nextValue() {
+            const randomIndex = random.integer(0, rows.length - 1);
+            return rows[randomIndex];
+        },
+    };
 }

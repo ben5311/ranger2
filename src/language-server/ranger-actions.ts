@@ -24,29 +24,33 @@ export class RangerActionProvider implements CodeActionProvider {
         this.indexManager = services.shared.workspace.IndexManager;
     }
 
-    @Fix(Issues.Entity_NameNotCapitalized.code)
+    @Fix(Issues.NameNotCapitalized.code)
     private makeUpperCase(diagnostic: Diagnostic, document: LangiumDocument): CodeAction {
-        const range = {
-            start: diagnostic.range.start,
-            end: {
-                line: diagnostic.range.start.line,
-                character: diagnostic.range.start.character + 1,
-            },
-        };
+        const start = diagnostic.range.start;
+        const range = { start: start, end: { line: start.line, character: start.character + 1 } };
+        const newText = document.textDocument.getText(range).toUpperCase();
         return {
             title: 'Change first letter to upper case',
             kind: CodeActionKind.QuickFix,
             diagnostics: [diagnostic],
             isPreferred: true,
             edit: {
-                changes: {
-                    [document.textDocument.uri]: [
-                        {
-                            range,
-                            newText: document.textDocument.getText(range).toUpperCase(),
-                        },
-                    ],
-                },
+                changes: { [document.textDocument.uri]: [{ range, newText }] },
+            },
+        };
+    }
+
+    @Fix(Issues.FilePathWithBackslashes.code)
+    private replaceWithForwardSlashes(diagnostic: Diagnostic, document: LangiumDocument): CodeAction {
+        const range = diagnostic.range;
+        const newText = document.textDocument.getText(range).replaceAll(/\\+/g, '/');
+        return {
+            title: 'Replace backslashes with forward slashes',
+            kind: CodeActionKind.QuickFix,
+            diagnostics: [diagnostic],
+            isPreferred: true,
+            edit: {
+                changes: { [document.textDocument.uri]: [{ range, newText }] },
             },
         };
     }
@@ -59,9 +63,7 @@ export class RangerActionProvider implements CodeActionProvider {
             diagnostics: [diagnostic],
             isPreferred: true,
             edit: {
-                changes: {
-                    [document.textDocument.uri]: [diagnostic.data.suggestedChange],
-                },
+                changes: { [document.textDocument.uri]: [diagnostic.data.suggestedChange] },
             },
         };
     }

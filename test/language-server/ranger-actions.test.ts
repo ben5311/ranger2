@@ -12,6 +12,21 @@ describe('RangerActionProvider', () => {
         });
     });
 
+    describe('fixFilePath', () => {
+        test('replaceWithForwardSlashes', async () => {
+            await testQuickFix({
+                before: `
+                Entity Customer {
+                    data: csv(".\\\\folder\\\\customer.csv")
+                }`,
+                after: `
+                Entity Customer {
+                    data: csv("./folder/customer.csv")
+                }`,
+            });
+        });
+    });
+
     describe('fixMapToList', () => {
         test('convertTo_MapToObject', async () => {
             await testQuickFix({

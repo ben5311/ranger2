@@ -12,6 +12,10 @@ Entity Names {
     lastname: random("Ackermann", "Dietz", "Fischer")
 }
 
+Entity Imported {
+    bank: csv("bank.csv")
+}
+
 Entity BankAccount {
     balance: random(1000..15000)
     currency: random("EUR", "USD", "CHF")
