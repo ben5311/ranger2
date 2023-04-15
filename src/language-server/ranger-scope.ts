@@ -30,7 +30,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
  * Resolves the Value behind a Property or PropertyReference.
  * Supports transitive references.
  */
-export function resolveReference(element?: ValueOrProperty, onError?: (errorMsg: string) => void): Value | undefined {
+export function resolveReference(element?: ValueOrProperty, onError?: (error: string) => void): ast.Value | undefined {
     let i = 1;
     while (ast.isProperty(element) || ast.isPropertyReference(element)) {
         element = ast.isProperty(element) ? element.value : element.element.ref;

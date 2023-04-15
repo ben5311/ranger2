@@ -12,17 +12,31 @@
         "url": "https://github.com/ben5311/ranger2"
     },
     "contributes": {
-        "languages": [{
-            "id": "ranger",
-            "aliases": ["Ranger", "ranger"],
-            "extensions": [".ranger"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "ranger",
-            "scopeName": "source.ranger",
-            "path": "./syntaxes/ranger.tmLanguage.json"
-        }],
+        "languages": [
+            {
+                "id": "ranger",
+                "aliases": ["Ranger", "ranger"],
+                "extensions": [".ranger"],
+                "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "ranger-markdown"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "ranger",
+                "scopeName": "source.ranger",
+                "path": "./syntaxes/ranger.tmLanguage.json"
+            },
+            {
+                "language": "ranger-markdown",
+                "scopeName": "markdown.ranger.codeblock",
+                "path": "./syntaxes/ranger-markdown.tmLanguage.json",
+                "injectTo": ["text.html.markdown"],
+                "embeddedLanguages": {"meta.embedded.block.ranger": "ranger"}
+            }
+        ],
         "commands": [
             {"command": "ranger.generateFile", "title": "Ranger: Generate File", "enablement": "textInputFocus"},
             {"command": "ranger.toggleWatchFile", "title": "Ranger: Watch File", "enablement": "textInputFocus"}

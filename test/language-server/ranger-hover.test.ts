@@ -8,33 +8,41 @@ describe('RangerHoverProvider', () => {
     test('Hover Content', async () => {
         const hoverProvider = new RangerHoverProvider(services.Ranger);
         // @ts-ignore
-        const hover = (node) => hoverProvider.getAstNodeHoverContent(node);
+        const hover = (node) => hoverProvider.getAstNodeHover(node);
         let { result } = await validate(`
         Entity User {
             name: "John Doe"
             age: 28
+            birthday: null
             married: false
+            balance: 1000.51
             address: {
-                phone: null
-                email: "john.doe@gmail.com"
+                email: ["john.doe@gmail.com"]
             }
         }`);
 
         let User = result.entities[0];
         let props = (User.value as Objekt).properties;
-        let name = props[0];
-        let age = props[1];
-        let married = props[2];
-        let address = props[3];
-        let phone = (props[3].value as Objekt).properties[0];
+        let [name, age, birthday, married, balance, address] = props;
+        let email = (address.value as Objekt).properties[0];
 
         expect(hover(User)).toBe(
-            'User: {"name":"John Doe","age":28,"married":false,"address":{"phone":null,"email":"john.doe@gmail.com"}}',
+            'User: {"name":"John Doe","age":28,"birthday":null,"married":false,"balance":1000.51,"address":{"email":["john.doe@gmail.com"]}}',
         );
         expect(hover(name)).toBe('name: "John Doe"');
         expect(hover(age)).toBe('age: 28');
+        expect(hover(birthday)).toBe('birthday: null');
         expect(hover(married)).toBe('married: false');
-        expect(hover(address)).toBe('address: {"phone":null,"email":"john.doe@gmail.com"}');
-        expect(hover(phone)).toBe('phone: null');
+        expect(hover(balance)).toBe('balance: 1000.51');
+        expect(hover(address)).toBe('address: {"email":["john.doe@gmail.com"]}');
+        expect(hover(email)).toBe('email: ["john.doe@gmail.com"]');
+
+        expect(hover(name.value)).toBe('"John Doe" : string');
+        expect(hover(age.value)).toBe('28 : integer');
+        expect(hover(birthday.value)).toBe('null');
+        expect(hover(married.value)).toBe('false : boolean');
+        expect(hover(balance.value)).toBe('1000.51 : float');
+        expect(hover(address.value)).toBe('{"email":["john.doe@gmail.com"]}');
+        expect(hover(email.value)).toBe('["john.doe@gmail.com"]');
     });
 });

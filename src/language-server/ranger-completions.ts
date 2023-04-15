@@ -48,7 +48,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         }
         return completions;
     }
-
+    //TODO: Add completions for paths
     /**
      * Provides custom context-aware completions for language keywords.
      */
