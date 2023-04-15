@@ -44,11 +44,11 @@ export class RangerValidator {
 
     checkCsvFunc_InvalidCsvFile(func: ast.CsvFunc, accept: ValidationAcceptor) {
         const issue = Issues.InvalidCsvFile;
-        if (!fs.existsSync(func.source.filePath)) return;
+        if (!fs.existsSync(func.filePath.value)) return;
         try {
             getValue(func);
         } catch {
-            accept('error', issue.msg, { node: func, property: 'source', code: issue.code });
+            accept('error', issue.msg, { node: func, property: 'filePath', code: issue.code });
         }
     }
 
@@ -76,15 +76,15 @@ export class RangerValidator {
 
     checkFilePath_FileExists(filePath: ast.FilePath, accept: ValidationAcceptor) {
         const issue = Issues.FileDoesNotExist;
-        if (!fs.existsSync(filePath.filePath)) {
-            accept('error', issue.msg, { node: filePath, property: 'filePath', code: issue.code });
+        if (!fs.existsSync(filePath.value)) {
+            accept('error', issue.msg, { node: filePath, property: 'value', code: issue.code });
         }
     }
 
     checkFilePath_NoBackslashes(filePath: ast.FilePath, accept: ValidationAcceptor) {
         const issue = Issues.FilePathWithBackslashes;
         if (filePath.$cstNode?.text.includes('\\')) {
-            accept('warning', issue.msg, { node: filePath, property: 'filePath', code: issue.code });
+            accept('warning', issue.msg, { node: filePath, property: 'value', code: issue.code });
         }
     }
 

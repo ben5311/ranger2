@@ -45,3 +45,11 @@ export function resolveReference(element?: ValueOrProperty, onError?: (error: st
 }
 
 export type ValueOrProperty = ast.Value | ast.Property | ast.PropertyReference;
+
+/**
+ * Resolves the Property behind a PropertyReference.
+ */
+export function resolveProperty(ref?: ast.PropertyReference, onError?: (error: string) => void) {
+    let property = resolveReference(ref, onError)?.$container as ast.Property;
+    return property ? property : undefined;
+}

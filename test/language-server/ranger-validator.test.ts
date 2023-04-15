@@ -1,6 +1,6 @@
 import { beforeEach, describe, test } from 'vitest';
 
-import { Objekt } from '../../src/language-server/generated/ast';
+import { CsvFunc, Objekt } from '../../src/language-server/generated/ast';
 import { Issues } from '../../src/language-server/ranger-validator';
 import { clearIndex, createTempFile, expectError, expectNoIssues, expectWarning, validate } from '../../src/utils/test';
 
@@ -16,8 +16,8 @@ describe('RangerValidator', () => {
                 data: csv("customer.csv")
             }`);
             expectError(validation, Issues.FileDoesNotExist.code, {
-                node: (validation.result.entities[0].value as Objekt).properties[0].value,
-                property: 'source',
+                node: (validation.result.entities[0].value as Objekt).properties[0].value as CsvFunc,
+                property: 'filePath',
             });
 
             const csvFile = createTempFile({ postfix: '.csv' });
@@ -34,8 +34,8 @@ describe('RangerValidator', () => {
                 data: csv(".\\folder\\customer.csv")
             }`);
             expectWarning(validation, Issues.FilePathWithBackslashes.code, {
-                node: (validation.result.entities[0].value as Objekt).properties[0].value,
-                property: 'source',
+                node: (validation.result.entities[0].value as Objekt).properties[0].value as CsvFunc,
+                property: 'filePath',
             });
         });
 
@@ -53,8 +53,8 @@ describe('RangerValidator', () => {
                 data: csv("${escape(csvFile.name)}")
             }`);
             expectError(validation, Issues.InvalidCsvFile.code, {
-                node: (validation.result.entities[0].value as Objekt).properties[0].value,
-                property: 'source',
+                node: (validation.result.entities[0].value as Objekt).properties[0].value as CsvFunc,
+                property: 'filePath',
             });
         });
     });

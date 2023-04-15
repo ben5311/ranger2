@@ -1,0 +1,24 @@
+values:
+
+  _:
+    bank: csvRandom("bank.csv", ';')   #contains Bankleitzahl;Bezeichnung;PLZ;Ort;Kurzbezeichnung;PAN;BIC
+    cc:
+      type: random(["visa", "mastercard", "american_express", "diners_club"])
+      visa: string("4{}", randomContentString(15, ['0'..'9']))
+      mastercard: string("5{}", randomContentString(15, ['0'..'9']))
+      amex: string("3{}{}", random('4'..'7'), randomContentString(13, ['0'..'9'])))
+      diners: string("{}{}", random(['3', '5']), randomContentString(random([13, 15]), ['0'..'9'])))
+      number: switch($type => [$visa, $mastercard, $amex, $diners])
+      expiry_timestamp: add("long", now(), random(31557600000..157788000000)) #add 1 to five years to now
+
+  bank:
+    bank: $_.bank.Kurzbezeichnung
+    iban: string("DE{}", randomContentString(20, ['0'..'9']))
+    bic: $_.bank.BIC
+    credit_card:
+      type: $_.cc.type
+      number: $_.cc.number
+      validation_code: random(100..1000)  #1000 is excl.
+      expiry_date: time("dd.MM.yyyy", $_.cc.expiry_timestamp)
+
+output: $bank

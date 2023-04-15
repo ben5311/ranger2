@@ -7,6 +7,7 @@ import {
     WorkspaceSymbolParams,
 } from 'vscode-languageserver';
 
+import { hasErrors } from '../utils/documents';
 import { isSimpleProperty } from '../utils/types';
 import * as ast from './generated/ast';
 import { getValueAsJson } from './ranger-generator';
@@ -15,6 +16,10 @@ import { resolveReference } from './ranger-scope';
 
 export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider {
     public override getSymbol(document: LangiumDocument, astNode: AstNode): DocumentSymbol[] {
+        if (hasErrors(document)) {
+            return [];
+        }
+
         const node = astNode.$cstNode;
         const nameNode = this.nameProvider.getNameNode(astNode);
         if (nameNode && node) {

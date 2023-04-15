@@ -1,6 +1,7 @@
 import { AstNode } from 'langium';
 
 import { isEntity, isObjekt, isProperty, Property } from '../language-server/generated/ast';
+import { resolveReference } from '../language-server/ranger-scope';
 
 /**
  * Allows to enforce types without throwing away information about any more specific type
@@ -83,5 +84,5 @@ export function isPureProperty(node: AstNode): node is Property {
 }
 
 export function isSimpleProperty(node: AstNode): node is Property {
-    return isProperty(node) && !isObjekt(node.value);
+    return isProperty(node) && !isObjekt(resolveReference(node.value));
 }

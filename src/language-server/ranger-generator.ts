@@ -163,7 +163,7 @@ export function isListFunc(value?: ast.Value): boolean {
 }
 
 function create_CsvFunc_Generator(func: ast.CsvFunc): ValueGenerator | undefined {
-    const data = fs.readFileSync(func.source.filePath, 'utf-8');
+    const data = fs.readFileSync(func.filePath.value, 'utf-8');
     if (!func.delimiter) {
         const numCommas = data.match(/,/g)?.length;
         const numColons = data.match(/;/g)?.length;

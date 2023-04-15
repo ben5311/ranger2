@@ -1,5 +1,19 @@
 # Ranger: A test data generator
 
+## Example Ranger file
+
+```ranger
+Entity SimpleUser {
+    name: "John Doe"
+    age: 28
+    balance: 1000.50
+    married: false
+    birthday: null
+    phone: "0176 12345678"
+    email: ["john.doe@gmail.com"]
+}
+```
+
 ## What's in the folder
 
 This folder contains all necessary files for the Ranger DSL language extension.

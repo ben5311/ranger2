@@ -34,6 +34,9 @@ Literal:
 Primitive:
     value=(STRING | BOOL | DATE);
 
+FilePath:
+    value=STRING;
+
 Num:
     Float | Integer;
 Float:
@@ -66,9 +69,7 @@ MapToObject:
     "map" "(" source=PropertyReference "=>" object=MapObject ")";
 
 CsvFunc:
-    "csv" "(" source=FilePath (",""delimiter=" delimiter=STRING)? ("," noHeader?="noHeader")? ")";
-FilePath:
-    filePath=STRING;
+    "csv" "(" filePath=FilePath (",""delimiter=" delimiter=STRING)? ("," noHeader?="noHeader")? ")";
 
 Range:
     min=Num ".." max=Num;
