@@ -8,8 +8,10 @@ import {
 } from 'vscode-languageserver';
 
 import { isSimpleProperty } from '../utils/types';
+import * as ast from './generated/ast';
 import { getValueAsJson } from './ranger-generator';
 import { RangerServices } from './ranger-module';
+import { resolveReference } from './ranger-scope';
 
 export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider {
     public override getSymbol(document: LangiumDocument, astNode: AstNode): DocumentSymbol[] {
@@ -20,7 +22,7 @@ export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider 
             const value = isSimpleProperty(astNode) ? getValueAsJson(astNode) : undefined;
             return [
                 {
-                    kind: this.getSymbolKind(astNode.$type),
+                    kind: getSymbolKind(astNode.$type),
                     name: name ?? nameNode.text,
                     detail: value,
                     range: node.range,
@@ -28,13 +30,24 @@ export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider 
                     children: this.getChildSymbols(document, astNode),
                 },
             ];
+        } else if (ast.isPropertyReference(astNode)) {
+            const value = resolveReference(astNode);
+            return value ? this.getSymbol(document, value) : [];
         } else {
             return this.getChildSymbols(document, astNode) || [];
         }
     }
+}
 
-    public override getSymbolKind(type: string): SymbolKind {
-        return getSymbolKind(type);
+export function getSymbolKind(type: string): SymbolKind {
+    switch (type) {
+        case 'Entity':
+        case 'Objekt':
+            return SymbolKind.Class;
+        case 'Property':
+            return SymbolKind.Key;
+        default:
+            return SymbolKind.Field;
     }
 }
 
@@ -55,18 +68,6 @@ export class RangerWorkspaceSymbolProvider implements WorkspaceSymbolProvider {
             });
         }
         return symbols;
-    }
-}
-
-export function getSymbolKind(type: string): SymbolKind {
-    switch (type) {
-        case 'Entity':
-        case 'Objekt':
-            return SymbolKind.Class;
-        case 'Property':
-            return SymbolKind.Key;
-        default:
-            return SymbolKind.Field;
     }
 }
 
