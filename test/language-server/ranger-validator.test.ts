@@ -167,6 +167,37 @@ describe('RangerValidator', () => {
                 node: (validation.result.entities[0].value as Objekt).properties[1],
                 property: 'value',
             });
+
+            validation = await validate(`
+            Entity Account {
+                balance: 1000
+                account: {
+                    ref1: Account
+                    ref2: Account.account
+                }
+            }`);
+            const account = (validation.result.entities[0].value as Objekt).properties[1].value as Objekt;
+            expectError(validation, Issues.CircularReference.code, {
+                node: account.properties[0],
+                property: 'value',
+            });
+            expectError(validation, Issues.CircularReference.code, {
+                node: account.properties[1],
+                property: 'value',
+            });
+
+            validation = await validate(`
+            Entity Customer {
+                account: Account
+            }
+            Entity Account {
+                account: Customer.account
+            }
+            `);
+            expectError(validation, Issues.CircularReference.code, {
+                node: (validation.result.entities[1].value as Objekt).properties[0],
+                property: 'value',
+            });
         });
     });
 });

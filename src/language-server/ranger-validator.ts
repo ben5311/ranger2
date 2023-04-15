@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { ValidationAcceptor, ValidationChecks } from 'langium';
+import { streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { Issue, satisfies } from '../utils/types';
 import * as ast from './generated/ast';
@@ -19,7 +19,7 @@ export function registerValidationChecks(services: RangerServices) {
         FilePath: [validator.checkFilePath_FileExists, validator.checkFilePath_NoBackslashes],
         MapFunc: [validator.checkMapFunc_NoCircularReferences],
         MapToList: [validator.checkMapToList_IsBasedOnAListFunc],
-        Objekt: [validator.checkObjekt_NoDuplicateProperties],
+        Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_NoReferenceToParentObjekt],
         PropertyReference: [validator.checkPropertyReference_NoCircularReferences],
     };
     registry.register(checks, validator);
@@ -125,14 +125,19 @@ export class RangerValidator {
     }
 
     checkPropertyReference_NoCircularReferences(ref: ast.PropertyReference, accept: ValidationAcceptor): void {
-        this.checkIsNoCircularReference(ref, accept);
-    }
-
-    checkIsNoCircularReference(ref: ast.PropertyReference, accept: ValidationAcceptor) {
         const issue = Issues.CircularReference;
         resolveReference(ref, (_) => {
             accept('error', issue.msg, { node: ref, code: issue.code });
         });
+    }
+
+    checkObjekt_NoReferenceToParentObjekt(obj: ast.Objekt, accept: ValidationAcceptor) {
+        const issue = Issues.CircularReference;
+        for (const ref of streamAllContents(obj).filter(ast.isPropertyReference)) {
+            if (resolveReference(ref) === obj) {
+                accept('error', issue.msg, { node: ref, code: issue.code });
+            }
+        }
     }
 
     findDuplicates<T extends { name: string }>(elements: T[]): T[] {
