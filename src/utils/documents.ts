@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import fs from 'fs';
-import { LangiumDocument, LangiumServices } from 'langium';
+import { AstNode, isAstNode, LangiumDocument, LangiumServices } from 'langium';
 import path from 'path';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
@@ -68,4 +68,35 @@ export function hasErrors(document: LangiumDocument): boolean {
  */
 export function hasNoErrors(document: LangiumDocument): boolean {
     return !hasErrors(document);
+}
+
+/**
+ * Resolve file path relative to Document.
+ */
+export function resolvePath(filePath: string, context: AstNode | LangiumDocument): string | undefined {
+    if (path.isAbsolute(filePath)) {
+        return filePath;
+    }
+
+    let document: LangiumDocument;
+    if (isAstNode(context)) {
+        let rootNode = getRootNode(context);
+        if (!rootNode?.$document) {
+            return undefined;
+        }
+        document = rootNode.$document;
+    } else {
+        document = context;
+    }
+
+    const documentFile = document.uri.fsPath;
+    const resolved = path.join(path.dirname(documentFile), filePath);
+    return resolved;
+}
+
+export function getRootNode(node?: AstNode): AstNode | undefined {
+    while (node && '$container' in node) {
+        node = node.$container;
+    }
+    return node;
 }

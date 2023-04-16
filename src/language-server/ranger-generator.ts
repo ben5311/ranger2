@@ -2,6 +2,7 @@ import * as csv from 'csv/sync';
 import fs from 'fs';
 import { nativeMath, Random } from 'random-js';
 
+import { resolvePath } from '../utils/documents';
 import { DynamicObject } from '../utils/types';
 import * as ast from './generated/ast';
 import { resolveReference, ValueOrProperty } from './ranger-scope';
@@ -42,10 +43,10 @@ function doGetValue(value?: ast.Value): unknown {
 /**
  * Returns the generated value as JSON string or undefined if an error occured.
  */
-export function getValueAsJson(element?: ValueOrProperty, spaces?: number) {
+export function getValueAsJson(element?: ValueOrProperty, pretty = true) {
     try {
         const value = getValue(element);
-        return JSON.stringify(value, undefined, spaces);
+        return JSON.stringify(value, undefined, pretty ? 2 : undefined);
     } catch (error) {
         console.log(error);
         return undefined;
@@ -163,7 +164,8 @@ export function isListFunc(value?: ast.Value): boolean {
 }
 
 function create_CsvFunc_Generator(func: ast.CsvFunc): ValueGenerator | undefined {
-    const data = fs.readFileSync(func.filePath.value, 'utf-8');
+    const filePath = resolvePath(func.filePath.value, func)!;
+    const data = fs.readFileSync(filePath, 'utf-8');
     if (!func.delimiter) {
         const numCommas = data.match(/,/g)?.length;
         const numColons = data.match(/;/g)?.length;

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
 
+import { resolvePath } from '../utils/documents';
 import { Issue, satisfies } from '../utils/types';
 import * as ast from './generated/ast';
 import { getValue, isListFunc } from './ranger-generator';
@@ -44,10 +45,11 @@ export class RangerValidator {
 
     checkCsvFunc_InvalidCsvFile(func: ast.CsvFunc, accept: ValidationAcceptor) {
         const issue = Issues.InvalidCsvFile;
-        if (!fs.existsSync(func.filePath.value)) return;
+        const filePath = resolvePath(func.filePath.value, func)!;
+        if (!fs.existsSync(filePath)) return;
         try {
             getValue(func);
-        } catch {
+        } catch (error) {
             accept('error', issue.msg, { node: func, property: 'filePath', code: issue.code });
         }
     }
@@ -76,8 +78,9 @@ export class RangerValidator {
 
     checkFilePath_FileExists(filePath: ast.FilePath, accept: ValidationAcceptor) {
         const issue = Issues.FileDoesNotExist;
-        if (!fs.existsSync(filePath.value)) {
-            accept('error', issue.msg, { node: filePath, property: 'value', code: issue.code });
+        const path = resolvePath(filePath.value, filePath)!;
+        if (!fs.existsSync(path)) {
+            accept('error', `${issue.msg}: [${path}]`, { node: filePath, property: 'value', code: issue.code });
         }
     }
 

@@ -652,8 +652,8 @@ export function parseHelper<T extends AstNode = AstNode>(
     const documentBuilder = services.shared.workspace.DocumentBuilder;
     return async (input) => {
         input = typeof input === 'object' ? input : { text: input };
-        const filePath = input?.filePath || `${random.integer(1000000, 2000000)}${metaData.fileExtensions[0]}`;
-        const uri = URI.parse(`file:///${filePath}`);
+        const filePath = input?.filePath || `/${random.integer(1000000, 2000000)}${metaData.fileExtensions[0]}`;
+        const uri = URI.parse(`file://${filePath}`);
         const document = services.shared.workspace.LangiumDocumentFactory.fromString<T>(input.text, uri);
         services.shared.workspace.LangiumDocuments.addDocument(document);
         await documentBuilder.build([document]);
@@ -731,7 +731,7 @@ function replaceIndices(base: ExpectedBase): { output: string; indices: number[]
 }
 
 /**
- * Escape Backslashes in file path.
+ * Escape Backslashes in file path to make tests work on Windows.
  */
 export function escapePath(filePath: string) {
     return filePath.replace(/\\/g, '/');

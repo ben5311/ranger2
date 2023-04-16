@@ -137,7 +137,7 @@ describe('RangerHoverProvider', () => {
         ]`);
     });
 
-    test('RandomFunc', async () => {
+    test('random()', async () => {
         let { result } = await validate(dedent`
         Entity Customer {
             age: random(18..18)
@@ -152,17 +152,21 @@ describe('RangerHoverProvider', () => {
         expect(hover(gender)).toBe(`gender: "male"`);
 
         expect(hover(age.value)).toBe(dedent`
-        random(18..18)\n
-        ---\n
-        Generates a random number between \`18\` and \`18\` (ends inclusive).`);
+        random(18..18)
+        \n---\n
+        Generates a random number between \`18\` and \`18\` (ends inclusive).
+
+        Example: 18`);
 
         expect(hover(gender.value)).toBe(dedent`
-        random("male")\n
-        ---\n
-        Generates a random element of the provided arguments.`);
+        random("male")
+        \n---\n
+        Generates a random element of the provided arguments.
+
+        Example: "male"`);
     });
 
-    test('MapFunc', async () => {
+    test('map()', async () => {
         let { result } = await validate(dedent`
         Entity Customer {
             gender: random("male")
@@ -178,14 +182,16 @@ describe('RangerHoverProvider', () => {
         expect(hover(firstname2)).toBe(`firstname2: "Max"`);
 
         expect(hover(firstname1.value)).toBe(dedent`
-        map(gender => ["Max"])\n
-        ---\n
-        Generates a random number between (ends inclusive).`);
+        map(gender => ["Max"])
+        \n---\n
+        Generates a random number between (ends inclusive).
+
+        Example: "Max"`);
 
         //expect(hover(firstname2.value)).toBe(dedent``);
     });
 
-    test('CsvFunc', async () => {
+    test('csv()', async () => {
         let csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
         let filePath = escapePath(csvFile.name);
         let { result } = await validate(dedent`
@@ -205,10 +211,14 @@ describe('RangerHoverProvider', () => {
         `);
         let signature = hover(data.value)?.replace(new RegExp(filePath, 'g'), 'data.csv');
         expect(signature).toBe(dedent`
-        csv("data.csv", delimiter=",")\n
-        ---\n
-        Generates a row of CSV file \`data.csv\`.\n
-        Detected columns: []\n
-        Sample row: {}`);
+        csv("data.csv", delimiter=",")
+        \n---\n
+        Generates a random row of CSV file \`data.csv\`.
+
+        Example: {
+          "first": "1",
+          "second": "2",
+          "third": "3"
+        }`);
     });
 });

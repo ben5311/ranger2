@@ -75,7 +75,7 @@ export class RangerHoverProvider implements HoverProvider {
         const name = prop.name;
         const value = resolveReference(prop.value);
         if (value) {
-            let valueText = getValueAsJson(value, 2);
+            let valueText = getValueAsJson(value);
             return highlight(`${name}: ${valueText}`);
         }
         return undefined;
@@ -99,12 +99,12 @@ export class RangerHoverProvider implements HoverProvider {
     }
 
     getObjektHover(obj: ast.Objekt, highlight = highlighter) {
-        let valueText = getValueAsJson(obj, 2);
+        let valueText = getValueAsJson(obj);
         return highlight(valueText);
     }
 
     getListHover(list: ast.List, highlight = highlighter) {
-        let valueText = getValueAsJson(list, 2);
+        let valueText = getValueAsJson(list);
         return highlight(valueText);
     }
 
@@ -128,7 +128,9 @@ export class RangerHoverProvider implements HoverProvider {
             let result = dedent`
             ${funcHover.signature || highlight(node.$cstNode?.text)}
             \n---\n
-            ${funcHover.description}`;
+            ${funcHover.description}
+
+            ${highlight(`Example: ${getValueAsJson(node)}`)}`;
             return result;
         }
         return undefined;
@@ -153,7 +155,7 @@ export class RangerHoverProvider implements HoverProvider {
         };
     }
 
-    getMapToObjectHover(func: ast.MapToObject, highlight = highlighter) {
+    getMapToObjectHover(func: ast.MapToObject, _highlight = highlighter) {
         return {
             description:
                 `
@@ -170,12 +172,7 @@ ${func.$cstNode?.text}
         const signature = `csv("${filePath}", delimiter="${delimiter}"${noHeader ? ', noHeader' : ''})`;
         return {
             signature: highlight(signature),
-            description: dedent`
-                Generates a row of CSV file \`${filePath}\`.
-
-                Detected columns: []
-
-                Sample row: {}`,
+            description: `Generates a random row of CSV file \`${filePath}\`.`,
         };
     }
 

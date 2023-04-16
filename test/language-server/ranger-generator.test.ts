@@ -2,6 +2,9 @@ import { range } from 'lodash';
 import { describe, expect, test } from 'vitest';
 
 import { createObjectGenerator } from '../../src/cli/generator';
+import { Objekt } from '../../src/language-server/generated/ast';
+import { resolvePath } from '../../src/utils/documents';
+import { createTempFile, escapePath, parse, validate } from '../../src/utils/test';
 
 describe('ObjectGenerator', () => {
     test('Static values', async () => {
@@ -110,5 +113,42 @@ describe('ObjectGenerator', () => {
             expect(['a', 'b', 'c', 'd']).toContain(output.lowercase);
             expect(output.uppercase).toBe(output.lowercase.toUpperCase());
         });
+    });
+
+    test('csv()', async () => {
+        const csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
+        const filePath = escapePath(csvFile.name);
+        const objectGenerator = await createObjectGenerator({
+            text: `
+            Entity Test {
+                data: csv("${filePath}", delimiter=",")
+            }`,
+        });
+        range(20).forEach((_) => {
+            const output = objectGenerator.next();
+            expect(output).toStrictEqual({
+                data: {
+                    first: '1',
+                    second: '2',
+                    third: '3',
+                },
+            });
+        });
+    });
+
+    test('Resolve file path relative to Document', async () => {
+        const { result } = await validate({
+            text: `Entity Test { dummy: "Hello World" }`,
+            filePath: '/workdir/app/Test.ranger',
+        });
+        const dummy = (result.entities[0].value as Objekt).properties[0];
+        const resolve = (path, node) => resolvePath(path, node)!.replace(/\\/g, '/');
+
+        expect(resolve('data.csv', dummy)).toBe('/workdir/app/data.csv');
+        expect(resolve('../data.csv', dummy)).toBe('/workdir/data.csv');
+        expect(resolve('sub/dir', dummy)).toBe('/workdir/app/sub/dir');
+        expect(resolve('/sub/dir', dummy)).toBe('/sub/dir');
+        expect(resolve('C:\\Program Files', dummy)).toBe('C:/Program Files');
+        expect(resolve('C:/Program Files', dummy)).toBe('C:/Program Files');
     });
 });

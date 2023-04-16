@@ -131,7 +131,7 @@ describe('RangerWorkspaceSymbolProvider', () => {
     test('Symbols', async () => {
         const symbolProvider = new RangerWorkspaceSymbolProvider(services.Ranger);
         await validate({
-            filePath: 'User.ranger',
+            filePath: '/User.ranger',
             text: `
             Entity User {}
             Entity Account {}
