@@ -42,10 +42,10 @@ function doGetValue(value?: ast.Value): unknown {
 /**
  * Returns the generated value as JSON string or undefined if an error occured.
  */
-export function getValueAsJson(element?: ValueOrProperty) {
+export function getValueAsJson(element?: ValueOrProperty, spaces?: number) {
     try {
         const value = getValue(element);
-        return JSON.stringify(value);
+        return JSON.stringify(value, undefined, spaces);
     } catch (error) {
         console.log(error);
         return undefined;

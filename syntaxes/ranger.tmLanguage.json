@@ -22,7 +22,7 @@
         },
 
         "constant": {
-            "match": "\\b(?:true|false|null)\\b",
+            "match": "\\b(?:true|false|null|undefined)\\b",
             "name": "constant.language.ranger"
         },
 

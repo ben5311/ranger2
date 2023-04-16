@@ -2,7 +2,15 @@ import { beforeEach, describe, test } from 'vitest';
 
 import { CsvFunc, Objekt } from '../../src/language-server/generated/ast';
 import { Issues } from '../../src/language-server/ranger-validator';
-import { clearIndex, createTempFile, expectError, expectNoIssues, expectWarning, validate } from '../../src/utils/test';
+import {
+    clearIndex,
+    createTempFile,
+    escapePath,
+    expectError,
+    expectNoIssues,
+    expectWarning,
+    validate,
+} from '../../src/utils/test';
 
 beforeEach(() => {
     clearIndex();
@@ -23,7 +31,7 @@ describe('RangerValidator', () => {
             const csvFile = createTempFile({ postfix: '.csv' });
             validation = await validate(`
             Entity Customer {
-                data: csv("${escape(csvFile.name)}")
+                data: csv("${escapePath(csvFile.name)}")
             }`);
             expectNoIssues(validation);
         });
@@ -43,14 +51,14 @@ describe('RangerValidator', () => {
             let csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
             let validation = await validate(`
             Entity Customer {
-                data: csv("${escape(csvFile.name)}")
+                data: csv("${escapePath(csvFile.name)}")
             }`);
             expectNoIssues(validation);
 
             csvFile = createTempFile({ postfix: '.csv', data: '{"this": "is", "json": "content"}' });
             validation = await validate(`
             Entity Customer {
-                data: csv("${escape(csvFile.name)}")
+                data: csv("${escapePath(csvFile.name)}")
             }`);
             expectError(validation, Issues.InvalidCsvFile.code, {
                 node: (validation.result.entities[0].value as Objekt).properties[0].value as CsvFunc,
@@ -201,10 +209,3 @@ describe('RangerValidator', () => {
         });
     });
 });
-
-/**
- * Escape Backslashes in file path.
- */
-function escape(filePath: string) {
-    return filePath.replace(/\\/g, '/');
-}

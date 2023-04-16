@@ -13,6 +13,7 @@ import {
 import { Hover, HoverParams } from 'vscode-languageserver';
 
 import * as ast from './generated/ast';
+import { getValueAsJson } from './ranger-generator';
 import { resolveReference } from './ranger-scope';
 
 type CodeHighlighter = (text?: string, language?: string) => string | undefined;
@@ -74,8 +75,7 @@ export class RangerHoverProvider implements HoverProvider {
         const name = prop.name;
         const value = resolveReference(prop.value);
         if (value) {
-            let valueText = value.$cstNode?.text || '';
-            valueText = ast.isEntity(value.$container) ? valueText : dedent(valueText);
+            let valueText = getValueAsJson(value, 2);
             return highlight(`${name}: ${valueText}`);
         }
         return undefined;
@@ -99,11 +99,13 @@ export class RangerHoverProvider implements HoverProvider {
     }
 
     getObjektHover(obj: ast.Objekt, highlight = highlighter) {
-        return highlight(dedent(obj.$cstNode?.text || ''));
+        let valueText = getValueAsJson(obj, 2);
+        return highlight(valueText);
     }
 
     getListHover(list: ast.List, highlight = highlighter) {
-        return highlight(list.$cstNode?.text);
+        let valueText = getValueAsJson(list, 2);
+        return highlight(valueText);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
