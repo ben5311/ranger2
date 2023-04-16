@@ -1,0 +1,132 @@
+{
+    "name": "ranger",
+    "scopeName": "source.ranger",
+    "fileTypes": [".ranger"],
+    "patterns": [{ "include": "#value" }],
+    "repository": {
+        "value": {
+            "patterns": [
+                { "include": "#keyword" },
+                { "include": "#constant" },
+                { "include": "#number" },
+                { "include": "#string" },
+                { "include": "#list" },
+                { "include": "#object" },
+                { "include": "#comment" }
+            ]
+        },
+
+        "keyword": {
+            "name": "keyword.control.ranger",
+            "match": "\\b(Entity|csv|map|noHeader|random)\\b|\\b(delimiter=)\\B"
+        },
+
+        "constant": {
+            "match": "\\b(?:true|false|null)\\b",
+            "name": "constant.language.ranger"
+        },
+
+        "number": {
+            "match": "\\b([+-]?[0-9]+(.[0-9]+)?)\\b",
+            "name": "constant.numeric.ranger"
+        },
+
+        "string": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.ranger",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [{ "include": "#stringcontent" }]
+                },
+                {
+                    "name": "string.quoted.single.ranger",
+                    "begin": "'",
+                    "end": "'",
+                    "patterns": [{ "include": "#stringcontent" }]
+                }
+            ]
+        },
+        "stringcontent": {
+            "match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)",
+            "name": "constant.character.escape.ranger"
+        },
+
+        "list": {
+            "begin": "\\[",
+            "end": "\\]",
+            "beginCaptures": { "0": { "name": "punctuation.definition.list.begin.ranger" } },
+            "endCaptures": { "0": { "name": "punctuation.definition.list.end.ranger" } },
+            "name": "meta.structure.list.ranger",
+            "patterns": [{ "include": "#value" }, { "include": "#listseparator" }]
+        },
+        "listseparator": {
+            "match": ",",
+            "name": "punctuation.separator.list.ranger"
+        },
+
+        "object": {
+            "begin": "\\{",
+            "end": "\\}",
+            "beginCaptures": { "0": { "name": "punctuation.definition.dictionary.begin.ranger" } },
+            "endCaptures": { "0": { "name": "punctuation.definition.dictionary.end.ranger" } },
+            "name": "meta.structure.dictionary.ranger",
+            "patterns": [{ "include": "#object-member" }]
+        },
+        "object-member": {
+            "patterns": [
+                { "include": "#comment" },
+                { "include": "#object-key" },
+                { "include": "#value" }
+            ]
+        },
+        "object-key": {
+            "match": "([\\w_]+|\".*\")\\s*(?=:)",
+            "captures": {
+                "1": {
+                    "patterns": [
+                        {
+                            "description": "id",
+                            "match": "\\b[_a-zA-Z][\\w_]*\\b",
+                            "name": "variable.other.property.ranger",
+                            "(purple highlighting)": "variable.other.property.ranger",
+                            "(blue highlighting)": "support.type.property-name.json"
+                        },
+                        {
+                            "description": "string with double quotes",
+                            "begin": "\"",
+                            "end": "\"",
+                            "patterns": [{ "include": "#stringcontent" }],
+                            "name": "variable.other.property.ranger"
+                        },
+                        {
+                            "description": "string with single quotes",
+                            "begin": "'",
+                            "end": "'",
+                            "patterns": [{ "include": "#stringcontent" }],
+                            "name": "variable.other.property.ranger"
+                        }
+                    ]
+                }
+            }
+        },
+
+        "comment": {
+            "patterns": [
+                {
+                    "name": "comment.block.ranger",
+                    "begin": "/\\*",
+                    "end": "\\*/",
+                    "beginCaptures": { "0": { "name": "punctuation.definition.comment.ranger" } },
+                    "endCaptures": { "0": { "name": "punctuation.definition.comment.ranger" } }
+                },
+                {
+                    "begin": "//",
+                    "end": "(?=$)",
+                    "beginCaptures": { "1": { "name": "punctuation.whitespace.comment.leading.ranger" } },
+                    "name": "comment.line.ranger"
+                }
+            ]
+        }
+    }
+}

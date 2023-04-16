@@ -32,7 +32,7 @@
             {
                 "language": "ranger-markdown",
                 "scopeName": "markdown.ranger.codeblock",
-                "path": "./syntaxes/ranger-markdown.tmLanguage.json",
+                "path": "./syntaxes/rangermarkdown.tmLanguage.json",
                 "injectTo": ["text.html.markdown"],
                 "embeddedLanguages": {"meta.embedded.block.ranger": "ranger"}
             }

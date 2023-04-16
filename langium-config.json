@@ -5,7 +5,7 @@
         "grammar": "src/language-server/ranger.langium",
         "fileExtensions": [".ranger"],
         "textMate": {
-            "out": "syntaxes/ranger.tmLanguage.json"
+            "out": "syntaxes/generated/ranger.tmLanguage.json"
         }
     }],
     "out": "src/language-server/generated"

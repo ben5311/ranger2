@@ -56,6 +56,7 @@ export class RangerHoverProvider implements HoverProvider {
         const hoverProviders: HoverProviders<string | undefined> = {
             Property: this.getPropertyHover,
             PropertyReference: this.getPropertyReferenceHover,
+            Null: this.getNullHover,
             Literal: this.getLiteralHover,
             FilePath: this.getLiteralHover,
             Objekt: this.getObjektHover,
@@ -88,13 +89,13 @@ export class RangerHoverProvider implements HoverProvider {
         return undefined;
     }
 
+    getNullHover(_null: ast.Null, highlight = highlighter) {
+        return highlight('null');
+    }
+
     getLiteralHover(literal: ast.Literal | ast.FilePath, highlight = highlighter) {
-        if (ast.isNull(literal)) {
-            return highlight('null');
-        }
-        let value = JSON.stringify(literal.value);
         let type = ast.isPrimitive(literal) ? typeof literal.value : literal.$type.toLowerCase();
-        return highlight(`${value} : ${type}`, 'json');
+        return highlight(`${literal.$cstNode?.text} : ${type}`);
     }
 
     getObjektHover(obj: ast.Objekt, highlight = highlighter) {
