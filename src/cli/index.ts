@@ -82,8 +82,5 @@ export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): 
     });
 }
 
-//generateOutputFile('examples/User.ranger', { count: 20, format: 'jsonl', outputDir: 'generated' }); // For Debugging
-
-if (require.main === module) {
-    run();
-}
+// generateOutputFile('examples/User.ranger', { count: 20, format: 'jsonl', outputDir: 'generated' }); // For Debugging
+// run()
