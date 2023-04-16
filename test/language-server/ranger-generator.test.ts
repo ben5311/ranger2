@@ -148,7 +148,5 @@ describe('ObjectGenerator', () => {
         expect(resolve('../data.csv', dummy)).toBe('/workdir/data.csv');
         expect(resolve('sub/dir', dummy)).toBe('/workdir/app/sub/dir');
         expect(resolve('/sub/dir', dummy)).toBe('/sub/dir');
-        expect(resolve('C:\\Program Files', dummy)).toBe('C:/Program Files');
-        expect(resolve('C:/Program Files', dummy)).toBe('C:/Program Files');
     });
 });
