@@ -50,7 +50,7 @@ export function getSymbolKind(type: string): SymbolKind {
         case 'Objekt':
             return SymbolKind.Class;
         case 'Property':
-            return SymbolKind.Key;
+            return SymbolKind.Field;
         default:
             return SymbolKind.Field;
     }

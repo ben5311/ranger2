@@ -37,7 +37,7 @@ describe('RangerDocumentSymbolProvider', () => {
                 },
                 children: [
                     {
-                        kind: 20,
+                        kind: 8,
                         name: 'name',
                         detail: '"John Doe"',
                         range: {
@@ -51,7 +51,7 @@ describe('RangerDocumentSymbolProvider', () => {
                         children: undefined,
                     },
                     {
-                        kind: 20,
+                        kind: 8,
                         name: 'age',
                         detail: '28',
                         range: {
@@ -65,7 +65,7 @@ describe('RangerDocumentSymbolProvider', () => {
                         children: undefined,
                     },
                     {
-                        kind: 20,
+                        kind: 8,
                         name: 'married',
                         detail: 'false',
                         range: {
@@ -79,7 +79,7 @@ describe('RangerDocumentSymbolProvider', () => {
                         children: undefined,
                     },
                     {
-                        kind: 20,
+                        kind: 8,
                         name: 'address',
                         detail: undefined,
                         range: {
@@ -92,7 +92,7 @@ describe('RangerDocumentSymbolProvider', () => {
                         },
                         children: [
                             {
-                                kind: 20,
+                                kind: 8,
                                 name: 'phone',
                                 detail: 'null',
                                 range: {
@@ -106,7 +106,7 @@ describe('RangerDocumentSymbolProvider', () => {
                                 children: undefined,
                             },
                             {
-                                kind: 20,
+                                kind: 8,
                                 name: 'email',
                                 detail: '"john.doe@gmail.com"',
                                 range: {
