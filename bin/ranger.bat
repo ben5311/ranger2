@@ -1,2 +1,3 @@
 @echo off
-call node .\out\cli\ %*
+set scriptdir=%~dp0
+call node "%scriptdir%\ranger" %*

@@ -27,9 +27,9 @@ export function run(): void {
         .addOption(new Option('-c --count <count>', 'The count of rows to generate').default('10').argParser(parseIntg))
         .addOption(new Option('-f, --format <format>', 'The output format').choices(formats).default('jsonl'))
         .addOption(new Option('-o, --outputDir <dir>', 'The desired output directory').default('generated'))
-        .action(async (rangerFile, opts) => {
+        .action(async (rangerFile: string, opts: Options) => {
             try {
-                await generateOutputFile(rangerFile, opts);
+                await generateOutputFile({ filePath: rangerFile }, opts);
             } catch (error) {
                 console.log(chalk.red(error));
                 process.exit(1);
