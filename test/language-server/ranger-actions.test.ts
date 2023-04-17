@@ -38,7 +38,7 @@ describe('RangerActionProvider', () => {
                 after: `
                 Entity Customer {
                     gender: "male"
-                    name: map(gender => {"val0":"Max","val1":"Anna"})
+                    name: map(gender => {"val0": "Max", "val1": "Anna"})
                 }`,
             });
         });

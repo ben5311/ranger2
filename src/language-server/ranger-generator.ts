@@ -148,7 +148,7 @@ function create_MapToList_Generator(func: ast.MapToList): ValueGenerator | undef
     return {
         nextValue() {
             getValue(sourceFunc); // Ensure that sourceFunc's index is computed
-            const sourceIndex = valueGenerators.get(sourceFunc as ast.Func)?.data;
+            const sourceIndex = valueGenerators.get(sourceFunc)?.data;
             if (sourceIndex === undefined) {
                 return undefined;
             }
@@ -159,9 +159,11 @@ function create_MapToList_Generator(func: ast.MapToList): ValueGenerator | undef
     };
 }
 
-export function isListFunc(value?: ast.Value): boolean {
+export function isListFunc(value?: ast.Value): value is ListFunc {
     return ast.isFunc(value) && 'list' in value && ast.isList(value.list);
 }
+
+type ListFunc = ast.Func & { list: ast.List };
 
 function create_CsvFunc_Generator(func: ast.CsvFunc): ValueGenerator | undefined {
     const filePath = resolvePath(func.filePath.value, func)!;

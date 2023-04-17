@@ -13,7 +13,7 @@ import {
 import { Hover, HoverParams } from 'vscode-languageserver';
 
 import * as ast from './generated/ast';
-import { getValueAsJson } from './ranger-generator';
+import { getValueAsJson, isListFunc } from './ranger-generator';
 import { resolveReference } from './ranger-scope';
 
 type CodeHighlighter = (text?: string, language?: string) => string | undefined;
@@ -126,7 +126,7 @@ export class RangerHoverProvider implements HoverProvider {
         let funcHover = this.doGetHover(node, hoverProviders, highlight);
         if (funcHover) {
             let result = dedent`
-            ${funcHover.signature || highlight(node.$cstNode?.text)}
+            ${highlight(funcHover.signature || node.$cstNode?.text)}
             \n---\n
             ${funcHover.description}
 
@@ -138,42 +138,49 @@ export class RangerHoverProvider implements HoverProvider {
 
     getRandomOfRangeHover(func: ast.RandomOfRange) {
         let [min, max] = [func.range.min.value, func.range.max.value];
-        return {
-            description: `Generates a random number between \`${min}\` and \`${max}\` (ends inclusive).`,
-        };
+        return { description: `Generates a random number between \`${min}\` and \`${max}\` (ends inclusive).` };
     }
 
     getRandomOfListHover(_func: ast.RandomOfList) {
-        return {
-            description: `Generates a random element of the provided arguments.`,
-        };
+        return { description: `Generates a random element of the provided arguments.` };
     }
 
-    getMapToListHover(_func: ast.MapToList) {
-        return {
-            description: `Generates a random number between (ends inclusive).`,
-        };
+    getMapToListHover(func: ast.MapToList) {
+        const sourceRef = func.source.$cstNode?.text;
+        const source = resolveReference(func.source);
+        const firstSourceVal = isListFunc(source) ? source.list.values[0] : undefined;
+        const firstTargetVal = func.list.values[0];
+        let description = dedent`
+            Evaluates the value of \`${sourceRef}\` and chooses based on the result from possible values \\
+            \`${func.list.$cstNode?.text}\`.`;
+        if (firstSourceVal && firstTargetVal) {
+            description += dedent`
+            \n
+            For example, if \`${sourceRef}\` matches \`${firstSourceVal.$cstNode?.text}\`,
+            \`${firstTargetVal.$cstNode?.text}\` is returned.`;
+        }
+        return { description };
     }
 
     getMapToObjectHover(func: ast.MapToObject, _highlight = highlighter) {
-        return {
-            description:
-                `
-                Evaluates the value of \`${func.source.$cstNode?.text}\` and chooses based on the result from \n\n` +
-                `
-\`\`\`ranger
-${func.$cstNode?.text}
-\`\`\``,
-        };
+        const sourceRef = func.source.$cstNode?.text;
+        const firstPair = func.object.pairs[0];
+        let description = dedent`
+            Evaluates the value of \`${sourceRef}\` and chooses based on the result from possible values \\
+            \`${func.object.$cstNode?.text}\`.`;
+        if (firstPair) {
+            description += dedent`
+            \n
+            For example, if \`${sourceRef}\` matches \`${firstPair.key.$cstNode?.text}\`,
+            \`${firstPair.value.$cstNode?.text}\` is returned.`;
+        }
+        return { description };
     }
 
-    getCsvFuncHover(func: ast.CsvFunc, highlight = highlighter) {
+    getCsvFuncHover(func: ast.CsvFunc) {
         const [filePath, delimiter, noHeader] = [func.filePath.value, func.delimiter, func.noHeader];
         const signature = `csv("${filePath}", delimiter="${delimiter}"${noHeader ? ', noHeader' : ''})`;
-        return {
-            signature: highlight(signature),
-            description: `Generates a random row of CSV file \`${filePath}\`.`,
-        };
+        return { signature, description: `Generates a random row of CSV file \`${filePath}\`.` };
     }
 
     protected doGetHover<R>(node: AstNode, providers: HoverProviders<R>, highlight: CodeHighlighter) {

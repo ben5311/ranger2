@@ -184,11 +184,24 @@ describe('RangerHoverProvider', () => {
         expect(hover(firstname1.value)).toBe(dedent`
         map(gender => ["Max"])
         \n---\n
-        Generates a random number between (ends inclusive).
+        Evaluates the value of \`gender\` and chooses based on the result from possible values \\
+        \`["Max"]\`.
+
+        For example, if \`gender\` matches \`"male"\`,
+        \`"Max"\` is returned.
 
         Example: "Max"`);
 
-        //expect(hover(firstname2.value)).toBe(dedent``);
+        expect(hover(firstname2.value)).toBe(dedent`
+        map(gender => {"male": "Max"})
+        \n---\n
+        Evaluates the value of \`gender\` and chooses based on the result from possible values \\
+        \`{"male": "Max"}\`.
+
+        For example, if \`gender\` matches \`"male"\`,
+        \`"Max"\` is returned.
+
+        Example: "Max"`);
     });
 
     test('csv()', async () => {

@@ -2,7 +2,7 @@ Entity Kunde {
     age: random(18..60)
     gender: random("male", "female")
     firstname: map(gender => [Names.male, Names.female])
-    firstname2: map(age => {18: "now"})
+    shortname: map(firstname => {"Max":"M", "Jonas":"J", "Sebastian":"S", "Anna":"A", "Lea":"L","Sofia":"S"})
     lastname: Names.lastname
     account: BankAccount
 }
@@ -18,6 +18,6 @@ Entity Imported {
 }
 
 Entity BankAccount {
-    balance: random(1000..15000)
+    balance: random(1000..15000.0)
     currency: random("EUR", "USD", "CHF")
 }

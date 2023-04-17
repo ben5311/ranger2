@@ -111,7 +111,7 @@ export class RangerValidator {
                         range: mapFunc.list.$cstNode?.range,
                         newText:
                             '{' +
-                            mapFunc.list.values.map((val, i) => `"val${i}":${val.$cstNode?.text}`).join(',') +
+                            mapFunc.list.values.map((val, i) => `"val${i}": ${val.$cstNode?.text}`).join(', ') +
                             '}',
                     },
                 },
