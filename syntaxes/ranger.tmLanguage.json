@@ -12,17 +12,19 @@
                 { "include": "#string" },
                 { "include": "#list" },
                 { "include": "#object" },
+                { "include": "#map-function" },
                 { "include": "#comment" }
             ]
         },
 
         "keyword": {
             "name": "keyword.control.ranger",
-            "match": "\\b(Entity|csv|map|noHeader|random)\\b|\\b(delimiter=)\\B"
+            "match": "\\b(Entity|csv|noHeader|random)\\b|\\b(delimiter=)\\B",
+            "description": "Do not include 'map' keyword here!"
         },
 
         "constant": {
-            "match": "\\b(?:true|false|null|undefined)\\b",
+            "match": "\\b(?:null|true|false|undefined)\\b",
             "name": "constant.language.ranger"
         },
 
@@ -74,14 +76,10 @@
             "patterns": [{ "include": "#object-member" }]
         },
         "object-member": {
-            "patterns": [
-                { "include": "#comment" },
-                { "include": "#object-key" },
-                { "include": "#value" }
-            ]
+            "patterns": [{ "include": "#comment" }, { "include": "#object-key" }, { "include": "#value" }]
         },
         "object-key": {
-            "match": "([\\w_]+|\".*\")\\s*(?=:)",
+            "match": "([\\w_]+|\".*\"|'.*')\\s*(?=:)",
             "captures": {
                 "1": {
                     "patterns": [
@@ -109,6 +107,22 @@
                     ]
                 }
             }
+        },
+
+        "map-function": {
+            "begin": "(map)\\s*\\(",
+            "end": "\\)",
+            "beginCaptures": {"0": {"name": "keyword.control.ranger"}},
+            "name": "meta.structure.map-function.ranger",
+            "patterns": [{ "include": "#map-object" }, { "include": "#value" }]
+        },
+        "map-object": {
+            "begin": "\\{",
+            "end": "\\}",
+            "beginCaptures": { "0": { "name": "punctuation.definition.map.begin.ranger" } },
+            "endCaptures": { "0": { "name": "punctuation.definition.map.end.ranger" } },
+            "name": "meta.structure.map.ranger",
+            "patterns": [{ "include": "#comment" }, { "include": "#value" }, { "match": ":" }]
         },
 
         "comment": {
