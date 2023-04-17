@@ -58,10 +58,10 @@ describe('RangerHoverProvider', () => {
         ]`);
 
         expect(hover(name.value)).toBe('"John Doe" : string');
-        expect(hover(age.value)).toBe('28 : integer');
+        expect(hover(age.value)).toBe('28 : number');
         expect(hover(birthday.value)).toBe('null');
         expect(hover(married.value)).toBe('false : boolean');
-        expect(hover(balance.value)).toBe('1000.51 : float');
+        expect(hover(balance.value)).toBe('1000.51 : number');
         expect(hover(address.value)).toBe(dedent`
         {
           "email": [

@@ -107,12 +107,25 @@ function createValueGenerator(func: ast.Func): ValueGenerator | undefined {
 }
 
 const random = new Random(nativeMath);
+const numRegex = new RegExp(/[+-]?[0-9]+(\.([0-9]+))?/);
+
 function create_RandomOfRange_Generator(func: ast.RandomOfRange): ValueGenerator | undefined {
-    const [min, max] = [func.range.min, func.range.max];
-    if (!min || !max) return undefined; // can be undefined if there are parsing errors
-    let randomGenerator = ast.isFloat(min) || ast.isFloat(max) ? random.real : random.integer;
+    const [minVal, maxVal] = [func.range.min, func.range.max];
+    if (!minVal || !maxVal) return undefined; // can be undefined if there are parsing errors
+
+    const minPrecision = numRegex.exec(minVal.$cstNode?.text || '')?.[2]?.length || 0;
+    const maxPrecision = numRegex.exec(maxVal.$cstNode?.text || '')?.[2]?.length || 0;
+    const decimalPlaces = Math.max(minPrecision, maxPrecision);
+    const [min, max] = [minVal.value, maxVal.value];
+
+    let randomGenerator = decimalPlaces ? random.real : random.integer;
     randomGenerator = randomGenerator.bind(random);
-    return { nextValue: () => randomGenerator(min.value, max.value) };
+    return {
+        nextValue: () => {
+            const randomNumber = randomGenerator(min, max);
+            return Number(randomNumber.toFixed(decimalPlaces));
+        },
+    };
 }
 
 function create_RandomOfList_Generator(func: ast.RandomOfList): ValueGenerator | undefined {
@@ -174,6 +187,7 @@ function create_CsvFunc_Generator(func: ast.CsvFunc): ValueGenerator | undefined
         const delimiter = Number(numCommas) >= Number(numColons) ? ',' : ';';
         func.delimiter = delimiter;
     }
+
     const rows: any[] = csv.parse(data, { delimiter: func.delimiter, columns: !func.noHeader });
     return {
         nextValue() {

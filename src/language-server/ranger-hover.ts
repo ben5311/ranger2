@@ -95,6 +95,7 @@ export class RangerHoverProvider implements HoverProvider {
 
     getLiteralHover(literal: ast.Literal | ast.FilePath, highlight = highlighter) {
         let type = ast.isPrimitive(literal) ? typeof literal.value : literal.$type.toLowerCase();
+        type = type === 'num' ? 'number' : type;
         return highlight(`${literal.$cstNode?.text} : ${type}`);
     }
 

@@ -72,6 +72,22 @@ describe('ObjectGenerator', () => {
         });
     });
 
+    test('random(a..b.00)', async () => {
+        const objectGenerator = await createObjectGenerator({
+            text: `
+            Entity Test {
+                num: random(10.01..10.09)
+            }`,
+        });
+        range(20).forEach((_) => {
+            const output = objectGenerator.next();
+            const num: number = output.num;
+            expect(num).toBeGreaterThanOrEqual(10.01);
+            expect(num).toBeLessThanOrEqual(10.09);
+            expect(num.toString()).toMatch(/\d{2}\.\d{2}/);
+        });
+    });
+
     test('random([])', async () => {
         const objectGenerator = await createObjectGenerator({
             text: `

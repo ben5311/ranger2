@@ -38,11 +38,7 @@ FilePath:
     value=STRING;
 
 Num:
-    Float | Integer;
-Float:
-    value=FLOAT;
-Integer:
-    value=INTEGER;
+    value=NUMBER;
 
 Null:
     {infer Null} "null";
@@ -96,10 +92,9 @@ interface List { values: ValueOrPropertyReference[] }
 // Terminals
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-terminal FLOAT returns number: /[+-]?[0-9]+\.[0-9]+/;
-terminal INTEGER returns number: /[+-]?[0-9]+/;
+terminal NUMBER returns number: /[+-]?[0-9]+(\.[0-9]+)?/;
 terminal BOOL returns boolean: "true" | "false";
-terminal DATE returns Date: /"\d{4}-\d{2}-\d{2}"/;
+terminal DATE returns string: /"\d{4}-\d{2}-\d{2}"/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*?'/;
 terminal ID: /[_a-zA-Z][\w_]*/;
 
