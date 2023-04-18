@@ -1,18 +1,42 @@
 # Ranger: A test data generator
 
-## Example Ranger file
+There are many libraries out there that generate fake data to facilitate testing.
 
-```ranger
-Entity SimpleUser {
-    name: "John Doe"
-    age: 28
-    balance: 1000.50
-    married: false
-    birthday: null
-    phone: "0176 12345678"
-    email: ["john.doe@gmail.com"]
-}
+However, Ranger takes a different approach.
+Instead of providing pre-built data, it enables users to create customized test data for their specific use case using the **Ranger language**.
+
+Here we have an example Ranger file
+
+<!-- markdownlint-disable MD033 -->
+<img src="./images/customer.png" alt="Example Ranger file" width="450"/>
+
+that produces output similar to
+
+```json
+{"age":21,"gender":"male","firstname":"James","lastname":"Parker"}
+{"age":58,"gender":"male","firstname":"James","lastname":"Parker"}
+{"age":26,"gender":"female","firstname":"Emily","lastname":"Parker"}
+{"age":51,"gender":"male","firstname":"James","lastname":"Parker"}
+{"age":59,"gender":"male","firstname":"Robert","lastname":"Parker"}
+{"age":60,"gender":"female","firstname":"Lucy","lastname":"Parker"}
+{"age":41,"gender":"male","firstname":"Robert","lastname":"Parker"}
+{"age":51,"gender":"female","firstname":"Lucy","lastname":"Parker"}
+{"age":41,"gender":"male","firstname":"James","lastname":"Parker"}
+{"age":39,"gender":"male","firstname":"Robert","lastname":"Parker"}
 ```
+
+Note that each individual's first name corresponds to their gender.
+
+## How does it work?
+
+Using the Ranger language, you can design test entities specific to your needs in a `.ranger` file. Once you've configured your entities, you can generate test data in one of two ways:
+
+* Use the Ranger command line interface to create CSV or JSONL files containing the data.
+* Utilize the JavaScript API to generate JavaScript objects and integrate them directly into your code.
+
+## Getting started
+
+
 
 ## What's in the folder
 

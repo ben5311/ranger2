@@ -3,8 +3,8 @@
     "displayName": "Ranger",
     "description": "A Test data generator",
     "version": "0.0.1",
-    "publisher": "Benjamin Heimann",
-    "icon": "./icon.png",
+    "publisher": "bheimann",
+    "icon": "./images/icon.png",
     "categories": ["Testing"],
     "engines": {"vscode": "^1.67.0"},
     "repository": {
