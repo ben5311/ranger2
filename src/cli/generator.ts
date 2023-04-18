@@ -4,7 +4,7 @@ import { NodeFileSystem } from 'langium/node';
 import path from 'path';
 import * as stream from 'stream';
 
-import { getValue, resetValues } from '../language-server/ranger-generator';
+import { Generator } from '../language-server/ranger-generator';
 import { createRangerServices } from '../language-server/ranger-module';
 import { DocumentSpec, parseDocument } from '../utils/documents';
 import { Format } from './';
@@ -23,10 +23,11 @@ export async function createObjectGenerator(docSpec: DocumentSpec): Promise<Obje
     const services = createRangerServices(NodeFileSystem).Ranger;
     const { parseResult } = await parseDocument(services, docSpec);
     const outputEntity = parseResult.entities[0]; // Pick the first entity of the document
+    const generator = new Generator();
     return {
         next: () => {
-            const nextValue = getValue(outputEntity) as object;
-            resetValues();
+            const nextValue = generator.getValue(outputEntity) as object;
+            generator.resetValues();
             return nextValue;
         },
     };

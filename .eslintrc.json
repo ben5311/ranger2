@@ -24,7 +24,8 @@
         "prefer-const": "off",                               // Allow use let instead of const
         "@typescript-eslint/no-explicit-any": "off",         // Allow use :any type
         "@typescript-eslint/no-non-null-assertion": "off",   // allow ! operator
-        "@typescript-eslint/ban-ts-comment": "off"           // Allow to suppress TypeScript checks via // @ts-ignore
+        "@typescript-eslint/ban-ts-comment": "off",          // Allow to suppress TypeScript checks via // @ts-ignore
+        "@typescript-eslint/no-this-alias": "off"           // Allow to assign `this` to variables
         // "arrow-parens": ["off", "as-needed"],             // do not force arrow function parentheses
         // "constructor-super": "error",                     // checks the correct use of super() in sub-classes
         // "dot-notation": "error",                          // obj.a instead of obj['a'] when possible

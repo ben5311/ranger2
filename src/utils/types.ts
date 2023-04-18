@@ -1,6 +1,6 @@
 import { AstNode } from 'langium';
 
-import { isEntity, isObjekt, isProperty, Property } from '../language-server/generated/ast';
+import { isEntity, isObjekt, isProperty, Property, RangerAstType, reflection } from '../language-server/generated/ast';
 import { resolveReference } from '../language-server/ranger-scope';
 
 /**
@@ -35,6 +35,44 @@ export const satisfies =
  */
 export interface DynamicObject {
     [key: string]: any;
+}
+
+/**
+ * Allows to create a Mapping of AstNode types to Functions.
+ *
+ * Example:
+ * --------
+ * const hoverProviders: Providers<string | undefined> = {
+ *     Property: this.getPropertyHover,
+ *     PropertyReference: this.getPropertyReferenceHover,
+ *     Null: this.getNullHover,
+ *     Literal: this.getLiteralHover,
+ *     FilePath: this.getLiteralHover,
+ *     Objekt: this.getObjektHover,
+ *     List: this.getListHover,
+ *     Func: this.getFuncHover,
+ + };
+ * return executeProvider(node, hoverProviders);   // returns string | undefined
+ *
+ * instead of:
+ * -----------
+ * if (ast.isProperty(node)) return this.getPropertyHover(node);
+ * else if (ast.isPropertyReference(node)) return this.getPropertyReferenceHover(nove);
+ * else if (ast.isNull(node)) return this.getNullHover(node);
+ * else if (ast.isLiteral(node)) return this.getLiteralHover(node);
+ * ...
+ */
+export type Providers<ReturnT> = { [K in keyof RangerAstType]?: (node: RangerAstType[K], ...params: any[]) => ReturnT };
+
+export function executeProvider<R>(node: AstNode, providers: Providers<R>, ...params: any[]): R | undefined {
+    const astNode: any = node; // Suppress type checker
+    for (let [Type, provider] of Object.entries(providers)) {
+        if (reflection.isInstance(astNode, Type)) {
+            const ret = provider(astNode, ...params);
+            return ret;
+        }
+    }
+    return undefined;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

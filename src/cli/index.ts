@@ -5,6 +5,7 @@ import path from 'path';
 import stream from 'stream';
 
 import { RangerLanguageMetaData } from '../language-server/generated/module';
+import { DocumentSpec } from '../utils/documents';
 import { FileWriter, ObjectGenerator, ProxyTransformer, Transformer } from './generator';
 
 export type Options = {
@@ -48,14 +49,13 @@ function parseIntg(text: string): number {
     return parsedNumber;
 }
 
-export type DocumentSpec = { filePath: string } | { text: string; fileName: string };
 /**
  * Generate test data based on a Ranger configuration file.
  *
  * Provide either the path to the Ranger file or its content and the desired output file name.
  */
-export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): Promise<void> {
-    const outputFileName = path.parse('fileName' in docSpec ? docSpec.fileName : docSpec.filePath).name;
+export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): Promise<string> {
+    const outputFileName = path.parse(docSpec.filePath).name;
     const outputFilePath = path.join(opts.outputDir, `${outputFileName}.${opts.format}`);
 
     const progressBarFormat = ' {bar} {percentage}% | T: {duration_formatted} | ETA: {eta_formatted} | {value}/{total}';
@@ -76,7 +76,7 @@ export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): 
                 reject(error);
             } else {
                 console.log(chalk.green(`Output file generated successfully: ${outputFilePath}`));
-                resolve();
+                resolve(outputFilePath);
             }
         });
     });

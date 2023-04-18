@@ -5,7 +5,6 @@ import {
     ExecuteCommandAcceptor,
     LangiumSharedServices,
 } from 'langium';
-import path from 'path';
 import url from 'url';
 import * as lsp from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
@@ -49,15 +48,14 @@ export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
 
     async generateFile(fileUri: URI, showGeneratedFile = false): Promise<object> {
         const document = this.services.workspace.LangiumDocuments.getOrCreateDocument(fileUri);
-        const fileName = path.parse(fileUri.fsPath).name;
         const config = await this.config.getConfiguration('ranger', 'generate');
+        let outputFilePath: string;
 
         try {
-            // We pass the document text here instead of the file path
-            // because it can be more recent than the file content on disk
-            // (e.g. when a file is changed but not yet saved by the editor)
-            await generateOutputFile(
-                { text: document.textDocument.getText(), fileName },
+            // We pass the document text here because it can be newer than the file
+            // content on disk (e.g. when a file is changed but not yet saved by the editor)
+            outputFilePath = await generateOutputFile(
+                { filePath: fileUri.fsPath, text: document.textDocument.getText() },
                 {
                     count: config.count,
                     format: config.format,
@@ -70,10 +68,10 @@ export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
 
         if (showGeneratedFile) {
             this.lspConnection.sendRequest(lsp.ShowDocumentRequest.type, {
-                uri: url.pathToFileURL(`generated/${fileName}.${config.format}`).toString(),
+                uri: url.pathToFileURL(outputFilePath).toString(),
             });
         }
 
-        return { sucess: true, message: `Successfully generated file [generated/${fileName}.${config.format}]` };
+        return { sucess: true, message: `Successfully generated file [${outputFilePath}]` };
     }
 }

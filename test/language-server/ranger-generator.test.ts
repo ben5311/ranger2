@@ -1,10 +1,14 @@
 import { range } from 'lodash';
 import { describe, expect, test } from 'vitest';
 
-import { createObjectGenerator } from '../../src/cli/generator';
+import * as cli from '../../src/cli/generator';
 import { Objekt } from '../../src/language-server/generated/ast';
 import { resolvePath } from '../../src/utils/documents';
-import { createTempFile, escapePath, parse, validate } from '../../src/utils/test';
+import { createTempFile, escapePath, validate } from '../../src/utils/test';
+
+function createObjectGenerator(doc: { text: string; filePath?: string }) {
+    return cli.createObjectGenerator({ filePath: doc.filePath || 'Test.ranger', text: doc.text });
+}
 
 describe('ObjectGenerator', () => {
     test('Static values', async () => {

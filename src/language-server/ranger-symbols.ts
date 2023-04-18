@@ -10,7 +10,7 @@ import {
 import { hasErrors } from '../utils/documents';
 import { isSimpleProperty } from '../utils/types';
 import * as ast from './generated/ast';
-import { getValueAsJson } from './ranger-generator';
+import { generator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 import { resolveReference } from './ranger-scope';
 
@@ -24,7 +24,7 @@ export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider 
         const nameNode = this.nameProvider.getNameNode(astNode);
         if (nameNode && node) {
             const name = this.nameProvider.getName(astNode);
-            const value = isSimpleProperty(astNode) ? getValueAsJson(astNode) : undefined;
+            const value = isSimpleProperty(astNode) ? generator.getValueAsJson(astNode) : undefined;
             return [
                 {
                     kind: getSymbolKind(astNode.$type),

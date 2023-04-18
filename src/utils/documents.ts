@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import fs from 'fs';
 import { AstNode, isAstNode, LangiumDocument, LangiumServices } from 'langium';
 import path from 'path';
@@ -8,9 +7,15 @@ import { URI } from 'vscode-uri';
 import { Document } from '../language-server/generated/ast';
 
 /**
- * A Ranger Document spec that can be provided either as file path or file content.
+ * A Ranger Document spec.
+ *
+ * When providing only the filePath, the Document will be loaded
+ * by reading the file content from disk.
+ *
+ * If you pass the text argument, the file will not be loaded from disk and
+ * the filePath will only be used to create the Document URI.
  */
-export type DocumentSpec = { filePath: string } | { text: string };
+export type DocumentSpec = { filePath: string; text?: string };
 
 /**
  * Parse a Ranger document from file or string.
@@ -18,10 +23,14 @@ export type DocumentSpec = { filePath: string } | { text: string };
 export async function parseDocument(services: LangiumServices, docSpec: DocumentSpec) {
     const extensions = services.LanguageMetaData.fileExtensions;
     const { LangiumDocuments, LangiumDocumentFactory, DocumentBuilder } = services.shared.workspace;
-    let documentUri: URI;
+
+    let documentUri = URI.file(path.resolve(docSpec.filePath));
     let document: LangiumDocument<Document>;
 
-    if ('filePath' in docSpec) {
+    if (docSpec.text) {
+        document = LangiumDocumentFactory.fromString(docSpec.text, documentUri);
+        LangiumDocuments.addDocument(document);
+    } else {
         if (!extensions.includes(path.extname(docSpec.filePath))) {
             throw `Please choose a file with one of these extensions: [${extensions}].`;
         }
@@ -30,26 +39,17 @@ export async function parseDocument(services: LangiumServices, docSpec: Document
             throw `File [${docSpec.filePath}] does not exist.`;
         }
 
-        documentUri = URI.file(path.resolve(docSpec.filePath));
         document = LangiumDocuments.getOrCreateDocument(documentUri) as LangiumDocument<Document>;
-    } else {
-        const randomNumber = Math.floor(Math.random() * 10000000) + 1000000;
-        documentUri = URI.parse(`file:///${randomNumber}${extensions[0]}`);
-        document = LangiumDocumentFactory.fromString(docSpec.text, documentUri);
-        LangiumDocuments.addDocument(document);
     }
 
     await DocumentBuilder.build([document], { validationChecks: 'all' });
 
     const validationErrors = (document.diagnostics ?? []).filter((e) => e.severity === 1);
     if (validationErrors.length > 0) {
-        console.error(chalk.red('There are validation errors:'));
-        for (const validationError of validationErrors) {
-            const lineNumber = validationError.range.start.line + 1;
-            const text = document.textDocument.getText(validationError.range);
-            console.error(chalk.red(`line ${lineNumber}: ${validationError.message} [${text}]`));
-        }
-        process.exit(1);
+        const errors = validationErrors
+            .map((e) => `Line ${e.range.start.line + 1}: ${e.message} [${document.textDocument.getText(e.range)}]`)
+            .join('\n');
+        throw `There are validation errors:\n${errors}`;
     }
 
     const parseResult = document.parseResult?.value;

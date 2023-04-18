@@ -4,7 +4,7 @@ import { streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium
 import { resolvePath } from '../utils/documents';
 import { Issue, satisfies } from '../utils/types';
 import * as ast from './generated/ast';
-import { getValue, isListFunc } from './ranger-generator';
+import { generator, isListFunc } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 import { resolveReference } from './ranger-scope';
 
@@ -48,7 +48,7 @@ export class RangerValidator {
         const filePath = resolvePath(func.filePath.value, func)!;
         if (!fs.existsSync(filePath)) return;
         try {
-            getValue(func);
+            generator.getValue(func);
         } catch (error) {
             accept('error', issue.msg, { node: func, property: 'filePath', code: issue.code });
         }
