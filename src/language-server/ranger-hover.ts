@@ -69,12 +69,14 @@ export class RangerHoverProvider implements HoverProvider {
      * Returns Hover text for Functions.
      */
     getFuncHover(node: ast.Func, highlight = highlighter): string | undefined {
-        const hoverProviders: Providers<{ signature?: string; description?: string } | undefined> = {
+        const hoverProviders: Providers<FuncHover> = {
             RandomOfRange: getRandomOfRangeHover,
             RandomOfList: getRandomOfListHover,
             MapToList: getMapToListHover,
             MapToObject: getMapToObjectHover,
             CsvFunc: getCsvFuncHover,
+            SequenceFunc: getSequenceFuncHover,
+            UuidFunc: getUuidFuncHover,
         };
         let funcHover = executeProvider(node, hoverProviders, highlight);
         if (funcHover) {
@@ -136,16 +138,16 @@ function getListHover(list: ast.List, highlight = highlighter) {
 // Function Hover Providers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getRandomOfRangeHover(func: ast.RandomOfRange) {
+function getRandomOfRangeHover(func: ast.RandomOfRange): FuncHover {
     let [min, max] = [func.range.min.value, func.range.max.value];
     return { description: `Generates a random number between \`${min}\` and \`${max}\` (ends inclusive).` };
 }
 
-function getRandomOfListHover(_func: ast.RandomOfList) {
+function getRandomOfListHover(_func: ast.RandomOfList): FuncHover {
     return { description: `Generates a random element of the provided arguments.` };
 }
 
-function getMapToListHover(func: ast.MapToList) {
+function getMapToListHover(func: ast.MapToList): FuncHover {
     const sourceRef = func.source.$cstNode?.text;
     const source = resolveReference(func.source);
     const firstSourceVal = isListFunc(source) ? source.list.values[0] : undefined;
@@ -162,7 +164,7 @@ function getMapToListHover(func: ast.MapToList) {
     return { description };
 }
 
-function getMapToObjectHover(func: ast.MapToObject, _highlight = highlighter) {
+function getMapToObjectHover(func: ast.MapToObject): FuncHover {
     const sourceRef = func.source.$cstNode?.text;
     const firstPair = func.object.pairs[0];
     let description = dedent`
@@ -177,11 +179,22 @@ function getMapToObjectHover(func: ast.MapToObject, _highlight = highlighter) {
     return { description };
 }
 
-function getCsvFuncHover(func: ast.CsvFunc) {
+function getCsvFuncHover(func: ast.CsvFunc): FuncHover {
     const [filePath, delimiter, noHeader] = [func.filePath.value, func.delimiter, func.noHeader];
     const signature = `csv("${filePath}", delimiter="${delimiter}"${noHeader ? ', noHeader' : ''})`;
     return { signature, description: `Generates a random row of CSV file \`${filePath}\`.` };
 }
+
+function getSequenceFuncHover(func: ast.SequenceFunc): FuncHover {
+    const start = func.start.value;
+    return { description: `Generates number sequence \`${start}, ${start + 1}, ${start + 2}, ...\`` };
+}
+
+function getUuidFuncHover(_func: ast.UuidFunc): FuncHover {
+    return { description: `Generates a random [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier).` };
+}
+
+type FuncHover = { signature?: string; description?: string } | undefined;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Code Highlighter

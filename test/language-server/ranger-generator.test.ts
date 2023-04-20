@@ -6,28 +6,27 @@ import { Objekt } from '../../src/language-server/generated/ast';
 import { resolvePath } from '../../src/utils/documents';
 import { createTempFile, escapePath, validate } from '../../src/utils/test';
 
-function createObjectGenerator(doc: { text: string; filePath?: string }) {
-    return cli.createObjectGenerator({ filePath: doc.filePath || 'Test.ranger', text: doc.text });
+function createObjectGenerator(doc: string | { text: string; filePath: string }) {
+    doc = typeof doc === 'object' ? doc : { filePath: 'Test.ranger', text: doc };
+    return cli.createObjectGenerator(doc);
 }
 
 describe('ObjectGenerator', () => {
     test('Static values', async () => {
-        const objectGenerator = await createObjectGenerator({
-            text: `
-            Entity Test {
-                string: "Hello"
-                bool: true
-                num: 1
-                nul: null
-                list: [1, 2, 3]
-                obj: {name: "Max"}
-            }`,
-        });
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            string: "Hello"
+            bool: true
+            num: 1.5
+            nul: null
+            list: [1, 2, 3]
+            obj: {name: "Max"}
+        }`);
         const output = objectGenerator.next();
         expect(output).toStrictEqual({
             string: 'Hello',
             bool: true,
-            num: 1,
+            num: 1.5,
             nul: null,
             list: [1, 2, 3],
             obj: { name: 'Max' },
@@ -35,22 +34,19 @@ describe('ObjectGenerator', () => {
     });
 
     test('References', async () => {
-        const objectGenerator = await createObjectGenerator({
-            text: `
-            Entity Test {
-                num1: 1
-                num2: num1
-                num3: num2
-                cur1: Account.currency
-                cur2: account.currency
-                account: Account
-            }
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            num1: 1
+            num2: num1
+            num3: num2
+            cur1: Account.currency
+            cur2: account.currency
+            account: Account
+        }
 
-            Entity Account {
-                currency: "EUR"
-            }
-            `,
-        });
+        Entity Account {
+            currency: "EUR"
+        }`);
         const output = objectGenerator.next();
         expect(output).toStrictEqual({
             num1: 1,
@@ -63,12 +59,10 @@ describe('ObjectGenerator', () => {
     });
 
     test('random(a..b)', async () => {
-        const objectGenerator = await createObjectGenerator({
-            text: `
-            Entity Test {
-                num: random(1..10)
-            }`,
-        });
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            num: random(1..10)
+        }`);
         range(20).forEach((_) => {
             const output = objectGenerator.next();
             expect(output.num).toBeGreaterThanOrEqual(1);
@@ -77,12 +71,10 @@ describe('ObjectGenerator', () => {
     });
 
     test('random(a..b.00)', async () => {
-        const objectGenerator = await createObjectGenerator({
-            text: `
-            Entity Test {
-                num: random(10.01..10.09)
-            }`,
-        });
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            num: random(10.01..10.09)
+        }`);
         range(20).forEach((_) => {
             const output = objectGenerator.next();
             const num: number = output.num;
@@ -93,12 +85,10 @@ describe('ObjectGenerator', () => {
     });
 
     test('random([])', async () => {
-        const objectGenerator = await createObjectGenerator({
-            text: `
-            Entity Test {
-                name: random("Max", "Peter", "John")
-            }`,
-        });
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            name: random("Max", "Peter", "John")
+        }`);
         range(20).forEach((_) => {
             const output = objectGenerator.next();
             expect(['Max', 'Peter', 'John']).toContain(output.name);
@@ -106,13 +96,11 @@ describe('ObjectGenerator', () => {
     });
 
     test('map(=>[])', async () => {
-        const objectGenerator = await createObjectGenerator({
-            text: `
-            Entity Test {
-                lowercase: random("a", "b", "c", "d")
-                uppercase: map(lowercase => ["A", "B", "C", "D"])
-            }`,
-        });
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            lowercase: random("a", "b", "c", "d")
+            uppercase: map(lowercase => ["A", "B", "C", "D"])
+        }`);
         range(20).forEach((_) => {
             const output = objectGenerator.next();
             expect(['a', 'b', 'c', 'd']).toContain(output.lowercase);
@@ -121,13 +109,11 @@ describe('ObjectGenerator', () => {
     });
 
     test('map(=>{})', async () => {
-        const objectGenerator = await createObjectGenerator({
-            text: `
-            Entity Test {
-                lowercase: random("a", "b", "c", "d")
-                uppercase: map(lowercase => {"a":"A", "b":"B", "c":"C", "d":"D"})
-            }`,
-        });
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            lowercase: random("a", "b", "c", "d")
+            uppercase: map(lowercase => {"a":"A", "b":"B", "c":"C", "d":"D"})
+        }`);
         range(20).forEach((_) => {
             const output = objectGenerator.next();
             expect(['a', 'b', 'c', 'd']).toContain(output.lowercase);
@@ -138,12 +124,10 @@ describe('ObjectGenerator', () => {
     test('csv()', async () => {
         const csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
         const filePath = escapePath(csvFile.name);
-        const objectGenerator = await createObjectGenerator({
-            text: `
-            Entity Test {
-                data: csv("${filePath}", delimiter=",")
-            }`,
-        });
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            data: csv("${filePath}", delimiter=",")
+        }`);
         range(20).forEach((_) => {
             const output = objectGenerator.next();
             expect(output).toStrictEqual({
@@ -156,7 +140,7 @@ describe('ObjectGenerator', () => {
         });
     });
 
-    test('Resolve file path relative to Document', async () => {
+    test('Relative paths', async () => {
         const { result } = await validate({
             text: `Entity Test { dummy: "Hello World" }`,
             filePath: '/workdir/app/Test.ranger',
@@ -168,5 +152,29 @@ describe('ObjectGenerator', () => {
         expect(resolve('../data.csv', dummy)).toBe('/workdir/data.csv');
         expect(resolve('sub/dir', dummy)).toBe('/workdir/app/sub/dir');
         expect(resolve('/sub/dir', dummy)).toBe('/sub/dir');
+    });
+
+    test('sequence()', async () => {
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            num1: sequence(1)
+            num2: sequence(11)
+        }`);
+        range(1, 20).forEach((i) => {
+            const output = objectGenerator.next();
+            expect(output.num1).toBe(i);
+            expect(output.num2).toBe(10 + i);
+        });
+    });
+
+    test('uuid()', async () => {
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            id: uuid()
+        }`);
+        range(20).forEach((_) => {
+            const output = objectGenerator.next();
+            expect(output.id).toMatch(/\w{8}-\w{4}-4\w{3}-[89AB]\w{3}-\w{12}/i);
+        });
     });
 });

@@ -1,4 +1,5 @@
 Entity Kunde {
+    id: uuid()
     age: random(18..60)
     gender: random("male", "female")
     firstname: map(gender => [Names.male, Names.female])

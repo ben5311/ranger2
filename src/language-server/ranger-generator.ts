@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import * as csv from 'csv/sync';
 import fs from 'fs';
 import { MersenneTwister19937, nativeMath, Random } from 'random-js';
@@ -72,7 +73,7 @@ export class Generator {
         if (!this.valueGenerators.has(func)) {
             this.valueGenerators.set(func, this.createValueGenerator(func));
         }
-        const value = this.valueGenerators.get(func)?.nextValue();
+        const value = this.valueGenerators.get(func)!.nextValue();
         return value;
     }
 
@@ -104,6 +105,8 @@ export class Generator {
             MapToObject: this.create_MapToObject_Generator.bind(this),
             MapToList: this.create_MapToList_Generator.bind(this),
             CsvFunc: this.create_CsvFunc_Generator.bind(this),
+            SequenceFunc: this.create_SequenceFunc_Generator.bind(this),
+            UuidFunc: this.create_UuidFunc_Generator.bind(this),
         };
         return executeProvider(func, providers, this);
     }
@@ -187,6 +190,19 @@ export class Generator {
                 const randomIndex = g.random.integer(0, rows.length - 1);
                 return rows[randomIndex];
             },
+        };
+    }
+
+    protected create_SequenceFunc_Generator(func: ast.SequenceFunc): ValueGenerator | undefined {
+        let number = func.start?.value || 1;
+        return {
+            nextValue: () => number++,
+        };
+    }
+
+    protected create_UuidFunc_Generator(_func: ast.UuidFunc): ValueGenerator | undefined {
+        return {
+            nextValue: () => randomUUID(), // TODO: Apply seed to random UUID generator
         };
     }
 }

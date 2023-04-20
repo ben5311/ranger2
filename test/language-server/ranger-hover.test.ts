@@ -2,6 +2,7 @@ import dedent from 'dedent-js';
 import { describe, expect, test } from 'vitest';
 
 import { Objekt } from '../../src/language-server/generated/ast';
+import { generator } from '../../src/language-server/ranger-generator';
 import { noHighlight, RangerHoverProvider } from '../../src/language-server/ranger-hover';
 import { createTempFile, escapePath, services, validate } from '../../src/utils/test';
 
@@ -233,5 +234,50 @@ describe('RangerHoverProvider', () => {
           "second": "2",
           "third": "3"
         }`);
+    });
+
+    test('sequence()', async () => {
+        let { result } = await validate(dedent`
+        Entity Customer {
+            num1: sequence(1)
+            num2: sequence(11)
+        }`);
+
+        let Customer = result.entities[0];
+        let [num1, num2] = (Customer.value as Objekt).properties;
+
+        expect(hover(num1)).toBe('num1: 1');
+        expect(hover(num2)).toBe('num2: 11');
+        expect(hover(num1.value)).toBe(dedent`
+        sequence(1)
+        \n---\n
+        Generates number sequence \`1, 2, 3, ...\`
+
+        Example: 1`);
+        expect(hover(num2.value)).toBe(dedent`
+        sequence(11)
+        \n---\n
+        Generates number sequence \`11, 12, 13, ...\`
+
+        Example: 11`);
+    });
+
+    test('uuid()', async () => {
+        let { result } = await validate(dedent`
+        Entity Customer {
+            id: uuid()
+        }`);
+
+        let Customer = result.entities[0];
+        let [uuid] = (Customer.value as Objekt).properties;
+        const uuidValue = generator.getValue(uuid);
+
+        expect(hover(uuid)).toBe(`id: "${uuidValue}"`);
+        expect(hover(uuid.value)).toBe(dedent`
+        uuid()
+        \n---\n
+        Generates a random [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier).
+
+        Example: "${uuidValue}"`);
     });
 });

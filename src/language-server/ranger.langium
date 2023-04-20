@@ -48,7 +48,7 @@ Null:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Func:
-    RandomFunc | MapFunc | CsvFunc;
+    RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc;
 
 RandomFunc:
     RandomOfRange | RandomOfList;     // TODO: Allow references for range and list
@@ -66,6 +66,12 @@ MapToObject:
 
 CsvFunc:
     "csv" "(" filePath=FilePath (",""delimiter=" delimiter=STRING)? ("," noHeader?="noHeader")? ")";
+
+SequenceFunc:
+    "sequence" "(" start=Num ")";
+
+UuidFunc:
+    {infer UuidFunc} "uuid" "(" ")";
 
 Range:
     min=Num ".." max=Num;

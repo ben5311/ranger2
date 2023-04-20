@@ -25,6 +25,8 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'csv()': 'csv("$0")',
         'csv(delimiter)': 'csv("$0", delimiter=",")',
         'csv(delimiter,noHeader)': 'csv("$0", delimiter=",", noHeader)',
+        'sequence()': 'sequence(1)',
+        'uuid()': 'uuid()',
     };
 
     /**
