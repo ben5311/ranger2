@@ -10,7 +10,7 @@ This example Ranger file
 <!-- markdownlint-disable MD033 -->
 <img src="https://raw.githubusercontent.com/ben5311/ranger2/main/images/customer.png" alt="Example Ranger file" width="450"/>
 
-produces output similar to
+produces such an output
 
 ```json
 {"age":21,"gender":"male","firstname":"James","lastname":"Parker"}
