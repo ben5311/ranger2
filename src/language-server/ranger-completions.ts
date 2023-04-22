@@ -17,6 +17,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         '/*': '/*\n$0\n*/',
     };
     KeywordSnippets: Record<string, string> = {
+        'from "" import': 'from "$1" import $0',
         'Entity {}': 'Entity $0 {\n\t\n}',
         'random()': 'random($0)',
         'random(a..b)': 'random($1..$0)',
@@ -28,6 +29,9 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'sequence()': 'sequence(1)',
         'uuid()': 'uuid()',
     };
+
+    // TODO: Add auto completion for FilePaths
+    // TODO: Add auto completion for Imports
 
     /**
      * Provides custom Completions when the cursor is at the beginning of the line.

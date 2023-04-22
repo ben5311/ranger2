@@ -1,7 +1,11 @@
 grammar Ranger
 
 entry Document:
+    (imports+=Import)*
     (entities+=Entity)*;
+
+Import:
+    "from" filePath=FilePath "import" entities+=ID ("," entities+=ID)* ","?;
 
 Entity returns Entity:
     "Entity" name=ID value=Objekt;

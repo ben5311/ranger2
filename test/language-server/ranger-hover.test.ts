@@ -4,7 +4,7 @@ import { describe, expect, test } from 'vitest';
 import { Objekt } from '../../src/language-server/generated/ast';
 import { generator } from '../../src/language-server/ranger-generator';
 import { noHighlight, RangerHoverProvider } from '../../src/language-server/ranger-hover';
-import { createTempFile, escapePath, services, validate } from '../../src/utils/test';
+import { createTempFile, services, validate } from '../../src/utils/test';
 
 const hoverProvider = new RangerHoverProvider(services.Ranger);
 // @ts-ignore
@@ -186,7 +186,7 @@ describe('RangerHoverProvider', () => {
         map(gender => ["Max"])
         \n---\n
         Evaluates the value of \`gender\` and chooses based on the result from possible values \\
-        \`["Max"]\`.
+        on the right hand side.
 
         For example, if \`gender\` matches \`"male"\`,
         \`"Max"\` is returned.
@@ -197,7 +197,7 @@ describe('RangerHoverProvider', () => {
         map(gender => {"male": "Max"})
         \n---\n
         Evaluates the value of \`gender\` and chooses based on the result from possible values \\
-        \`{"male": "Max"}\`.
+        on the right hand side.
 
         For example, if \`gender\` matches \`"male"\`,
         \`"Max"\` is returned.
@@ -207,10 +207,9 @@ describe('RangerHoverProvider', () => {
 
     test('csv()', async () => {
         let csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
-        let filePath = escapePath(csvFile.name);
         let { result } = await validate(dedent`
         Entity Customer {
-            data: csv("${filePath}", delimiter=",")
+            data: csv("${csvFile.name}", delimiter=",")
         }`);
 
         let Customer = result.entities[0];
@@ -223,7 +222,7 @@ describe('RangerHoverProvider', () => {
           "third": "3"
         }
         `);
-        let signature = hover(data.value)?.replace(new RegExp(filePath, 'g'), 'data.csv');
+        let signature = hover(data.value)?.replace(new RegExp(csvFile.name, 'g'), 'data.csv');
         expect(signature).toBe(dedent`
         csv("data.csv", delimiter=",")
         \n---\n

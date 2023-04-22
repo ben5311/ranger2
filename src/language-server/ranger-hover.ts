@@ -154,7 +154,7 @@ function getMapToListHover(func: ast.MapToList): FuncHover {
     const firstTargetVal = func.list.values[0];
     let description = dedent`
         Evaluates the value of \`${sourceRef}\` and chooses based on the result from possible values \\
-        \`${func.list.$cstNode?.text}\`.`;
+        on the right hand side.`;
     if (firstSourceVal && firstTargetVal) {
         description += dedent`
         \n
@@ -169,7 +169,7 @@ function getMapToObjectHover(func: ast.MapToObject): FuncHover {
     const firstPair = func.object.pairs[0];
     let description = dedent`
         Evaluates the value of \`${sourceRef}\` and chooses based on the result from possible values \\
-        \`${func.object.$cstNode?.text}\`.`;
+        on the right hand side.`;
     if (firstPair) {
         description += dedent`
         \n

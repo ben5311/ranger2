@@ -2,15 +2,7 @@ import { beforeEach, describe, test } from 'vitest';
 
 import { CsvFunc, Objekt } from '../../src/language-server/generated/ast';
 import { Issues } from '../../src/language-server/ranger-validator';
-import {
-    clearIndex,
-    createTempFile,
-    escapePath,
-    expectError,
-    expectNoIssues,
-    expectWarning,
-    validate,
-} from '../../src/utils/test';
+import { clearIndex, createTempFile, expectError, expectNoIssues, expectWarning, validate } from '../../src/utils/test';
 
 beforeEach(() => {
     clearIndex();
@@ -31,7 +23,7 @@ describe('RangerValidator', () => {
             const csvFile = createTempFile({ postfix: '.csv' });
             validation = await validate(`
             Entity Customer {
-                data: csv("${escapePath(csvFile.name)}")
+                data: csv("${csvFile.name}")
             }`);
             expectNoIssues(validation);
         });
@@ -51,14 +43,14 @@ describe('RangerValidator', () => {
             let csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
             let validation = await validate(`
             Entity Customer {
-                data: csv("${escapePath(csvFile.name)}")
+                data: csv("${csvFile.name}")
             }`);
             expectNoIssues(validation);
 
             csvFile = createTempFile({ postfix: '.csv', data: '{"this": "is", "json": "content"}' });
             validation = await validate(`
             Entity Customer {
-                data: csv("${escapePath(csvFile.name)}")
+                data: csv("${csvFile.name}")
             }`);
             expectError(validation, Issues.InvalidCsvFile.code, {
                 node: (validation.result.entities[0].value as Objekt).properties[0].value as CsvFunc,
@@ -157,24 +149,17 @@ describe('RangerValidator', () => {
             Entity Customer {
                 name: name
             }`);
-            expectError(validation, Issues.CircularReference.code, {
-                node: (validation.result.entities[0].value as Objekt).properties[0],
-                property: 'value',
-            });
+            let [name] = (validation.result.entities[0].value as Objekt).properties;
+            expectError(validation, Issues.CircularReference.code, { node: name, property: 'value' });
 
             validation = await validate(`
             Entity Customer {
                 first: second
                 second: first
             }`);
-            expectError(validation, Issues.CircularReference.code, {
-                node: (validation.result.entities[0].value as Objekt).properties[0],
-                property: 'value',
-            });
-            expectError(validation, Issues.CircularReference.code, {
-                node: (validation.result.entities[0].value as Objekt).properties[1],
-                property: 'value',
-            });
+            let [first, second] = (validation.result.entities[0].value as Objekt).properties;
+            expectError(validation, Issues.CircularReference.code, { node: first, property: 'value' });
+            expectError(validation, Issues.CircularReference.code, { node: second, property: 'value' });
 
             validation = await validate(`
             Entity Account {
@@ -184,15 +169,10 @@ describe('RangerValidator', () => {
                     ref2: Account.account
                 }
             }`);
-            const account = (validation.result.entities[0].value as Objekt).properties[1].value as Objekt;
-            expectError(validation, Issues.CircularReference.code, {
-                node: account.properties[0],
-                property: 'value',
-            });
-            expectError(validation, Issues.CircularReference.code, {
-                node: account.properties[1],
-                property: 'value',
-            });
+            let account = (validation.result.entities[0].value as Objekt).properties[1].value as Objekt;
+            let [ref1, ref2] = account.properties;
+            expectError(validation, Issues.CircularReference.code, { node: ref1, property: 'value' });
+            expectError(validation, Issues.CircularReference.code, { node: ref2, property: 'value' });
 
             validation = await validate(`
             Entity Customer {
@@ -202,10 +182,8 @@ describe('RangerValidator', () => {
                 account: Customer.account
             }
             `);
-            expectError(validation, Issues.CircularReference.code, {
-                node: (validation.result.entities[1].value as Objekt).properties[0],
-                property: 'value',
-            });
+            let [account_] = (validation.result.entities[1].value as Objekt).properties;
+            expectError(validation, Issues.CircularReference.code, { node: account_, property: 'value' });
         });
     });
 });

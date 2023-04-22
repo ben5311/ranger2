@@ -19,7 +19,7 @@
 
         "keyword": {
             "name": "keyword.control.ranger",
-            "match": "\\b(Entity|csv|noHeader|random|sequence|uuid)\\b|\\b(delimiter=)\\B",
+            "match": "\\b(Entity|csv|from|import|noHeader|random|sequence|uuid)\\b|\\b(delimiter=)\\B",
             "description": "Do not include 'map' keyword here!"
         },
 

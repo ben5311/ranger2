@@ -1,0 +1,5 @@
+Entity Names {
+    male: random("Max", "Jonas", "Sebastian")
+    female: random("Anna", "Lea", "Sofia")
+    lastname: random("Ackermann", "Dietz", "Fischer")
+}

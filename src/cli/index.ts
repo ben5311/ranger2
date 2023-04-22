@@ -29,12 +29,10 @@ export function run(): void {
         .addOption(new Option('-f, --format <format>', 'The output format').choices(formats).default('jsonl'))
         .addOption(new Option('-o, --outputDir <dir>', 'The desired output directory').default('generated'))
         .action(async (rangerFile: string, opts: Options) => {
-            try {
-                await generateOutputFile({ filePath: rangerFile }, opts);
-            } catch (error) {
-                console.log(chalk.red(error));
+            generateOutputFile({ filePath: rangerFile }, opts).catch((error) => {
+                console.log(chalk.red(error.message || error));
                 process.exit(1);
-            }
+            });
         });
 
     program.parse(process.argv);

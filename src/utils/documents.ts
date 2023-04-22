@@ -1,5 +1,6 @@
+import { AssertionError } from 'assert';
 import fs from 'fs';
-import { AstNode, isAstNode, LangiumDocument, LangiumServices } from 'langium';
+import { AstNode, getDocument, isAstNode, LangiumDocument, LangiumServices } from 'langium';
 import path from 'path';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
@@ -7,22 +8,43 @@ import { URI } from 'vscode-uri';
 import { Document } from '../language-server/generated/ast';
 
 /**
- * A Ranger Document spec.
+ * A Ranger Document specification.
  *
- * When providing only the filePath, the Document will be loaded
- * by reading the file content from disk.
+ * If you only provide the filePath, the Document will be loaded from the file system.
  *
- * If you pass the text argument, the file will not be loaded from disk and
- * the filePath will only be used to create the Document URI.
+ * If you pass the text argument as well, the document will not be loaded from the disk,
+ * and the file path will only be used to create the Document URI.
  */
 export type DocumentSpec = { filePath: string; text?: string };
 
 /**
- * Parse a Ranger document from file or string.
+ * Parse a Ranger Document from file or string.
  */
 export async function parseDocument(services: LangiumServices, docSpec: DocumentSpec) {
+    const { DocumentBuilder } = services.shared.workspace;
+
+    const imported: LangiumDocument[] = [];
+    const document = await doParseDocument(services, docSpec, imported);
+
+    await DocumentBuilder.build(imported, { validationChecks: 'all' });
+
+    const validationErrors = (document.diagnostics ?? []).filter((e) => e.severity === 1);
+    if (validationErrors.length > 0) {
+        const errors = validationErrors
+            .map((e) => `Line ${e.range.start.line + 1}: ${e.message} [${document.textDocument.getText(e.range)}]`)
+            .join('\n');
+        throw new AssertionError({ message: `There are validation errors:\n${errors}` });
+    }
+
+    return { document, parseResult: document.parseResult.value };
+}
+
+/**
+ * Parse a Ranger Document and its imports.
+ */
+async function doParseDocument(services: LangiumServices, docSpec: DocumentSpec, imported: LangiumDocument[]) {
     const extensions = services.LanguageMetaData.fileExtensions;
-    const { LangiumDocuments, LangiumDocumentFactory, DocumentBuilder } = services.shared.workspace;
+    const { LangiumDocuments, LangiumDocumentFactory } = services.shared.workspace;
 
     let documentUri = URI.file(path.resolve(docSpec.filePath));
     let document: LangiumDocument<Document>;
@@ -42,29 +64,28 @@ export async function parseDocument(services: LangiumServices, docSpec: Document
         document = LangiumDocuments.getOrCreateDocument(documentUri) as LangiumDocument<Document>;
     }
 
-    await DocumentBuilder.build([document], { validationChecks: 'all' });
+    imported.push(document);
 
-    const validationErrors = (document.diagnostics ?? []).filter((e) => e.severity === 1);
-    if (validationErrors.length > 0) {
-        const errors = validationErrors
-            .map((e) => `Line ${e.range.start.line + 1}: ${e.message} [${document.textDocument.getText(e.range)}]`)
-            .join('\n');
-        throw `There are validation errors:\n${errors}`;
+    for (const import_ of document.parseResult?.value.imports || []) {
+        const filePath = resolvePath(import_.filePath.value, document);
+        const fileUri = URI.file(filePath);
+        if (!LangiumDocuments.hasDocument(fileUri)) {
+            await doParseDocument(services, { filePath }, imported);
+        }
     }
 
-    const parseResult = document.parseResult?.value;
-    return { document, parseResult };
+    return document;
 }
 
 /**
- * Returns true if the LangiumDocument has validation errors.
+ * Returns true if the Document has validation errors.
  */
 export function hasErrors(document: LangiumDocument): boolean {
     return !!document.diagnostics?.filter((d) => d.severity === DiagnosticSeverity.Error).length;
 }
 
 /**
- * Returns true if the LangiumDocument has no validation errors.
+ * Returns true if the Document has no validation errors.
  */
 export function hasNoErrors(document: LangiumDocument): boolean {
     return !hasErrors(document);
@@ -73,30 +94,13 @@ export function hasNoErrors(document: LangiumDocument): boolean {
 /**
  * Resolve file path relative to Document.
  */
-export function resolvePath(filePath: string, context: AstNode | LangiumDocument): string | undefined {
+export function resolvePath(filePath: string, context: AstNode | LangiumDocument): string {
     if (path.isAbsolute(filePath)) {
         return filePath;
     }
 
-    let document: LangiumDocument;
-    if (isAstNode(context)) {
-        let rootNode = getRootNode(context);
-        if (!rootNode?.$document) {
-            return undefined;
-        }
-        document = rootNode.$document;
-    } else {
-        document = context;
-    }
-
-    const documentFile = document.uri.fsPath;
-    const resolved = path.join(path.dirname(documentFile), filePath);
+    let document = isAstNode(context) ? getDocument(context) : context;
+    const docFilePath = document.uri.fsPath;
+    const resolved = path.join(path.dirname(docFilePath), filePath);
     return resolved;
-}
-
-export function getRootNode(node?: AstNode): AstNode | undefined {
-    while (node && '$container' in node) {
-        node = node.$container;
-    }
-    return node;
 }

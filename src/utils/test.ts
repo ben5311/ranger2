@@ -76,6 +76,7 @@ export const clearIndex = () => {
 export function createTempFile(options?: tmp.FileOptions & { data?: string }) {
     const tmpFile = tmp.fileSync(options);
     fs.writeFileSync(tmpFile.fd, options?.data || '');
+    tmpFile.name = escapePath(tmpFile.name);
     return tmpFile;
 }
 
@@ -84,7 +85,9 @@ export function createTempDir(options?: tmp.DirOptions) {
     return {
         ...tmpDir,
         createFile: function (fileName: string, data = '') {
-            fs.writeFileSync(path.join(tmpDir.name, fileName), data);
+            const filePath = path.join(tmpDir.name, fileName);
+            fs.writeFileSync(filePath, data);
+            return { name: escapePath(filePath) };
         },
     };
 }

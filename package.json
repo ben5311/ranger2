@@ -84,7 +84,6 @@
         "lint": "eslint src --ext ts",
         "test": "vitest",
         "test-run": "vitest run",
-        "test-ui": "vitest --ui",
         "package": "npm run build:bundle:extension && vsce package"
     },
     "pre-commit": {

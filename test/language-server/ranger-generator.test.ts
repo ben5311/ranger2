@@ -4,7 +4,7 @@ import { describe, expect, test } from 'vitest';
 import * as cli from '../../src/cli/generator';
 import { Objekt } from '../../src/language-server/generated/ast';
 import { resolvePath } from '../../src/utils/documents';
-import { createTempFile, escapePath, validate } from '../../src/utils/test';
+import { createTempFile, validate } from '../../src/utils/test';
 
 function createObjectGenerator(doc: string | { text: string; filePath: string }) {
     doc = typeof doc === 'object' ? doc : { filePath: 'Test.ranger', text: doc };
@@ -39,6 +39,7 @@ describe('ObjectGenerator', () => {
             num1: 1
             num2: num1
             num3: num2
+            num4: Test.num3
             cur1: Account.currency
             cur2: account.currency
             account: Account
@@ -52,8 +53,26 @@ describe('ObjectGenerator', () => {
             num1: 1,
             num2: 1,
             num3: 1,
+            num4: 1,
             cur1: 'EUR',
             cur2: 'EUR',
+            account: { currency: 'EUR' },
+        });
+    });
+
+    test('Imports', async () => {
+        let accountFile = createTempFile({ postfix: '.ranger', data: `Entity Account { currency: "EUR"}` });
+        const objectGenerator = await createObjectGenerator(`
+        from "${accountFile.name}" import Account
+
+        Entity User {
+            name: "John"
+            account: Account
+        }`);
+
+        const output = objectGenerator.next();
+        expect(output).toStrictEqual({
+            name: 'John',
             account: { currency: 'EUR' },
         });
     });
@@ -123,10 +142,9 @@ describe('ObjectGenerator', () => {
 
     test('csv()', async () => {
         const csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
-        const filePath = escapePath(csvFile.name);
         const objectGenerator = await createObjectGenerator(`
         Entity Test {
-            data: csv("${filePath}", delimiter=",")
+            data: csv("${csvFile.name}", delimiter=",")
         }`);
         range(20).forEach((_) => {
             const output = objectGenerator.next();

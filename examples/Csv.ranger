@@ -1,0 +1,3 @@
+Entity Imported {
+    bank: csv("bank.csv")
+}

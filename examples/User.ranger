@@ -1,3 +1,6 @@
+from "./BankAccount.ranger" import BankAccount
+from "./Names.ranger" import Names
+
 Entity Kunde {
     id: uuid()
     age: random(18..60)
@@ -6,19 +9,4 @@ Entity Kunde {
     shortname: map(firstname => {"Max":"M", "Jonas":"J", "Sebastian":"S", "Anna":"A", "Lea":"L","Sofia":"S"})
     lastname: Names.lastname
     account: BankAccount
-}
-
-Entity Names {
-    male: random("Max", "Jonas", "Sebastian")
-    female: random("Anna", "Lea", "Sofia")
-    lastname: random("Ackermann", "Dietz", "Fischer")
-}
-
-Entity Imported {
-    bank: csv("bank.csv")
-}
-
-Entity BankAccount {
-    balance: random(1000..15000.50)
-    currency: random("EUR", "USD", "CHF")
 }

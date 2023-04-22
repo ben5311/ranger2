@@ -21,6 +21,7 @@ export class RangerFormatter extends AbstractFormatter {
 
     protected format(node: AstNode): void {
         const formatter = this.getNodeFormatter(node);
+        // TODO: add new line after last import
         if (ast.isObjekt(node)) {
             const bracesOpen = formatter.keyword('{');
             const bracesClose = formatter.keyword('}');

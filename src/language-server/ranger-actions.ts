@@ -68,6 +68,8 @@ export class RangerActionProvider implements CodeActionProvider {
         };
     }
 
+    // TODO: implement Import suggestion for issue "linking-error"
+
     getCodeActions(document: LangiumDocument, params: CodeActionParams): MaybePromise<Array<Command | CodeAction>> {
         const result: CodeAction[] = [];
         for (const diagnostic of params.context.diagnostics) {

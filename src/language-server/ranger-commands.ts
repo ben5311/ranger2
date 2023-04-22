@@ -5,7 +5,6 @@ import {
     ExecuteCommandAcceptor,
     LangiumSharedServices,
 } from 'langium';
-import url from 'url';
 import * as lsp from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
@@ -68,7 +67,7 @@ export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
 
         if (showGeneratedFile) {
             this.lspConnection.sendRequest(lsp.ShowDocumentRequest.type, {
-                uri: url.pathToFileURL(outputFilePath).toString(),
+                uri: URI.file(outputFilePath).toString(),
             });
         }
 

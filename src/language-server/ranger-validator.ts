@@ -1,5 +1,9 @@
 import fs from 'fs';
-import { streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
+import {
+	streamAllContents,
+	ValidationAcceptor,
+	ValidationChecks,
+} from 'langium';
 
 import { resolvePath } from '../utils/documents';
 import { Issue, satisfies } from '../utils/types';
@@ -36,6 +40,8 @@ export const Issues = satisfies<Record<string, Issue>>()({
     MapToList_NotBasedOnAListFunc: { code: 'MapToList.NotBasedOnAListFunc', msg: 'Unsupported value source' },
     NameNotCapitalized: { code: 'NameNotCapitalized', msg: 'Entity name should start with a capital.' },
 });
+
+// TODO: Add validation for imports (path suffix must be .ranger, entities must exist inside the document)
 
 /**
  * Implementation of custom validations.
@@ -136,7 +142,9 @@ export class RangerValidator {
 
     checkObjekt_NoReferenceToParentObjekt(obj: ast.Objekt, accept: ValidationAcceptor) {
         const issue = Issues.CircularReference;
-        for (const ref of streamAllContents(obj).filter(ast.isPropertyReference)) {
+        for (const ref of streamAllContents(obj)
+            .filter(ast.isPropertyReference)
+            .filter((ref) => ref.$containerProperty !== 'previous')) {
             if (resolveReference(ref) === obj) {
                 accept('error', issue.msg, { node: ref, code: issue.code });
             }
