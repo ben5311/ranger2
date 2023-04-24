@@ -1,9 +1,5 @@
 import fs from 'fs';
-import {
-	streamAllContents,
-	ValidationAcceptor,
-	ValidationChecks,
-} from 'langium';
+import { streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { resolvePath } from '../utils/documents';
 import { Issue, satisfies } from '../utils/types';
@@ -42,6 +38,7 @@ export const Issues = satisfies<Record<string, Issue>>()({
 });
 
 // TODO: Add validation for imports (path suffix must be .ranger, entities must exist inside the document)
+// TODO: Add validation for duplicate (imported) Entities in global Scope
 
 /**
  * Implementation of custom validations.

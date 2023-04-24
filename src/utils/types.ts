@@ -83,6 +83,7 @@ declare global {
     interface Array<T> {
         first(): T | undefined;
         groupBy<KeyT>(this: T[], key: (element: T) => KeyT): Map<KeyT, T[]>;
+        lastIndex(): number;
     }
     interface Map<K, V> {
         valuesArray(): V[];
@@ -100,6 +101,9 @@ Array.prototype.groupBy = function (keyFn) {
         accumulator.get(key)!.push(currentVal);
         return accumulator;
     }, new Map<any, any[]>());
+};
+Array.prototype.lastIndex = function () {
+    return this.length - 1;
 };
 Map.prototype.valuesArray = function () {
     return Array.from(this.values());

@@ -14,7 +14,7 @@ export type Options = {
     outputDir: string;
 };
 const formats = ['jsonl', 'csv'] as const;
-export type Format = typeof formats[number];
+export type Format = (typeof formats)[number];
 
 export function run(): void {
     const program = new Command();
@@ -48,9 +48,7 @@ function parseIntg(text: string): number {
 }
 
 /**
- * Generate test data based on a Ranger configuration file.
- *
- * Provide either the path to the Ranger file or its content and the desired output file name.
+ * Generate JSONL or CSV test data based on a Ranger configuration file.
  */
 export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): Promise<string> {
     const outputFileName = path.parse(docSpec.filePath).name;

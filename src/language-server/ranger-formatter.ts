@@ -21,16 +21,26 @@ export class RangerFormatter extends AbstractFormatter {
 
     protected format(node: AstNode): void {
         const formatter = this.getNodeFormatter(node);
-        // TODO: add new line after last import
-        if (ast.isObjekt(node)) {
+        if (ast.isDocument(node)) {
+            node.imports.forEach((imp, index) => {
+                const import_ = formatter.node(imp);
+                if (index == 0) import_.prepend(Formatting.noSpace());
+                import_.append(Formatting.newLines(index < node.imports.lastIndex() ? 1 : 2));
+            });
+        } else if (ast.isObjekt(node)) {
             const bracesOpen = formatter.keyword('{');
             const bracesClose = formatter.keyword('}');
             const interior = formatter.interior(bracesOpen, bracesClose);
             interior.prepend(Formatting.indent({ allowMore: true }));
             bracesClose.prepend(Formatting.newLine());
             if (ast.isEntity(node.$container)) {
+                const entity = formatter.node(node.$container);
+                entity.prepend(Formatting.noIndent());
                 bracesClose.append(Formatting.newLines(2));
             }
+        } else if (ast.isProperty(node)) {
+            const value = formatter.node(node.value);
+            value.prepend(Formatting.spaces(1));
         }
     }
 

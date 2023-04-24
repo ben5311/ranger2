@@ -10,7 +10,7 @@ import { Document } from '../language-server/generated/ast';
 /**
  * A Ranger Document specification.
  *
- * If you only provide the filePath, the Document will be loaded from the file system.
+ * If you only provide filePath, the Document will be loaded from the file system.
  *
  * If you pass the text argument as well, the document will not be loaded from the disk,
  * and the file path will only be used to create the Document URI.
