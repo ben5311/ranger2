@@ -1,7 +1,7 @@
 import { DefaultScopeProvider, EMPTY_SCOPE, getContainerOfType, ReferenceInfo, Scope, StreamScope } from 'langium';
 import { URI } from 'vscode-uri';
 
-import { resolvePath } from '../utils/documents';
+import { fileURI, resolvePath } from '../utils/documents';
 import * as ast from './generated/ast';
 
 /**
@@ -71,7 +71,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
         const imports = new Map<string, string[]>();
         for (let imp of document.imports) {
             const filePath = resolvePath(imp.filePath.value, document);
-            const fileUri = URI.file(filePath).toString();
+            const fileUri = fileURI(filePath).toString();
             imports.set(fileUri, imp.entities);
         }
 

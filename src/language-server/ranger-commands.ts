@@ -9,7 +9,7 @@ import * as lsp from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
 import { generateOutputFile } from '../cli';
-import { hasNoErrors } from '../utils/documents';
+import { fileURI, hasNoErrors, parseURI } from '../utils/documents';
 
 export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
     protected readonly config: ConfigurationProvider;
@@ -32,7 +32,7 @@ export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
     registerCommands(register: ExecuteCommandAcceptor): void {
         register('ranger.generateFile', async (args) => {
             const fileUri: string = args[0].external;
-            return await this.generateFile(URI.parse(fileUri), true);
+            return await this.generateFile(parseURI(fileUri), true);
         });
 
         register('ranger.toggleWatchFile', async (args) => {
@@ -67,7 +67,7 @@ export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
 
         if (showGeneratedFile) {
             this.lspConnection.sendRequest(lsp.ShowDocumentRequest.type, {
-                uri: URI.file(outputFilePath).toString(),
+                uri: fileURI(outputFilePath).toString(),
             });
         }
 

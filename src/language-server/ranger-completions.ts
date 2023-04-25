@@ -32,6 +32,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
 
     // TODO: Add auto completion for FilePaths
     // TODO: Add auto completion for Imports
+    // TODO: GoTo Definition for Import FilePath and Entities
 
     /**
      * Provides custom Completions when the cursor is at the beginning of the line.

@@ -46,7 +46,7 @@ async function doParseDocument(services: LangiumServices, docSpec: DocumentSpec,
     const extensions = services.LanguageMetaData.fileExtensions;
     const { LangiumDocuments, LangiumDocumentFactory } = services.shared.workspace;
 
-    let documentUri = URI.file(path.resolve(docSpec.filePath));
+    let documentUri = fileURI(path.resolve(docSpec.filePath));
     let document: LangiumDocument<Document>;
 
     if (docSpec.text) {
@@ -103,4 +103,15 @@ export function resolvePath(filePath: string, context: AstNode | LangiumDocument
     const docFilePath = document.uri.fsPath;
     const resolved = path.join(path.dirname(docFilePath), filePath);
     return resolved;
+}
+
+export function parseURI(uri: string): URI {
+    return URI.parse(uri);
+}
+
+/**
+ * Convert file path to URI.
+ */
+export function fileURI(filePath: string): URI {
+    return URI.file(filePath);
 }

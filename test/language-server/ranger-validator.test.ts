@@ -10,35 +10,6 @@ beforeEach(() => {
 
 describe('RangerValidator', () => {
     describe('checkCsvFunc', () => {
-        test('FileExists', async () => {
-            let validation = await validate(`
-            Entity Customer {
-                data: csv("customer.csv")
-            }`);
-            expectError(validation, Issues.FileDoesNotExist.code, {
-                node: (validation.result.entities[0].value as Objekt).properties[0].value as CsvFunc,
-                property: 'filePath',
-            });
-
-            const csvFile = createTempFile({ postfix: '.csv' });
-            validation = await validate(`
-            Entity Customer {
-                data: csv("${csvFile.name}")
-            }`);
-            expectNoIssues(validation);
-        });
-
-        test('NoBackslashes', async () => {
-            let validation = await validate(`
-            Entity Customer {
-                data: csv(".\\folder\\customer.csv")
-            }`);
-            expectWarning(validation, Issues.FilePathWithBackslashes.code, {
-                node: (validation.result.entities[0].value as Objekt).properties[0].value as CsvFunc,
-                property: 'filePath',
-            });
-        });
-
         test('NoParseErrors', async () => {
             let csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
             let validation = await validate(`
@@ -84,6 +55,60 @@ describe('RangerValidator', () => {
             expectError(validation, Issues.DuplicateEntity.code, {
                 node: validation.result.entities[0],
                 property: 'name',
+            });
+        });
+    });
+
+    describe('checkFilePath', () => {
+        test('FileExists', async () => {
+            let validation = await validate(`
+            Entity Customer {
+                data: csv("customer.csv")
+            }`);
+            expectError(validation, Issues.FileDoesNotExist.code, {
+                node: (validation.result.entities[0].value as Objekt).properties[0].value as CsvFunc,
+                property: 'filePath',
+            });
+
+            const csvFile = createTempFile({ postfix: '.csv' });
+            validation = await validate(`
+            Entity Customer {
+                data: csv("${csvFile.name}")
+            }`);
+            expectNoIssues(validation);
+        });
+
+        test('NoBackslashes', async () => {
+            let validation = await validate(`
+            Entity Customer {
+                data: csv(".\\folder\\customer.csv")
+            }`);
+            expectWarning(validation, Issues.FilePathWithBackslashes.code, {
+                node: (validation.result.entities[0].value as Objekt).properties[0].value as CsvFunc,
+                property: 'filePath',
+            });
+        });
+    });
+
+    describe('checkImport', () => {
+        test('WrongFileExtension', async () => {
+            let validation = await validate(`from "Test.txt" import Test`);
+            expectError(validation, Issues.WrongFileExtension.code, {
+                node: validation.result.imports[0].filePath,
+                property: 'value',
+            });
+        });
+
+        test('DocumentHasErrors', async () => {
+            let rangerFile = createTempFile({ postfix: '.ranger', data: `` });
+            let validation = await validate(`from "${rangerFile.name}" import Test`);
+            expectNoIssues(validation);
+
+            rangerFile = createTempFile({ postfix: '.ranger', data: `Enti` });
+            validation = await validate(`from "${rangerFile.name}" import Test`);
+            expectError(validation, Issues.DocumentHasErrors.code, {
+                node: validation.result.imports[0].filePath,
+                property: 'value',
             });
         });
     });

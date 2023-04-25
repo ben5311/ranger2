@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
 
-import { resolvePath } from '../utils/documents';
+import { fileURI, hasErrors, resolvePath } from '../utils/documents';
 import { Issue, satisfies } from '../utils/types';
 import * as ast from './generated/ast';
 import { generator, isListFunc } from './ranger-generator';
@@ -18,6 +18,7 @@ export function registerValidationChecks(services: RangerServices) {
         CsvFunc: [validator.checkCsvFunc_InvalidCsvFile],
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_EntityNamesStartsWithCapital],
         FilePath: [validator.checkFilePath_FileExists, validator.checkFilePath_NoBackslashes],
+        Import: [validator.checkImport_WrongFileExtension, validator.checkImport_DocumentHasErrors],
         MapFunc: [validator.checkMapFunc_NoCircularReferences],
         MapToList: [validator.checkMapToList_IsBasedOnAListFunc],
         Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_NoReferenceToParentObjekt],
@@ -28,16 +29,18 @@ export function registerValidationChecks(services: RangerServices) {
 
 export const Issues = satisfies<Record<string, Issue>>()({
     CircularReference: { code: 'CircularReference', msg: 'Circular reference' },
-    DuplicateEntity: { code: 'DuplicateEntity', msg: 'Duplicate Entity: ' },
-    DuplicateProperty: { code: 'DuplicateProperty', msg: 'Duplicate Property:' },
+    DocumentHasErrors: { code: 'DocumentHasErrors', msg: 'File has errors' },
+    DuplicateEntity: { code: 'DuplicateEntity', msg: 'Duplicate Entity' },
+    DuplicateProperty: { code: 'DuplicateProperty', msg: 'Duplicate Property' },
     FileDoesNotExist: { code: 'FileDoesNotExist', msg: 'File does not exist' },
     FilePathWithBackslashes: { code: 'FilePathWithBackslashes', msg: 'File paths should only contain forward slashes' },
     InvalidCsvFile: { code: 'InvalidCsvFile', msg: 'File does not contain valid CSV values (or delimiter is wrong)' },
     MapToList_NotBasedOnAListFunc: { code: 'MapToList.NotBasedOnAListFunc', msg: 'Unsupported value source' },
-    NameNotCapitalized: { code: 'NameNotCapitalized', msg: 'Entity name should start with a capital.' },
+    NameNotCapitalized: { code: 'NameNotCapitalized', msg: 'Entity name should start with a capital' },
+    WrongFileExtension: { code: 'WrongFileExtension', msg: 'File path should end with .ranger' },
 });
 
-// TODO: Add validation for imports (path suffix must be .ranger, entities must exist inside the document)
+// TODO: Add validation for imports (entities must exist inside the document)
 // TODO: Add validation for duplicate (imported) Entities in global Scope
 
 /**
@@ -75,13 +78,13 @@ export class RangerValidator {
         const entities = document.entities;
         const duplicates = this.findDuplicates(entities);
         for (let dup of duplicates) {
-            accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
+            accept('error', `${issue.msg}: [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
         }
     }
 
     checkFilePath_FileExists(filePath: ast.FilePath, accept: ValidationAcceptor) {
         const issue = Issues.FileDoesNotExist;
-        const path = resolvePath(filePath.value, filePath)!;
+        const path = resolvePath(filePath.value, filePath);
         if (!fs.existsSync(path)) {
             accept('error', `${issue.msg}: [${path}]`, { node: filePath, property: 'value', code: issue.code });
         }
@@ -91,6 +94,30 @@ export class RangerValidator {
         const issue = Issues.FilePathWithBackslashes;
         if (filePath.$cstNode?.text.includes('\\')) {
             accept('warning', issue.msg, { node: filePath, property: 'value', code: issue.code });
+        }
+    }
+
+    checkImport_WrongFileExtension(import_: ast.Import, accept: ValidationAcceptor) {
+        const issue = Issues.WrongFileExtension;
+        const filePath = import_.filePath.value;
+        if (filePath && !filePath.endsWith('.ranger')) {
+            accept('error', issue.msg, { node: import_.filePath, property: 'value', code: issue.code });
+        }
+    }
+
+    async checkImport_DocumentHasErrors(imp: ast.Import, accept: ValidationAcceptor) {
+        const issue = Issues.DocumentHasErrors;
+        const relPath = imp.filePath.value;
+        const absPath = resolvePath(relPath, imp);
+        if (!relPath || !fs.existsSync(absPath)) {
+            return;
+        }
+        const documentUri = fileURI(absPath);
+        const document = this.services.shared.workspace.LangiumDocuments.getOrCreateDocument(documentUri);
+        await this.services.shared.workspace.DocumentBuilder.build([document], { validationChecks: 'all' });
+
+        if (hasErrors(document)) {
+            accept('error', `${issue.msg}: [${absPath}]`, { node: imp.filePath, property: 'value', code: issue.code });
         }
     }
 
@@ -126,7 +153,7 @@ export class RangerValidator {
         const issue = Issues.DuplicateProperty;
         const duplicates = this.findDuplicates(objekt.properties);
         for (let dup of duplicates) {
-            accept('error', `${issue.msg} [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
+            accept('error', `${issue.msg}: [${dup.name}]`, { node: dup, property: 'name', code: issue.code });
         }
     }
 

@@ -9,7 +9,6 @@
 import fs from 'fs';
 import {
     AstNode,
-    EmptyFileSystem,
     escapeRegExp,
     findNodeForProperty,
     LangiumDocument,
@@ -17,6 +16,7 @@ import {
     Properties,
     SemanticTokensDecoder,
 } from 'langium';
+import { NodeFileSystem } from 'langium/node';
 import path from 'path';
 import { nativeMath, Random } from 'random-js';
 import tmp from 'tmp';
@@ -43,6 +43,7 @@ import { URI } from 'vscode-uri';
 
 import { Document } from '../language-server/generated/ast';
 import { createRangerServices } from '../language-server/ranger-module';
+import { parseURI } from './documents';
 
 function expectEqual(actual: unknown, expected: unknown, message?: string) {
     expectFunction(actual, message).toEqual(expected);
@@ -59,7 +60,7 @@ export interface ExpectedSymbols extends ExpectedBase {
     expectedSymbols: DocumentSymbol[];
 }
 
-export const services = createRangerServices(EmptyFileSystem);
+export const services = createRangerServices(NodeFileSystem);
 export const parse = parseHelper<Document>(services.Ranger);
 export const validate = validationHelper<Document>(services.Ranger);
 export const testQuickFix = quickFixHelper<Document>(services.Ranger);
@@ -656,7 +657,7 @@ export function parseHelper<T extends AstNode = AstNode>(
     return async (input) => {
         input = typeof input === 'object' ? input : { text: input };
         const filePath = input?.filePath || `/${random.integer(1000000, 2000000)}${metaData.fileExtensions[0]}`;
-        const uri = URI.parse(`file://${filePath}`);
+        const uri = parseURI(`file://${filePath}`);
         const document = services.shared.workspace.LangiumDocumentFactory.fromString<T>(input.text, uri);
         services.shared.workspace.LangiumDocuments.addDocument(document);
         await documentBuilder.build([document]);

@@ -15,7 +15,6 @@ import * as ast from './generated/ast';
 
 export class RangerFormatter extends AbstractFormatter {
     override doDocumentFormat(document: LangiumDocument, options: FormattingOptions, range?: Range): TextEdit[] {
-        // Do not format a document if it has validation errors
         return hasErrors(document) ? [] : super.doDocumentFormat(document, options, range);
     }
 
