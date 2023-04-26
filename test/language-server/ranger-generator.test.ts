@@ -60,17 +60,50 @@ describe('ObjectGenerator', () => {
         });
     });
 
-    test('Imports', async () => {
+    test('Import', async () => {
         let accountFile = createTempFile({ postfix: '.ranger', data: `Entity Account { currency: "EUR"}` });
         const objectGenerator = await createObjectGenerator(`
         from "${accountFile.name}" import Account
-
         Entity User {
             name: "John"
             account: Account
         }`);
 
         const output = objectGenerator.next();
+        expect(output).toStrictEqual({
+            name: 'John',
+            account: { currency: 'EUR' },
+        });
+    });
+
+    test('Multiple Imports', async () => {
+        let accountFile = createTempFile({
+            postfix: '.ranger',
+            data: `
+            Entity Account { currency: "EUR" }
+            Entity Person { name: "John" }
+            `,
+        });
+        let objectGenerator = await createObjectGenerator(`
+        from "${accountFile.name}" import Account, Person
+        Entity User {
+            name: Person.name
+            account: Account
+        }`);
+        let output = objectGenerator.next();
+        expect(output).toStrictEqual({
+            name: 'John',
+            account: { currency: 'EUR' },
+        });
+
+        objectGenerator = await createObjectGenerator(`
+        from "${accountFile.name}" import Account
+        from "${accountFile.name}" import Person
+        Entity User {
+            name: Person.name
+            account: Account
+        }`);
+        output = objectGenerator.next();
         expect(output).toStrictEqual({
             name: 'John',
             account: { currency: 'EUR' },

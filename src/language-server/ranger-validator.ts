@@ -36,6 +36,7 @@ export const Issues = satisfies<Record<string, Issue>>()({
     CircularReference: { code: 'CircularReference', msg: 'Circular reference' },
     DocumentHasErrors: { code: 'DocumentHasErrors', msg: 'File has errors' },
     DuplicateEntity: { code: 'DuplicateEntity', msg: 'Duplicate Entity' },
+    DuplicateImport: { code: 'DuplicateImport', msg: 'Duplicate Import' },
     DuplicateProperty: { code: 'DuplicateProperty', msg: 'Duplicate Property' },
     EntityDoesNotExist: { code: 'EntityDoesNotExist', msg: 'Entity does not exist' },
     FileDoesNotExist: { code: 'FileDoesNotExist', msg: 'File does not exist' },
@@ -74,8 +75,20 @@ export class RangerValidator {
         // Error msg: XY shadows XY declared before
     }
 
-    checkDocument_NoDuplicateImports(doc: ast.Document, accept: ValidationAcceptor) {
-        // TODO
+    checkDocument_NoDuplicateImports(document: ast.Document, accept: ValidationAcceptor) {
+        const issue = Issues.DuplicateImport;
+        const imports: { name: string; node: ast.Import; index: number }[] = [];
+        document.imports.forEach((imp) => {
+            imp.entities.forEach((entity, index) => {
+                const absPath = resolvePath(imp.filePath, imp);
+                const fullyQualifiedName = `${absPath}$${entity}`;
+                imports.push({ name: fullyQualifiedName, node: imp, index });
+            });
+        });
+        const duplicates = this.findDuplicates(imports, false);
+        for (let dup of duplicates) {
+            accept('warning', issue.msg, { node: dup.node, property: 'entities', index: dup.index, code: issue.code });
+        }
     }
 
     checkEntity_NameStartsWithCapital(entity: ast.Entity, accept: ValidationAcceptor): void {
@@ -90,7 +103,7 @@ export class RangerValidator {
 
     checkFilePath_FileExists(filePath: ast.FilePath, accept: ValidationAcceptor) {
         const issue = Issues.FileDoesNotExist;
-        const path = resolvePath(filePath.value, filePath);
+        const path = resolvePath(filePath, filePath);
         if (!fs.existsSync(path)) {
             accept('error', `${issue.msg}: '${path}'`, { node: filePath, property: 'value', code: issue.code });
         }
@@ -112,7 +125,7 @@ export class RangerValidator {
 
         const document = await buildDocument(this.services, absPath);
         if (hasErrors(document)) {
-            accept('error', `${Issues.DocumentHasErrors.msg}: '${absPath}'`, {
+            accept('error', `${Issues.DocumentHasErrors.msg}: '${relPath}'`, {
                 node: imp.filePath,
                 property: 'value',
                 code: Issues.DocumentHasErrors.code,
@@ -204,11 +217,12 @@ export class RangerValidator {
         });
     }
 
-    findDuplicates<T extends { name: string }>(elements: T[]): T[] {
+    findDuplicates<T extends { name: string }>(elements: T[], includeFirst = true): T[] {
         return elements
             .groupBy((el) => el.name)
             .valuesArray()
             .filter((arr) => arr.length >= 2)
+            .map((arr) => arr.slice(includeFirst ? 0 : 1))
             .flat();
     }
 }

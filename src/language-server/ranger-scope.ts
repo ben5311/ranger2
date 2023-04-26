@@ -72,7 +72,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
         for (let imp of document.imports) {
             const filePath = resolvePath(imp.filePath.value, document);
             const fileUri = fileURI(filePath).toString();
-            imports.set(fileUri, imp.entities);
+            imports.set(fileUri, (imports.get(fileUri) || []).concat(imp.entities));
         }
 
         let importedElements = this.indexManager

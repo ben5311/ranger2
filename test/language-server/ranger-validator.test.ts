@@ -44,6 +44,28 @@ describe('RangerValidator', () => {
                 property: 'name',
             });
         });
+
+        test('NoDuplicateImports', async () => {
+            let rangerFile = createTempFile({ postfix: '.ranger', data: `Entity Test {}` });
+            let validation = await validate(`
+            from "${rangerFile.name}" import Test`);
+            expectNoIssues(validation);
+
+            validation = await validate(`
+            from "${rangerFile.name}" import Test, Test`);
+            expectWarning(validation, Issues.DuplicateImport.code, {
+                node: validation.result.imports[0],
+                property: { name: 'entities', index: 1 },
+            });
+
+            validation = await validate(`
+            from "${rangerFile.name}" import Test
+            from "${rangerFile.name}" import Test`);
+            expectWarning(validation, Issues.DuplicateImport.code, {
+                node: validation.result.imports[1],
+                property: { name: 'entities', index: 0 },
+            });
+        });
     });
 
     describe('checkEntity', () => {
