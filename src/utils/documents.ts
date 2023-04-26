@@ -77,6 +77,13 @@ async function doParseDocument(services: LangiumServices, docSpec: DocumentSpec,
     return document;
 }
 
+export async function buildDocument(services: LangiumServices, filePath: string | URI) {
+    const documentUri = typeof filePath === 'string' ? fileURI(filePath) : filePath;
+    const document = services.shared.workspace.LangiumDocuments.getOrCreateDocument(documentUri);
+    await services.shared.workspace.DocumentBuilder.build([document], { validationChecks: 'all' });
+    return document as LangiumDocument<Document>;
+}
+
 /**
  * Returns true if the Document has validation errors.
  */
@@ -103,6 +110,10 @@ export function resolvePath(filePath: string, context: AstNode | LangiumDocument
     const docFilePath = document.uri.fsPath;
     const resolved = path.join(path.dirname(docFilePath), filePath);
     return resolved;
+}
+
+export function isRangerFile(filePath: string | URI) {
+    return filePath && filePath.toString().endsWith('.ranger') && fs.existsSync(filePath.toString());
 }
 
 export function parseURI(uri: string): URI {

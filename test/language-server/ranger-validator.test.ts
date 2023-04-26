@@ -31,19 +31,6 @@ describe('RangerValidator', () => {
     });
 
     describe('checkDocument', () => {
-        test('EntityNameStartsWithCapital', async () => {
-            let validation = await validate(`
-            Entity Customer {}`);
-            expectNoIssues(validation);
-
-            validation = await validate(`
-            Entity customer {}`);
-            expectWarning(validation, Issues.NameNotCapitalized.code, {
-                node: validation.result.entities[0],
-                property: 'name',
-            });
-        });
-
         test('NoDuplicateEntities', async () => {
             let validation = await validate(`
             Entity Customer {}`);
@@ -53,6 +40,21 @@ describe('RangerValidator', () => {
             Entity Customer {}
             Entity Customer {}`);
             expectError(validation, Issues.DuplicateEntity.code, {
+                node: validation.result.entities[0],
+                property: 'name',
+            });
+        });
+    });
+
+    describe('checkEntity', () => {
+        test('NameStartsWithCapital', async () => {
+            let validation = await validate(`
+            Entity Customer {}`);
+            expectNoIssues(validation);
+
+            validation = await validate(`
+            Entity customer {}`);
+            expectWarning(validation, Issues.NameNotCapitalized.code, {
                 node: validation.result.entities[0],
                 property: 'name',
             });
@@ -100,7 +102,7 @@ describe('RangerValidator', () => {
         });
 
         test('DocumentHasErrors', async () => {
-            let rangerFile = createTempFile({ postfix: '.ranger', data: `` });
+            let rangerFile = createTempFile({ postfix: '.ranger', data: `Entity Test {}` });
             let validation = await validate(`from "${rangerFile.name}" import Test`);
             expectNoIssues(validation);
 
@@ -109,6 +111,18 @@ describe('RangerValidator', () => {
             expectError(validation, Issues.DocumentHasErrors.code, {
                 node: validation.result.imports[0].filePath,
                 property: 'value',
+            });
+        });
+
+        test('EntityDoesNotExist', async () => {
+            const rangerFile = createTempFile({ postfix: '.ranger', data: `Entity Test1 {}` });
+            let validation = await validate(`from "${rangerFile.name}" import Test1`);
+            expectNoIssues(validation);
+
+            validation = await validate(`from "${rangerFile.name}" import Test1, Test2`);
+            expectError(validation, Issues.EntityDoesNotExist.code, {
+                node: validation.result.imports[0],
+                property: { name: 'entities', index: 1 },
             });
         });
     });
