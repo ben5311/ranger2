@@ -12,37 +12,50 @@ import { Document, FilePath } from '../language-server/generated/ast';
  *
  * If you only provide filePath, the Document will be loaded from the file system.
  *
- * If you pass the text argument as well, the document will not be loaded from the disk,
+ * If you pass the text argument as well, the document will not be loaded from disk,
  * and the file path will only be used to create the Document URI.
  */
 export type DocumentSpec = { filePath: string; text?: string };
 
+export type ParseOptions = {
+    services: LangiumServices;
+    docSpec: DocumentSpec;
+    strictMode?: boolean;
+    includeImports?: boolean;
+};
+
 /**
  * Parse a Ranger Document from file or string.
  */
-export async function parseDocument(services: LangiumServices, docSpec: DocumentSpec) {
-    const { DocumentBuilder } = services.shared.workspace;
+export async function parseDocument(opts: ParseOptions): Promise<LangiumDocument<Document> & { doc: Document }> {
+    opts = {
+        ...opts,
+        strictMode: opts.strictMode ?? true,
+        includeImports: opts.includeImports ?? true,
+    };
+    const { DocumentBuilder } = opts.services.shared.workspace;
 
     const imported: LangiumDocument[] = [];
-    const document = await doParseDocument(services, docSpec, imported);
+    const document = await doParseDocument(opts, imported);
 
     await DocumentBuilder.build(imported, { validationChecks: 'all' });
 
-    const validationErrors = (document.diagnostics ?? []).filter((e) => e.severity === 1);
-    if (validationErrors.length > 0) {
+    const validationErrors = (document.diagnostics ?? []).filter((e) => e.severity === DiagnosticSeverity.Error);
+    if (opts.strictMode && validationErrors.length > 0) {
         const errors = validationErrors
             .map((e) => `Line ${e.range.start.line + 1}: ${e.message} [${document.textDocument.getText(e.range)}]`)
             .join('\n');
         throw new AssertionError({ message: `There are validation errors:\n${errors}` });
     }
 
-    return { document, parseResult: document.parseResult.value };
+    return { ...document, doc: document.parseResult.value };
 }
 
 /**
  * Parse a Ranger Document and its imports.
  */
-async function doParseDocument(services: LangiumServices, docSpec: DocumentSpec, imported: LangiumDocument[]) {
+async function doParseDocument(opts: ParseOptions, imported: LangiumDocument[]) {
+    const { services, docSpec, includeImports } = opts;
     const extensions = services.LanguageMetaData.fileExtensions;
     const { LangiumDocuments, LangiumDocumentFactory } = services.shared.workspace;
 
@@ -66,11 +79,13 @@ async function doParseDocument(services: LangiumServices, docSpec: DocumentSpec,
 
     imported.push(document);
 
-    for (const import_ of document.parseResult?.value.imports || []) {
-        const filePath = resolvePath(import_.filePath.value, document);
-        const fileUri = URI.file(filePath);
-        if (!LangiumDocuments.hasDocument(fileUri)) {
-            await doParseDocument(services, { filePath }, imported);
+    if (includeImports) {
+        for (const imp of document.parseResult?.value.imports || []) {
+            const filePath = resolvePath(imp.filePath.value, document);
+            const fileUri = fileURI(filePath);
+            if (!LangiumDocuments.hasDocument(fileUri)) {
+                await doParseDocument({ ...opts, docSpec: { filePath } }, imported);
+            }
         }
     }
 
@@ -114,7 +129,8 @@ export function resolvePath(filePath: string | FilePath, context: AstNode | Lang
 }
 
 export function isRangerFile(filePath: string | URI) {
-    return filePath && filePath.toString().endsWith('.ranger') && fs.existsSync(filePath.toString());
+    filePath = typeof filePath === 'string' ? filePath : filePath.fsPath;
+    return !!filePath && filePath.endsWith('.ranger') && fs.existsSync(filePath);
 }
 
 export function parseURI(uri: string): URI {

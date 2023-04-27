@@ -19,11 +19,7 @@ export function registerValidationChecks(services: RangerServices) {
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_NoDuplicateImports],
         Entity: [validator.checkEntity_NameStartsWithCapital],
         FilePath: [validator.checkFilePath_FileExists, validator.checkFilePath_NoBackslashes],
-        Import: [
-            validator.checkImport_CorrectFileExtension,
-            validator.checkImport_NoValidationErrors,
-            validator.checkImport_EntitiesExist,
-        ],
+        Import: [validator.checkImport_CorrectFileExtension, validator.checkImport_NoValidationErrors],
         MapFunc: [validator.checkMapFunc_NoCircularReferences],
         MapToList: [validator.checkMapToList_IsBasedOnAListFunc],
         Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_NoReferenceToParentObjekt],
@@ -44,6 +40,7 @@ export const Issues = satisfies<Record<string, Issue>>()({
     InvalidCsvFile: { code: 'InvalidCsvFile', msg: 'File does not contain valid CSV values (or delimiter is wrong)' },
     MapToList_NotBasedOnAListFunc: { code: 'MapToList.NotBasedOnAListFunc', msg: 'Unsupported value source' },
     NameNotCapitalized: { code: 'NameNotCapitalized', msg: 'Entity name should start with a capital' },
+    ReferenceError: { code: 'linking-error', msg: 'Could not resolve reference' },
     WrongFileExtension: { code: 'WrongFileExtension', msg: 'File path should end with .ranger' },
 });
 
@@ -77,17 +74,22 @@ export class RangerValidator {
 
     checkDocument_NoDuplicateImports(document: ast.Document, accept: ValidationAcceptor) {
         const issue = Issues.DuplicateImport;
-        const imports: { name: string; node: ast.Import; index: number }[] = [];
-        document.imports.forEach((imp) => {
-            imp.entities.forEach((entity, index) => {
-                const absPath = resolvePath(imp.filePath, imp);
-                const fullyQualifiedName = `${absPath}$${entity}`;
-                imports.push({ name: fullyQualifiedName, node: imp, index });
-            });
-        });
-        const duplicates = this.findDuplicates(imports, false);
+        const importedEntities: { name: string; node: ast.PropertyReference }[] = [];
+
+        for (let imp of document.imports) {
+            for (let entityRef of imp.entities) {
+                const absPath = resolvePath(imp.filePath, document);
+                const entityName = entityRef.element.ref?.name;
+                const fullyQualifiedName = `${absPath}$${entityName}`;
+                if (entityName) {
+                    importedEntities.push({ name: fullyQualifiedName, node: entityRef });
+                }
+            }
+        }
+
+        const duplicates = this.findDuplicates(importedEntities, false);
         for (let dup of duplicates) {
-            accept('warning', issue.msg, { node: dup.node, property: 'entities', index: dup.index, code: issue.code });
+            accept('warning', issue.msg, { node: dup.node, property: 'element', code: issue.code });
         }
     }
 
@@ -131,28 +133,6 @@ export class RangerValidator {
                 code: Issues.DocumentHasErrors.code,
             });
         }
-    }
-
-    async checkImport_EntitiesExist(imp: ast.Import, accept: ValidationAcceptor) {
-        const relPath = imp.filePath.value;
-        const absPath = resolvePath(relPath, imp);
-
-        let documentEntities = new Set<string>();
-        if (isRangerFile(absPath)) {
-            const document = await buildDocument(this.services, absPath);
-            document.parseResult.value.entities.forEach((e) => documentEntities.add(e.name));
-        }
-
-        imp.entities.forEach((entity, index) => {
-            if (!documentEntities.has(entity)) {
-                accept('error', `${Issues.EntityDoesNotExist.msg} in file '${relPath}'`, {
-                    node: imp,
-                    property: 'entities',
-                    index,
-                    code: Issues.EntityDoesNotExist.code,
-                });
-            }
-        });
     }
 
     checkImport_CorrectFileExtension(import_: ast.Import, accept: ValidationAcceptor) {

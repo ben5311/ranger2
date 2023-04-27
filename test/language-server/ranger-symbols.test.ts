@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { RangerDocumentSymbolProvider, RangerWorkspaceSymbolProvider } from '../../src/language-server/ranger-symbols';
-import { clearIndex, services, validate } from '../../src/utils/test';
+import { clearIndex, parse, services } from '../../src/utils/test';
 
 beforeEach(() => {
     clearIndex();
@@ -9,8 +9,8 @@ beforeEach(() => {
 
 describe('RangerDocumentSymbolProvider', () => {
     test('Symbols', async () => {
-        const symbolProvider = new RangerDocumentSymbolProvider(services.Ranger);
-        let { document } = await validate(`
+        const symbolProvider = new RangerDocumentSymbolProvider(services);
+        let document = await parse(`
         Entity User {
             name: "John Doe"
             age: 28
@@ -129,8 +129,8 @@ describe('RangerDocumentSymbolProvider', () => {
 
 describe('RangerWorkspaceSymbolProvider', () => {
     test('Symbols', async () => {
-        const symbolProvider = new RangerWorkspaceSymbolProvider(services.Ranger);
-        await validate({
+        const symbolProvider = new RangerWorkspaceSymbolProvider(services);
+        await parse({
             filePath: '/User.ranger',
             text: `
             Entity User {}
@@ -138,29 +138,24 @@ describe('RangerWorkspaceSymbolProvider', () => {
             Entity Address {}
             `,
         });
+        let expectedUri = process.platform === 'win32' ? 'file:///c%3A/User.ranger' : 'file:///User.ranger';
 
         let symbols = symbolProvider.provideSymbols({ query: '' });
         expect(symbols).toStrictEqual([
             {
                 name: 'User',
                 kind: 5,
-                location: {
-                    uri: 'file:///User.ranger',
-                },
+                location: { uri: expectedUri },
             },
             {
                 name: 'Account',
                 kind: 5,
-                location: {
-                    uri: 'file:///User.ranger',
-                },
+                location: { uri: expectedUri },
             },
             {
                 name: 'Address',
                 kind: 5,
-                location: {
-                    uri: 'file:///User.ranger',
-                },
+                location: { uri: expectedUri },
             },
         ]);
     });

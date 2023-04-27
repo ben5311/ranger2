@@ -2,9 +2,7 @@ import { range } from 'lodash';
 import { describe, expect, test } from 'vitest';
 
 import * as cli from '../../src/cli/generator';
-import { Objekt } from '../../src/language-server/generated/ast';
-import { resolvePath } from '../../src/utils/documents';
-import { createTempFile, validate } from '../../src/utils/test';
+import { createTempDir, createTempFile } from '../../src/utils/test';
 
 function createObjectGenerator(doc: string | { text: string; filePath: string }) {
     doc = typeof doc === 'object' ? doc : { filePath: 'Test.ranger', text: doc };
@@ -192,17 +190,25 @@ describe('ObjectGenerator', () => {
     });
 
     test('Relative paths', async () => {
-        const { result } = await validate({
-            text: `Entity Test { dummy: "Hello World" }`,
-            filePath: '/workdir/app/Test.ranger',
-        });
-        const dummy = (result.entities[0].value as Objekt).properties[0];
-        const resolve = (path, node) => resolvePath(path, node)!.replace(/\\/g, '/');
+        const tempDir = createTempDir();
+        tempDir.createFile('data/data.csv', 'first,second,third\r\n1,2,3');
 
-        expect(resolve('data.csv', dummy)).toBe('/workdir/app/data.csv');
-        expect(resolve('../data.csv', dummy)).toBe('/workdir/data.csv');
-        expect(resolve('sub/dir', dummy)).toBe('/workdir/app/sub/dir');
-        expect(resolve('/sub/dir', dummy)).toBe('/sub/dir');
+        const objectGenerator = await createObjectGenerator({
+            filePath: `${tempDir.name}/Test.ranger`,
+            text: `
+            Entity Test {
+                data: csv("./data/data.csv", delimiter=",")
+            }`,
+        });
+
+        const output = objectGenerator.next();
+        expect(output).toStrictEqual({
+            data: {
+                first: '1',
+                second: '2',
+                third: '3',
+            },
+        });
     });
 
     test('sequence()', async () => {

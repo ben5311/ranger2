@@ -6,7 +6,7 @@ import stream from 'stream';
 
 import { RangerLanguageMetaData } from '../language-server/generated/module';
 import { DocumentSpec } from '../utils/documents';
-import { FileWriter, ObjectGenerator, ProxyTransformer, Transformer } from './generator';
+import { FileWriter, ObjectGeneratorStream, ProxyTransformer, Transformer } from './generator';
 
 export type Options = {
     count: number;
@@ -57,7 +57,7 @@ export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): 
     const progressBarFormat = ' {bar} {percentage}% | T: {duration_formatted} | ETA: {eta_formatted} | {value}/{total}';
     const progressBar = new SingleBar({ format: progressBarFormat }, Presets.shades_classic);
 
-    const generator = await ObjectGenerator(docSpec, opts.count);
+    const generator = await ObjectGeneratorStream(docSpec, opts.count);
     const reporter = ProxyTransformer(() => progressBar.increment());
     const transformer = Transformer(opts.format);
     const writer = FileWriter(outputFilePath);

@@ -1,7 +1,15 @@
-import { DefaultScopeProvider, EMPTY_SCOPE, getContainerOfType, ReferenceInfo, Scope, StreamScope } from 'langium';
-import { URI } from 'vscode-uri';
+import {
+    AstNodeDescription,
+    DefaultScopeProvider,
+    EMPTY_SCOPE,
+    getContainerOfType,
+    ReferenceInfo,
+    Scope,
+    stream,
+    StreamScope,
+} from 'langium';
 
-import { fileURI, resolvePath } from '../utils/documents';
+import { fileURI, isRangerFile, resolvePath } from '../utils/documents';
 import * as ast from './generated/ast';
 
 /**
@@ -27,15 +35,59 @@ export class RangerScopeProvider extends DefaultScopeProvider {
      * Computes the elements that can be reached from a certain Reference context (aka The Scope).
      *
      * The Scope consists of:
-     * 1. All Entities defined in the current Document.
-     * 2. All Entities imported into the current Document.
+     * 1. All Entities imported into the current Document.
+     * 2. All Entities defined in the current Document.
      * 3. All Properties defined in the current or any parent Objekts.
      */
     override getScope(context: ReferenceInfo): Scope {
-        if (ast.isPropertyReference(context.container) && context.property === 'element') {
-            return this.getLocalScope(context.container, context);
+        const node = context.container;
+        if (ast.isPropertyReference(node) && ast.isImport(node.$container)) {
+            return this.getImportScope(node.$container, context);
+        }
+        if (ast.isPropertyReference(node) && context.property === 'element') {
+            return this.getLocalScope(node, context);
         }
         return super.getScope(context);
+    }
+
+    /**
+     * Resolves the Entities that can be imported from a specific Document.
+     */
+    getImportScope(imp: ast.Import, context: ReferenceInfo): Scope {
+        const documentPath = resolvePath(imp.filePath.value, imp);
+        const documentUri = fileURI(documentPath);
+
+        if (!isRangerFile(documentUri)) {
+            return EMPTY_SCOPE;
+        }
+
+        let documentEntities = this.indexManager
+            .allElements(this.reflection.getReferenceType(context))
+            .filter((desc) => desc.documentUri.toString() === documentUri.toString());
+
+        return new StreamScope(documentEntities);
+    }
+
+    /**
+     * Resolves the Entities imported into the current Document.
+     */
+    override getGlobalScope(_referenceType: string, context: ReferenceInfo): Scope {
+        const document = getContainerOfType(context.container, ast.isDocument);
+        if (!document) {
+            return EMPTY_SCOPE;
+        }
+
+        const importedEntities: AstNodeDescription[] = [];
+        for (let imp of document.imports) {
+            for (let entityRef of imp.entities) {
+                const entity = entityRef.element.ref;
+                if (entity) {
+                    importedEntities.push(this.descriptions.createDescription(entity, entity.name));
+                }
+            }
+        }
+
+        return new StreamScope(stream(importedEntities));
     }
 
     /**
@@ -57,28 +109,6 @@ export class RangerScopeProvider extends DefaultScopeProvider {
         // When the target of our reference isn't an Object, it must be a primitive type.
         // Simply return an empty scope
         return EMPTY_SCOPE;
-    }
-
-    /**
-     * Resolves the Entities imported into the current Document.
-     */
-    override getGlobalScope(referenceType: string, context: ReferenceInfo): Scope {
-        const document = getContainerOfType(context.container, ast.isDocument);
-        if (!document) {
-            return EMPTY_SCOPE;
-        }
-
-        const imports = new Map<string, string[]>();
-        for (let imp of document.imports) {
-            const filePath = resolvePath(imp.filePath.value, document);
-            const fileUri = fileURI(filePath).toString();
-            imports.set(fileUri, (imports.get(fileUri) || []).concat(imp.entities));
-        }
-
-        let importedElements = this.indexManager
-            .allElements(referenceType)
-            .filter((desc) => imports.get(desc.documentUri.toString())?.includes(desc.name));
-        return new StreamScope(importedElements);
     }
 }
 

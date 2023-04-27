@@ -4,15 +4,15 @@ import { describe, expect, test } from 'vitest';
 import { Objekt } from '../../src/language-server/generated/ast';
 import { generator } from '../../src/language-server/ranger-generator';
 import { noHighlight, RangerHoverProvider } from '../../src/language-server/ranger-hover';
-import { createTempFile, services, validate } from '../../src/utils/test';
+import { createTempFile, parse, services } from '../../src/utils/test';
 
-const hoverProvider = new RangerHoverProvider(services.Ranger);
+const hoverProvider = new RangerHoverProvider(services);
 // @ts-ignore
 const hover = (node) => hoverProvider.getAstNodeHover(node, noHighlight);
 
 describe('RangerHoverProvider', () => {
     test('Static Values', async () => {
-        let { result } = await validate(dedent`
+        let { doc } = await parse(dedent`
         Entity User {
             name: "John Doe"
             age: 28
@@ -24,7 +24,7 @@ describe('RangerHoverProvider', () => {
             }
         }`);
 
-        let User = result.entities[0];
+        let User = doc.entities[0];
         let props = (User.value as Objekt).properties;
         let [name, age, birthday, married, balance, address] = props;
         let email = (address.value as Objekt).properties[0];
@@ -76,7 +76,7 @@ describe('RangerHoverProvider', () => {
     });
 
     test('References', async () => {
-        let { result } = await validate(dedent`
+        let { doc } = await parse(dedent`
         Entity User {
             name: "John Doe"
             age: 28
@@ -90,7 +90,7 @@ describe('RangerHoverProvider', () => {
             mail: User.address.email
         }`);
 
-        let References = result.entities[1];
+        let References = doc.entities[1];
         let props = (References.value as Objekt).properties;
         let [user, addr, mail] = props;
 
@@ -139,13 +139,13 @@ describe('RangerHoverProvider', () => {
     });
 
     test('random()', async () => {
-        let { result } = await validate(dedent`
+        let { doc } = await parse(dedent`
         Entity Customer {
             age: random(18..18)
             gender: random("male")
         }`);
 
-        let Customer = result.entities[0];
+        let Customer = doc.entities[0];
         let props = (Customer.value as Objekt).properties;
         let [age, gender] = props;
 
@@ -168,14 +168,14 @@ describe('RangerHoverProvider', () => {
     });
 
     test('map()', async () => {
-        let { result } = await validate(dedent`
+        let { doc } = await parse(dedent`
         Entity Customer {
             gender: random("male")
             firstname1: map(gender => ["Max"])
             firstname2: map(gender => {"male": "Max"})
         }`);
 
-        let Customer = result.entities[0];
+        let Customer = doc.entities[0];
         let props = (Customer.value as Objekt).properties;
         let [G, firstname1, firstname2] = props;
 
@@ -207,12 +207,12 @@ describe('RangerHoverProvider', () => {
 
     test('csv()', async () => {
         let csvFile = createTempFile({ postfix: '.csv', data: 'first,second,third\r\n1,2,3' });
-        let { result } = await validate(dedent`
+        let { doc } = await parse(dedent`
         Entity Customer {
             data: csv("${csvFile.name}", delimiter=",")
         }`);
 
-        let Customer = result.entities[0];
+        let Customer = doc.entities[0];
         let data = (Customer.value as Objekt).properties[0];
 
         expect(hover(data)).toBe(dedent`
@@ -236,13 +236,13 @@ describe('RangerHoverProvider', () => {
     });
 
     test('sequence()', async () => {
-        let { result } = await validate(dedent`
+        let { doc } = await parse(dedent`
         Entity Customer {
             num1: sequence(1)
             num2: sequence(11)
         }`);
 
-        let Customer = result.entities[0];
+        let Customer = doc.entities[0];
         let [num1, num2] = (Customer.value as Objekt).properties;
 
         expect(hover(num1)).toBe('num1: 1');
@@ -262,12 +262,12 @@ describe('RangerHoverProvider', () => {
     });
 
     test('uuid()', async () => {
-        let { result } = await validate(dedent`
+        let { doc } = await parse(dedent`
         Entity Customer {
             id: uuid()
         }`);
 
-        let Customer = result.entities[0];
+        let Customer = doc.entities[0];
         let [uuid] = (Customer.value as Objekt).properties;
         const uuidValue = generator.getValue(uuid);
 

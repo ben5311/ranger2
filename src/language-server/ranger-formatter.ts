@@ -14,8 +14,12 @@ import { hasErrors } from '../utils/documents';
 import * as ast from './generated/ast';
 
 export class RangerFormatter extends AbstractFormatter {
+    constructor(public formatOnErrors = false) {
+        super();
+    }
+
     override doDocumentFormat(document: LangiumDocument, options: FormattingOptions, range?: Range): TextEdit[] {
-        return hasErrors(document) ? [] : super.doDocumentFormat(document, options, range);
+        return !hasErrors(document) || this.formatOnErrors ? super.doDocumentFormat(document, options, range) : [];
     }
 
     protected format(node: AstNode): void {

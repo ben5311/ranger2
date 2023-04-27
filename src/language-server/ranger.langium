@@ -5,7 +5,7 @@ entry Document:
     (entities+=Entity)*;
 
 Import:
-    "from" filePath=FilePath "import" entities+=ID ("," entities+=ID)* ","?;
+    "from" filePath=FilePath "import" entities+=EntityReference ("," entities+=EntityReference)* ","?;
 
 Entity returns Entity:
     "Entity" name=ID value=Objekt;
@@ -24,8 +24,11 @@ ValueOrPropertyReference:
 Value:
      Objekt | List | Func | Literal;
 
-PropertyReference:
-    element=[Property:ID] ({infer PropertyReference.previous=current} "." element=[Property:ID])*;
+EntityReference returns PropertyReference:
+    element=[Property:ID];
+
+PropertyReference returns PropertyReference:
+    element=[Property:ID] ({PropertyReference.previous=current} "." element=[Property:ID])*;
 
 List returns List:
     "["
@@ -97,6 +100,7 @@ KeyValuePair:
 interface Entity extends Property {}
 interface Property { name: string; value: ValueOrPropertyReference }
 interface List { values: ValueOrPropertyReference[] }
+interface PropertyReference { element: @Property; previous?: PropertyReference }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Terminals

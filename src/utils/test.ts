@@ -35,40 +35,27 @@ import {
     SemanticTokenTypes,
     TextDocumentIdentifier,
     TextDocumentPositionParams,
+    TextEdit,
 } from 'vscode-languageserver';
 import { CodeActionParams } from 'vscode-languageserver-protocol';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CodeAction } from 'vscode-languageserver-types';
-import { URI } from 'vscode-uri';
 
 import { Document } from '../language-server/generated/ast';
+import { RangerFormatter } from '../language-server/ranger-formatter';
 import { createRangerServices } from '../language-server/ranger-module';
-import { parseURI } from './documents';
+import { parseDocument } from './documents';
+
+export const services = createRangerServices(NodeFileSystem).Ranger;
+
+export function clearIndex() {
+    const documentUris = services.shared.workspace.LangiumDocuments.all.map((doc) => doc.uri).toArray();
+    services.shared.workspace.IndexManager.remove(documentUris);
+}
 
 function expectEqual(actual: unknown, expected: unknown, message?: string) {
     expectFunction(actual, message).toEqual(expected);
 }
-
-export interface ExpectedBase {
-    text: string;
-    indexMarker?: string;
-    rangeStartMarker?: string;
-    rangeEndMarker?: string;
-}
-
-export interface ExpectedSymbols extends ExpectedBase {
-    expectedSymbols: DocumentSymbol[];
-}
-
-export const services = createRangerServices(NodeFileSystem);
-export const parse = parseHelper<Document>(services.Ranger);
-export const validate = validationHelper<Document>(services.Ranger);
-export const testQuickFix = quickFixHelper<Document>(services.Ranger);
-export const testFormatting = expectFormatting(services.Ranger);
-export const clearIndex = () => {
-    services.shared.workspace.IndexManager.remove(testURIs);
-    testURIs.length = 0;
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Temporary files
@@ -83,10 +70,12 @@ export function createTempFile(options?: tmp.FileOptions & { data?: string }) {
 
 export function createTempDir(options?: tmp.DirOptions) {
     const tmpDir = tmp.dirSync({ unsafeCleanup: true, ...options });
+    tmpDir.name = escapePath(tmpDir.name);
     return {
         ...tmpDir,
         createFile: function (fileName: string, data = '') {
             const filePath = path.join(tmpDir.name, fileName);
+            fs.mkdirSync(path.dirname(filePath), { recursive: true });
             fs.writeFileSync(filePath, data);
             return { name: escapePath(filePath) };
         },
@@ -99,64 +88,83 @@ export function expectFileContent(filePath: string, expectedContent: string) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Parse Document
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+type ParseInput = string | { text: string; filePath?: string };
+
+const random = new Random(nativeMath);
+
+export async function parse(
+    input: ParseInput,
+    opts?: { includeImports?: boolean },
+): Promise<LangiumDocument<Document> & { doc: Document }> {
+    const fileExtension = services.LanguageMetaData.fileExtensions[0];
+    input = typeof input === 'string' ? { text: input } : input;
+    const docSpec = {
+        filePath: input.filePath || `/${random.integer(1000000, 2000000)}${fileExtension}`,
+        text: input.text,
+    };
+    const document = await parseDocument({ services, docSpec, strictMode: false, ...opts });
+    return document;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validations (Errors, Warnings, Infos, etc.)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function expectError<T extends AstNode = AstNode, N extends AstNode = AstNode>(
-    validationResult: ValidationResult<T>,
+export function expectError<N extends AstNode = AstNode>(
+    document: LangiumDocument,
     code: string,
     assertion?: DiagnosticAssertion<N>,
 ): void {
-    expectIssue<T, N>(validationResult, { severity: DiagnosticSeverity.Error, code }, assertion);
+    expectIssue<N>(document, { severity: DiagnosticSeverity.Error, code }, assertion);
 }
 
-export function expectWarning<T extends AstNode = AstNode, N extends AstNode = AstNode>(
-    validationResult: ValidationResult<T>,
+export function expectWarning<N extends AstNode = AstNode>(
+    document: LangiumDocument,
     code: string,
     assertion?: DiagnosticAssertion<N>,
 ): void {
-    expectIssue<T, N>(validationResult, { severity: DiagnosticSeverity.Warning, code }, assertion);
+    expectIssue<N>(document, { severity: DiagnosticSeverity.Warning, code }, assertion);
 }
 
-export function expectInfo<T extends AstNode = AstNode, N extends AstNode = AstNode>(
-    validationResult: ValidationResult<T>,
+export function expectInfo<N extends AstNode = AstNode>(
+    document: LangiumDocument,
     code: string,
     assertion?: DiagnosticAssertion<N>,
 ): void {
-    expectIssue<T, N>(validationResult, { severity: DiagnosticSeverity.Information, code }, assertion);
+    expectIssue<N>(document, { severity: DiagnosticSeverity.Information, code }, assertion);
 }
 
-export function expectHint<T extends AstNode = AstNode, N extends AstNode = AstNode>(
-    validationResult: ValidationResult<T>,
+export function expectHint<N extends AstNode = AstNode>(
+    document: LangiumDocument,
     code: string,
     assertion?: DiagnosticAssertion<N>,
 ): void {
-    expectIssue<T, N>(validationResult, { severity: DiagnosticSeverity.Hint, code }, assertion);
+    expectIssue<N>(document, { severity: DiagnosticSeverity.Hint, code }, assertion);
 }
 
-export function expectNoIssues<T extends AstNode = AstNode>(
-    validationResult: ValidationResult<T>,
-    filter?: DiagnosticFilter,
-) {
-    const issues = findIssues<T>(validationResult, filter);
-    expectEqual(issues.length == 0, true, `Expected no issues, but got: ${diagnosticsString(validationResult)}`);
+export function expectNoIssues(document: LangiumDocument, filter?: DiagnosticFilter) {
+    const issues = findIssues(document, filter);
+    expectEqual(issues.length == 0, true, `Expected no issues, but got: ${diagnosticsString(document)}`);
 }
 
-export function expectIssue<T extends AstNode = AstNode, N extends AstNode = AstNode>(
-    validationResult: ValidationResult<T>,
+export function expectIssue<N extends AstNode = AstNode>(
+    document: LangiumDocument,
     filter?: DiagnosticFilter,
     assertion?: DiagnosticAssertion<N>,
 ): void {
-    let issues = findIssues<T>(validationResult, filter);
+    let issues = findIssues(document, filter);
     expectEqual(
         issues.length > 0,
         true,
         `Missing ${severityString(filter?.severity) || 'ISSUE'} of type [${filter?.code || '<ANY>'}], ` +
-            `only got: ${diagnosticsString(validationResult)}`,
+            `only got: ${diagnosticsString(document)}`,
     );
     if (!assertion) return;
 
-    const range = findRangeForAssertion(assertion, validationResult.document.textDocument);
+    const range = findRangeForAssertion(assertion, document.textDocument);
     issues = issues.filter((issue) => isRangeEqual(issue.range, range));
 
     if (assertion.message !== undefined) {
@@ -173,15 +181,15 @@ export function expectIssue<T extends AstNode = AstNode, N extends AstNode = Ast
         issues.length > 0,
         true,
         `None of the ${severityString(filter?.severity) || 'ISSUE'}s found ` +
-            `matches ${JSON.stringify(assertion, replacer)}: ${diagnosticsString(validationResult)}`,
+            `matches ${JSON.stringify(assertion, replacer)}: ${diagnosticsString(document)}`,
     );
 }
 
-export function findIssues<T extends AstNode>(
-    validationResult: ValidationResult<T>,
-    filter?: DiagnosticFilter,
-): Diagnostic[] {
-    return validationResult.diagnostics
+export function findIssues(document: LangiumDocument, filter?: DiagnosticFilter): Diagnostic[] {
+    if (!document.diagnostics) {
+        return [];
+    }
+    return document.diagnostics
         .filter((d) => !filter?.severity || d.severity === filter.severity)
         .filter((d) => !filter?.code || d.code === filter.code);
 }
@@ -210,26 +218,6 @@ interface DiagnosticFilter {
     severity?: DiagnosticSeverity;
 }
 
-export interface ValidationResult<T extends AstNode = AstNode> {
-    diagnostics: Diagnostic[];
-    document: LangiumDocument<T>;
-    result: T;
-}
-
-export function validationHelper<T extends AstNode = AstNode>(
-    services: LangiumServices,
-): (input: ParseInput) => Promise<ValidationResult<T>> {
-    const parse = parseHelper<T>(services);
-    return async (input) => {
-        const document = await parse(input);
-        return {
-            document,
-            result: document.parseResult.value,
-            diagnostics: await services.validation.DocumentValidator.validateDocument(document),
-        };
-    };
-}
-
 /**
  * Assert that a diagnostic is attached to a specific AstNode, Range or text offset.
  *
@@ -251,8 +239,9 @@ interface MessageAssertion {
     message?: string | RegExp;
 }
 
-function diagnosticsString(result: ValidationResult): string {
-    return '[\n' + result.diagnostics.map((d) => `  ${diagnosticString(d)}`).join('\n') + '\n]';
+function diagnosticsString(document: LangiumDocument): string {
+    const diagnostics = document.diagnostics || [];
+    return '[\n' + diagnostics.map((d) => `  ${diagnosticString(d)}`).join('\n') + '\n]';
 }
 
 function diagnosticString(diag: Diagnostic): string {
@@ -282,39 +271,46 @@ function severityString(severity?: DiagnosticSeverity): string | undefined {
 // Quick Fixes
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function quickFixHelper<T extends AstNode = AstNode>(
-    services: LangiumServices,
-): (input: { before: string; after: string }) => Promise<void> {
-    const validate = validationHelper<T>(services);
-    return async (input) => {
-        const { document, diagnostics } = await validate(input.before);
-        const params: CodeActionParams = {
-            textDocument: document.textDocument,
-            range: { start: { line: 1, character: 1 }, end: { line: 1, character: 1 } },
-            context: { diagnostics },
-        };
-        const codeActions = await services.lsp.CodeActionProvider?.getCodeActions(document, params);
-        const codeAction = codeActions
-            ?.filter((ac) => CodeAction.is(ac) && ac.isPreferred)
-            .map((ac) => ac as CodeAction)
-            .first();
-        const changes = codeAction?.edit?.changes || {};
-        const edit = (changes[document.textDocument.uri] || [])[0];
-        if (edit) {
-            TextDocument.update(document.textDocument, [{ range: edit.range, text: edit.newText }], 1);
-        }
-        const fixed = document.textDocument.getText();
-        expectEqual(fixed, input.after);
+export async function testQuickFix(input: { before: string; after: string }) {
+    const document = await parse(input.before);
+    const params: CodeActionParams = {
+        textDocument: document.textDocument,
+        range: { start: { line: 1, character: 1 }, end: { line: 1, character: 1 } },
+        context: { diagnostics: document.diagnostics || [] },
     };
+    const codeActions = await services.lsp.CodeActionProvider?.getCodeActions(document, params);
+    const codeAction = codeActions
+        ?.filter((ac) => CodeAction.is(ac))
+        .map((ac) => ac as CodeAction)
+        .sort((ac1, ac2) => Number(ac1.isPreferred) - Number(ac2.isPreferred))
+        .first();
+    const changes = codeAction?.edit?.changes || {};
+    const edit = (changes[document.textDocument.uri] || [])[0];
+    if (edit) {
+        TextDocument.update(document.textDocument, [{ range: edit.range, text: edit.newText }], 1);
+    }
+    const fixed = document.textDocument.getText();
+    expectEqual(fixed, input.after);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Symbols
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+export interface ExpectedBase {
+    text: string;
+    indexMarker?: string;
+    rangeStartMarker?: string;
+    rangeEndMarker?: string;
+}
+
+export interface ExpectedSymbols extends ExpectedBase {
+    expectedSymbols: DocumentSymbol[];
+}
+
 export function expectSymbols(services: LangiumServices): (input: ExpectedSymbols) => Promise<void> {
     return async (input) => {
-        const document = await parseDocument(services, input.text);
+        const document = await parse(input.text);
         const symbolProvider = services.lsp.DocumentSymbolProvider;
         const symbols = (await symbolProvider?.getSymbols(document, textDocumentParams(document))) ?? [];
         expectEqual(
@@ -341,7 +337,7 @@ export function expectSymbols(services: LangiumServices): (input: ExpectedSymbol
 export function expectFoldings(services: LangiumServices): (input: ExpectedBase) => Promise<void> {
     return async (input) => {
         const { output, ranges } = replaceIndices(input);
-        const document = await parseDocument(services, output);
+        const document = await parse(output);
         const foldingRangeProvider = services.lsp.FoldingRangeProvider;
         const foldings = (await foldingRangeProvider?.getFoldingRanges(document, textDocumentParams(document))) ?? [];
         foldings.sort((a, b) => a.startLine - b.startLine);
@@ -385,7 +381,7 @@ export interface ExpectedCompletion extends ExpectedBase {
 export function expectCompletion(services: LangiumServices): (completion: ExpectedCompletion) => Promise<void> {
     return async (expectedCompletion) => {
         const { output, indices } = replaceIndices(expectedCompletion);
-        const document = await parseDocument(services, output);
+        const document = await parse(output);
         const completionProvider = services.lsp.CompletionProvider;
         const offset = indices[expectedCompletion.index];
         const completions = (await completionProvider?.getCompletion(
@@ -425,7 +421,7 @@ export function expectGoToDefinition(
 ): (expectedGoToDefinition: ExpectedGoToDefinition) => Promise<void> {
     return async (expectedGoToDefinition) => {
         const { output, indices, ranges } = replaceIndices(expectedGoToDefinition);
-        const document = await parseDocument(services, output);
+        const document = await parse(output);
         const definitionProvider = services.lsp.DefinitionProvider;
         const locationLinks =
             (await definitionProvider?.getDefinition(
@@ -482,7 +478,7 @@ export function expectFindReferences(
 ): (expectedFindReferences: ExpectedFindReferences) => Promise<void> {
     return async (expectedFindReferences) => {
         const { output, indices, ranges } = replaceIndices(expectedFindReferences);
-        const document = await parseDocument(services, output);
+        const document = await parse(output);
         const expectedRanges: Range[] = ranges.map((range) => ({
             start: document.textDocument.positionAt(range[0]),
             end: document.textDocument.positionAt(range[1]),
@@ -529,7 +525,7 @@ export interface ExpectedHover extends ExpectedBase {
 export function expectHover(services: LangiumServices): (expectedHover: ExpectedHover) => Promise<void> {
     return async (expectedHover) => {
         const { output, indices } = replaceIndices(expectedHover);
-        const document = await parseDocument(services, output);
+        const document = await parse(output);
         const hoverProvider = services.lsp.HoverProvider;
         const hover = await hoverProvider?.getHoverContent(
             document,
@@ -560,29 +556,27 @@ export interface ExpectFormatting {
     options?: FormattingOptions;
 }
 
-export function expectFormatting(services: LangiumServices): (expectedFormatting: ExpectFormatting) => Promise<void> {
-    const formatter = services.lsp.Formatter;
-    if (!formatter) {
-        throw new Error(`No formatter registered for language ${services.LanguageMetaData.languageId}`);
-    }
-    return async (expectedFormatting) => {
-        const document = await parseDocument(services, expectedFormatting.before);
-        const identifier = { uri: document.uri.toString() };
-        const options = expectedFormatting.options ?? {
-            insertSpaces: true,
-            tabSize: 4,
-        };
-        const edits = await (expectedFormatting.range
-            ? formatter.formatDocumentRange(document, {
-                  options,
-                  textDocument: identifier,
-                  range: expectedFormatting.range,
-              })
-            : formatter.formatDocument(document, { options, textDocument: identifier }));
+export async function testFormatting(expected: ExpectFormatting) {
+    const formatter = services.lsp.Formatter as RangerFormatter;
+    formatter.formatOnErrors = true;
 
-        const editedDocument = TextDocument.applyEdits(document.textDocument, edits);
-        expectEqual(editedDocument, expectedFormatting.after);
+    const document = await parse(expected.before, { includeImports: false });
+    const textDocument = { uri: document.uri.toString() };
+
+    const options = expected.options ?? {
+        insertSpaces: true,
+        tabSize: 4,
     };
+
+    let textEdits: TextEdit[];
+    if (expected.range) {
+        textEdits = await formatter.formatDocumentRange(document, { options, textDocument, range: expected.range });
+    } else {
+        textEdits = await formatter.formatDocument(document, { options, textDocument });
+    }
+
+    const editedDocument = TextDocument.applyEdits(document.textDocument, textEdits);
+    expectEqual(editedDocument, expected.after);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -594,20 +588,13 @@ export interface DecodedSemanticTokensWithRanges {
     ranges: Array<[number, number]>;
 }
 
-export function highlightHelper<T extends AstNode = AstNode>(
-    services: LangiumServices,
-): (input: string) => Promise<DecodedSemanticTokensWithRanges> {
-    const parse = parseHelper<T>(services);
+export async function highlight(input: string): Promise<DecodedSemanticTokensWithRanges> {
     const tokenProvider = services.lsp.SemanticTokenProvider!;
-    return async (text) => {
-        const { output: input, ranges } = replaceIndices({
-            text,
-        });
-        const document = await parse(input);
-        const params: SemanticTokensParams = { textDocument: { uri: document.textDocument.uri } };
-        const tokens = await tokenProvider.semanticHighlight(document, params, new CancellationTokenSource().token);
-        return { tokens: SemanticTokensDecoder.decode(tokens, document), ranges };
-    };
+    const { output, ranges } = replaceIndices({ text: input });
+    const document = await parse(output);
+    const params: SemanticTokensParams = { textDocument: { uri: document.textDocument.uri } };
+    const tokens = await tokenProvider.semanticHighlight(document, params, new CancellationTokenSource().token);
+    return { tokens: SemanticTokensDecoder.decode(tokens, document), ranges };
 }
 
 export interface DecodedTokenOptions {
@@ -632,38 +619,6 @@ export function expectSemanticToken(
 
 function textDocumentPositionParams(document: LangiumDocument, offset: number): TextDocumentPositionParams {
     return { textDocument: { uri: document.textDocument.uri }, position: document.textDocument.positionAt(offset) };
-}
-
-export async function parseDocument<T extends AstNode = AstNode>(
-    services: LangiumServices,
-    input: string,
-): Promise<LangiumDocument<T>> {
-    const document = await parseHelper<T>(services)(input);
-    if (!document.parseResult) {
-        throw new Error('Could not parse document');
-    }
-    return document;
-}
-
-type ParseInput = string | { text: string; filePath?: string };
-
-const random = new Random(nativeMath);
-const testURIs: URI[] = [];
-export function parseHelper<T extends AstNode = AstNode>(
-    services: LangiumServices,
-): (input: ParseInput) => Promise<LangiumDocument<T>> {
-    const metaData = services.LanguageMetaData;
-    const documentBuilder = services.shared.workspace.DocumentBuilder;
-    return async (input) => {
-        input = typeof input === 'object' ? input : { text: input };
-        const filePath = input?.filePath || `/${random.integer(1000000, 2000000)}${metaData.fileExtensions[0]}`;
-        const uri = parseURI(`file://${filePath}`);
-        const document = services.shared.workspace.LangiumDocumentFactory.fromString<T>(input.text, uri);
-        services.shared.workspace.LangiumDocuments.addDocument(document);
-        await documentBuilder.build([document]);
-        testURIs.push(uri);
-        return document;
-    };
 }
 
 export type Predicate<T> = (arg: T) => boolean;
