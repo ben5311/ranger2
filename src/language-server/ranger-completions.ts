@@ -30,9 +30,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'uuid()': 'uuid()',
     };
 
-    // TODO: Add auto completion for FilePaths
-    // TODO: Add auto completion for Imports
-    // TODO: GoTo Definition for Import FilePath and Entities
+    // TODO: Add auto completion and Go To Definition for FilePaths
 
     /**
      * Provides custom Completions when the cursor is at the beginning of the line.
@@ -55,7 +53,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         }
         return completions;
     }
-    //TODO: Add completions for paths
+
     /**
      * Provides custom context-aware completions for language keywords.
      */

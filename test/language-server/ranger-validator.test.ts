@@ -44,14 +44,14 @@ describe('RangerValidator', () => {
                 property: 'name',
             });
 
-            // let customerFile = createTempFile({ postfix: '.ranger', data: `Entity Customer {}` });
-            // document = await parse(`
-            // from "${customerFile.name}" import Customer
-            // Entity Customer {}`);
-            // expectError(document, Issues.DuplicateEntity.code, {
-            //     node: document.doc.entities[0],
-            //     property: 'name',
-            // });
+            let customerFile = createTempFile({ postfix: '.ranger', data: `Entity Customer {}` });
+            document = await parse(`
+            from "${customerFile.name}" import Customer
+            Entity Customer {}`);
+            expectError(document, Issues.DuplicateEntity.code, {
+                node: document.doc.entities[0],
+                property: 'name',
+            });
         });
 
         test('NoDuplicateImports', async () => {

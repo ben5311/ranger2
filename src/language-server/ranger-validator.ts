@@ -6,7 +6,7 @@ import { Issue, satisfies } from '../utils/types';
 import * as ast from './generated/ast';
 import { generator, isListFunc } from './ranger-generator';
 import { RangerServices } from './ranger-module';
-import { resolveReference } from './ranger-scope';
+import { findEntityDeclaration, RangerScopeProvider, resolveReference } from './ranger-scope';
 
 /**
  * Register custom validation checks.
@@ -48,7 +48,11 @@ export const Issues = satisfies<Record<string, Issue>>()({
  * Implementation of custom validations.
  */
 export class RangerValidator {
-    constructor(protected services: RangerServices) {}
+    scopeProvider: RangerScopeProvider;
+
+    constructor(protected services: RangerServices) {
+        this.scopeProvider = services.references.ScopeProvider as RangerScopeProvider;
+    }
 
     checkCsvFunc_InvalidCsvFile(func: ast.CsvFunc, accept: ValidationAcceptor) {
         const issue = Issues.InvalidCsvFile;
@@ -63,13 +67,14 @@ export class RangerValidator {
 
     checkDocument_NoDuplicateEntities(document: ast.Document, accept: ValidationAcceptor) {
         const issue = Issues.DuplicateEntity;
-        const entities = document.entities;
+        const entities = this.scopeProvider.doGetScope(document, 'Entity').getAllElements().toArray();
         const duplicates = this.findDuplicates(entities);
         for (let dup of duplicates) {
-            accept('error', `${issue.msg}: '${dup.name}'`, { node: dup, property: 'name', code: issue.code });
+            accept('error', `${issue.msg}: '${dup.name}'`, {
+                ...findEntityDeclaration(dup.node as ast.Entity, document)!,
+                code: issue.code,
+            });
         }
-        // TODO: Add validation for duplicate (imported) Entities in global Scope
-        // Error msg: XY shadows XY declared before
     }
 
     checkDocument_NoDuplicateImports(document: ast.Document, accept: ValidationAcceptor) {

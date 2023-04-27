@@ -10,7 +10,7 @@ import {
     ScopeComputation,
 } from 'langium';
 
-import { RangerAstType } from './generated/ast';
+import { RangerType } from '../utils/types';
 import { generator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 
@@ -36,7 +36,7 @@ export class IndexAccess {
      * @param name The requested node name.
      * @returns Found AstNodes.
      */
-    searchIndex(type: keyof RangerAstType, name?: string): AstNodeDescription[] {
+    searchIndex(type: RangerType, name?: string): AstNodeDescription[] {
         return this.indexManager
             .allElements(type)
             .map((desc) => {

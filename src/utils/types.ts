@@ -6,22 +6,23 @@ import { resolveReference } from '../language-server/ranger-scope';
 /**
  * Allows to enforce types without throwing away information about any more specific type
  * that the compiler may have inferred.
- * See https://stackoverflow.com/questions/70956050/
  *
- * Example:
- * --------
+ * @see https://stackoverflow.com/questions/70956050/
+ *
+ * @example
  * export const Issues = satisfies<Record<string, { code: string; msg: string }>>()({
  *     issue1: { code: 'issue1', msg: 'Sample issue' },
  *     issue2: { code: 'issue2', msg: 'Other issue' },
  * });
  *
  * instead of:
- * -----------
+ *
  * export const Issues: {[key: string]: {code: string; msg: string}} = {
  *     issue1: { code: 'issue1', msg: 'Sample issue' },
  *     issue2: { code: 'issue2', msg: 'Other issue' },
  * };
  *
+ * @description
  * With the first syntax, the property names are still part of the inferred type.
  * With the second syntax, the property names are lost and IntelliSense is not possible when accessing Issues' properties.
  */
@@ -31,7 +32,7 @@ export const satisfies =
         u;
 
 /**
- * Allows to dynamically add properties to an object.
+ * Allows to dynamically add properties to an object in TypeScript.
  */
 export interface DynamicObject {
     [key: string]: any;
@@ -40,8 +41,7 @@ export interface DynamicObject {
 /**
  * Allows to create a Mapping of AstNode types to Functions.
  *
- * Example:
- * --------
+ * @example
  * const hoverProviders: Providers<string | undefined> = {
  *     Property: this.getPropertyHover,
  *     PropertyReference: this.getPropertyReferenceHover,
@@ -51,18 +51,18 @@ export interface DynamicObject {
  *     Objekt: this.getObjektHover,
  *     List: this.getListHover,
  *     Func: this.getFuncHover,
- + };
+ * };
  * return executeProvider(node, hoverProviders);   // returns string | undefined
  *
  * instead of:
- * -----------
+ *
  * if (ast.isProperty(node)) return this.getPropertyHover(node);
  * else if (ast.isPropertyReference(node)) return this.getPropertyReferenceHover(nove);
  * else if (ast.isNull(node)) return this.getNullHover(node);
  * else if (ast.isLiteral(node)) return this.getLiteralHover(node);
  * ...
  */
-export type Providers<ReturnT> = { [K in keyof RangerAstType]?: (node: RangerAstType[K], ...params: any[]) => ReturnT };
+export type Providers<ReturnT> = { [K in RangerType]?: (node: RangerAstType[K], ...params: any[]) => ReturnT };
 
 export function executeProvider<R>(node: AstNode, providers: Providers<R>, ...params: any[]): R | undefined {
     const astNode: any = node; // Suppress type checker
@@ -117,6 +117,8 @@ export interface Issue {
     code: string;
     msg: string;
 }
+
+export type RangerType = keyof RangerAstType;
 
 /**
  * Returns true if node is a real property (and not an Entity).
