@@ -124,15 +124,33 @@ describe('RangerValidator', () => {
     });
 
     describe('checkImport', () => {
-        test('WrongFileExtension', async () => {
-            let document = await parse(`from "Test.txt" import Test`, { includeImports: false });
+        test('CorrectFileExtension', async () => {
+            let document = await parse({
+                text: `from "Test.txt" import Test`,
+                includeImports: false,
+            });
             expectError(document, Issues.WrongFileExtension.code, {
                 node: document.doc.imports[0].filePath,
                 property: 'value',
             });
         });
 
-        test('DocumentHasErrors', async () => {
+        test('NoCircularImport', async () => {
+            let document = await parse({
+                filePath: '/Test.ranger',
+                text: `
+                from "/Test.ranger" import Test
+                Entity Test {}
+                `,
+                includeImports: false,
+            });
+            expectError(document, Issues.CircularImport.code, {
+                node: document.doc.imports[0].filePath,
+                property: 'value',
+            });
+        });
+
+        test('NoValidationErrors', async () => {
             let rangerFile = createTempFile({ postfix: '.ranger', data: `Entity Test {}` });
             let document = await parse(`from "${rangerFile.name}" import Test`);
             expectNoIssues(document);

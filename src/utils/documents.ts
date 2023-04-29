@@ -59,7 +59,7 @@ async function doParseDocument(opts: ParseOptions, imported: LangiumDocument[]) 
     const extensions = services.LanguageMetaData.fileExtensions;
     const { LangiumDocuments, LangiumDocumentFactory } = services.shared.workspace;
 
-    let documentUri = fileURI(path.resolve(docSpec.filePath));
+    let documentUri = fileURI(docSpec.filePath);
     let document: LangiumDocument<Document>;
 
     if (docSpec.text) {
@@ -115,6 +115,9 @@ export function hasNoErrors(document: LangiumDocument): boolean {
 
 /**
  * Resolve file path relative to Document.
+ *
+ * @param filePath Relative file path.
+ * @returns Absolute file path.
  */
 export function resolvePath(filePath: string | FilePath, context: AstNode | LangiumDocument): string {
     filePath = typeof filePath === 'string' ? filePath : filePath.value;
@@ -128,9 +131,12 @@ export function resolvePath(filePath: string | FilePath, context: AstNode | Lang
     return resolved;
 }
 
-export function isRangerFile(filePath: string | URI) {
-    filePath = typeof filePath === 'string' ? filePath : filePath.fsPath;
-    return !!filePath && filePath.endsWith('.ranger') && fs.existsSync(filePath);
+/**
+ * Resolve file URI relative to Document.
+ */
+export function resolveURI(filePath: string | FilePath, context: AstNode | LangiumDocument): URI {
+    const absPath = resolvePath(filePath, context);
+    return fileURI(absPath);
 }
 
 export function parseURI(uri: string): URI {
@@ -142,4 +148,9 @@ export function parseURI(uri: string): URI {
  */
 export function fileURI(filePath: string): URI {
     return URI.file(filePath);
+}
+
+export function isRangerFile(filePath: string | URI) {
+    filePath = typeof filePath === 'string' ? filePath : filePath.fsPath;
+    return !!filePath && filePath.endsWith('.ranger') && fs.existsSync(filePath);
 }

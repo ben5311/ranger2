@@ -91,21 +91,23 @@ export function expectFileContent(filePath: string, expectedContent: string) {
 // Parse Document
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-type ParseInput = string | { text: string; filePath?: string };
+type ParseInput = string | { text: string; filePath?: string; includeImports?: boolean };
 
 const random = new Random(nativeMath);
 
-export async function parse(
-    input: ParseInput,
-    opts?: { includeImports?: boolean },
-): Promise<LangiumDocument<Document> & { doc: Document }> {
+export async function parse(input: ParseInput): Promise<LangiumDocument<Document> & { doc: Document }> {
     const fileExtension = services.LanguageMetaData.fileExtensions[0];
     input = typeof input === 'string' ? { text: input } : input;
     const docSpec = {
         filePath: input.filePath || `/${random.integer(1000000, 2000000)}${fileExtension}`,
         text: input.text,
     };
-    const document = await parseDocument({ services, docSpec, strictMode: false, ...opts });
+    const document = await parseDocument({
+        services,
+        docSpec,
+        strictMode: false,
+        includeImports: input.includeImports,
+    });
     return document;
 }
 
@@ -308,26 +310,27 @@ export interface ExpectedSymbols extends ExpectedBase {
     expectedSymbols: DocumentSymbol[];
 }
 
-export function expectSymbols(services: LangiumServices): (input: ExpectedSymbols) => Promise<void> {
-    return async (input) => {
-        const document = await parse(input.text);
-        const symbolProvider = services.lsp.DocumentSymbolProvider;
-        const symbols = (await symbolProvider?.getSymbols(document, textDocumentParams(document))) ?? [];
-        expectEqual(
-            symbols.length,
-            input.expectedSymbols.length,
-            `Expected ${input.expectedSymbols.length} but found ${symbols.length} symbols in document.`,
-        );
-        for (let i = 0; i < input.expectedSymbols.length; i++) {
-            const expected = input.expectedSymbols[i];
-            const item = symbols[i];
-            if (typeof expected === 'string') {
-                expectEqual(item.name, expected);
-            } else {
-                expectEqual(item, expected);
-            }
+export async function expectSymbols(input: ExpectedSymbols): Promise<void> {
+    const symbolProvider = services.lsp.DocumentSymbolProvider;
+    const document = await parse(input.text);
+
+    const symbols = (await symbolProvider?.getSymbols(document, textDocumentParams(document))) ?? [];
+
+    expectEqual(
+        symbols.length,
+        input.expectedSymbols.length,
+        `Expected ${input.expectedSymbols.length} but found ${symbols.length} symbols in document.`,
+    );
+
+    for (let i = 0; i < input.expectedSymbols.length; i++) {
+        const expected = input.expectedSymbols[i];
+        const item = symbols[i];
+        if (typeof expected === 'string') {
+            expectEqual(item.name, expected);
+        } else {
+            expectEqual(item, expected);
         }
-    };
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -386,7 +389,7 @@ export function expectCompletion(services: LangiumServices): (completion: Expect
         const offset = indices[expectedCompletion.index];
         const completions = (await completionProvider?.getCompletion(
             document,
-            textDocumentPositionParams(document, offset),
+            getPositionParams(document, offset),
         )) ?? { items: [] };
         const expectedItems = expectedCompletion.expectedItems;
         const items = completions.items.sort((a, b) => a.sortText?.localeCompare(b.sortText || '0') || 0);
@@ -416,45 +419,26 @@ export interface ExpectedGoToDefinition extends ExpectedBase {
     rangeIndex: number | number[];
 }
 
-export function expectGoToDefinition(
-    services: LangiumServices,
-): (expectedGoToDefinition: ExpectedGoToDefinition) => Promise<void> {
-    return async (expectedGoToDefinition) => {
-        const { output, indices, ranges } = replaceIndices(expectedGoToDefinition);
-        const document = await parse(output);
-        const definitionProvider = services.lsp.DefinitionProvider;
-        const locationLinks =
-            (await definitionProvider?.getDefinition(
-                document,
-                textDocumentPositionParams(document, indices[expectedGoToDefinition.index]),
-            )) ?? [];
-        const rangeIndex = expectedGoToDefinition.rangeIndex;
-        if (Array.isArray(rangeIndex)) {
-            expectEqual(
-                locationLinks.length,
-                rangeIndex.length,
-                `Expected ${rangeIndex.length} definitions but received ${locationLinks.length}`,
-            );
-            for (const index of rangeIndex) {
-                const expectedRange: Range = {
-                    start: document.textDocument.positionAt(ranges[index][0]),
-                    end: document.textDocument.positionAt(ranges[index][1]),
-                };
-                const range = locationLinks[0].targetSelectionRange;
-                expectEqual(
-                    range,
-                    expectedRange,
-                    `Expected range ${rangeToString(expectedRange)} does not match actual range ${rangeToString(
-                        range,
-                    )}`,
-                );
-            }
-        } else {
+export async function expectGoToDefinition(expected: ExpectedGoToDefinition): Promise<void> {
+    const definitionProvider = services.lsp.DefinitionProvider;
+    const { output, indices, ranges } = replaceIndices(expected);
+    const document = await parse(output);
+    const positionParams = getPositionParams(document, indices[expected.index]);
+
+    let locationLinks = (await definitionProvider?.getDefinition(document, positionParams)) ?? [];
+
+    const rangeIndex = expected.rangeIndex;
+    if (Array.isArray(rangeIndex)) {
+        expectEqual(
+            locationLinks.length,
+            rangeIndex.length,
+            `Expected ${rangeIndex.length} definitions but received ${locationLinks.length}`,
+        );
+        for (const index of rangeIndex) {
             const expectedRange: Range = {
-                start: document.textDocument.positionAt(ranges[rangeIndex][0]),
-                end: document.textDocument.positionAt(ranges[rangeIndex][1]),
+                start: document.textDocument.positionAt(ranges[index][0]),
+                end: document.textDocument.positionAt(ranges[index][1]),
             };
-            expectEqual(locationLinks.length, 1, `Expected a single definition but received ${locationLinks.length}`);
             const range = locationLinks[0].targetSelectionRange;
             expectEqual(
                 range,
@@ -462,7 +446,19 @@ export function expectGoToDefinition(
                 `Expected range ${rangeToString(expectedRange)} does not match actual range ${rangeToString(range)}`,
             );
         }
-    };
+    } else {
+        const expectedRange: Range = {
+            start: document.textDocument.positionAt(ranges[rangeIndex][0]),
+            end: document.textDocument.positionAt(ranges[rangeIndex][1]),
+        };
+        expectEqual(locationLinks.length, 1, `Expected a single definition but received ${locationLinks.length}`);
+        const range = locationLinks[0].targetSelectionRange;
+        expectEqual(
+            range,
+            expectedRange,
+            `Expected range ${rangeToString(expectedRange)} does not match actual range ${rangeToString(range)}`,
+        );
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -529,7 +525,7 @@ export function expectHover(services: LangiumServices): (expectedHover: Expected
         const hoverProvider = services.lsp.HoverProvider;
         const hover = await hoverProvider?.getHoverContent(
             document,
-            textDocumentPositionParams(document, indices[expectedHover.index]),
+            getPositionParams(document, indices[expectedHover.index]),
         );
         const hoverContent = hover && MarkupContent.is(hover.contents) ? hover.contents.value : undefined;
         if (typeof expectedHover.hover !== 'object') {
@@ -560,7 +556,7 @@ export async function testFormatting(expected: ExpectFormatting) {
     const formatter = services.lsp.Formatter as RangerFormatter;
     formatter.formatOnErrors = true;
 
-    const document = await parse(expected.before, { includeImports: false });
+    const document = await parse({ text: expected.before, includeImports: false });
     const textDocument = { uri: document.uri.toString() };
 
     const options = expected.options ?? {
@@ -617,7 +613,7 @@ export function expectSemanticToken(
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function textDocumentPositionParams(document: LangiumDocument, offset: number): TextDocumentPositionParams {
+function getPositionParams(document: LangiumDocument, offset: number): TextDocumentPositionParams {
     return { textDocument: { uri: document.textDocument.uri }, position: document.textDocument.positionAt(offset) };
 }
 

@@ -6,7 +6,7 @@ import { Issue, satisfies } from '../utils/types';
 import * as ast from './generated/ast';
 import { generator, isListFunc } from './ranger-generator';
 import { RangerServices } from './ranger-module';
-import { findEntityDeclaration, RangerScopeProvider, resolveReference } from './ranger-scope';
+import { findEntityDeclaration, isCircularImport, RangerScopeProvider, resolveReference } from './ranger-scope';
 
 /**
  * Register custom validation checks.
@@ -19,7 +19,11 @@ export function registerValidationChecks(services: RangerServices) {
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_NoDuplicateImports],
         Entity: [validator.checkEntity_NameStartsWithCapital],
         FilePath: [validator.checkFilePath_FileExists, validator.checkFilePath_NoBackslashes],
-        Import: [validator.checkImport_CorrectFileExtension, validator.checkImport_NoValidationErrors],
+        Import: [
+            validator.checkImport_CorrectFileExtension,
+            validator.checkImport_NoCircularImport,
+            validator.checkImport_NoValidationErrors,
+        ],
         MapFunc: [validator.checkMapFunc_NoCircularReferences],
         MapToList: [validator.checkMapToList_IsBasedOnAListFunc],
         Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_NoReferenceToParentObjekt],
@@ -30,6 +34,7 @@ export function registerValidationChecks(services: RangerServices) {
 
 export const Issues = satisfies<Record<string, Issue>>()({
     CircularReference: { code: 'CircularReference', msg: 'Circular reference' },
+    CircularImport: { code: 'CircularImport', msg: 'Circular import' },
     DocumentHasErrors: { code: 'DocumentHasErrors', msg: 'File has errors' },
     DuplicateEntity: { code: 'DuplicateEntity', msg: 'Duplicate Entity' },
     DuplicateImport: { code: 'DuplicateImport', msg: 'Duplicate Import' },
@@ -123,10 +128,25 @@ export class RangerValidator {
         }
     }
 
+    checkImport_CorrectFileExtension(import_: ast.Import, accept: ValidationAcceptor) {
+        const issue = Issues.WrongFileExtension;
+        const filePath = import_.filePath.value;
+        if (filePath && !filePath.endsWith('.ranger')) {
+            accept('error', issue.msg, { node: import_.filePath, property: 'value', code: issue.code });
+        }
+    }
+
+    checkImport_NoCircularImport(import_: ast.Import, accept: ValidationAcceptor) {
+        const issue = Issues.CircularImport;
+        if (isCircularImport(import_)) {
+            accept('error', issue.msg, { node: import_.filePath, property: 'value', code: issue.code });
+        }
+    }
+
     async checkImport_NoValidationErrors(imp: ast.Import, accept: ValidationAcceptor) {
         const relPath = imp.filePath.value;
         const absPath = resolvePath(relPath, imp);
-        if (!isRangerFile(absPath)) {
+        if (!isRangerFile(absPath) || isCircularImport(imp)) {
             return;
         }
 
@@ -137,14 +157,6 @@ export class RangerValidator {
                 property: 'value',
                 code: Issues.DocumentHasErrors.code,
             });
-        }
-    }
-
-    checkImport_CorrectFileExtension(import_: ast.Import, accept: ValidationAcceptor) {
-        const issue = Issues.WrongFileExtension;
-        const filePath = import_.filePath.value;
-        if (filePath && !filePath.endsWith('.ranger')) {
-            accept('error', issue.msg, { node: import_.filePath, property: 'value', code: issue.code });
         }
     }
 

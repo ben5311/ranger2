@@ -13,6 +13,8 @@ import { FormattingOptions, Range, TextEdit } from 'vscode-languageserver';
 import { hasErrors } from '../utils/documents';
 import * as ast from './generated/ast';
 
+// TODO: Sort imports
+
 export class RangerFormatter extends AbstractFormatter {
     constructor(public formatOnErrors = false) {
         super();

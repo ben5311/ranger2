@@ -35,7 +35,7 @@ export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider 
                     children: this.getChildSymbols(document, astNode),
                 },
             ];
-        } else if (ast.isPropertyReference(astNode)) {
+        } else if (ast.isPropertyReference(astNode) && ast.isProperty(astNode.$container)) {
             const value = resolveReference(astNode);
             return value ? this.getSymbol(document, value) : [];
         } else {

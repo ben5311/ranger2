@@ -138,24 +138,23 @@ describe('RangerWorkspaceSymbolProvider', () => {
             Entity Address {}
             `,
         });
-        let expectedUri = process.platform === 'win32' ? 'file:///c%3A/User.ranger' : 'file:///User.ranger';
 
         let symbols = symbolProvider.provideSymbols({ query: '' });
         expect(symbols).toStrictEqual([
             {
                 name: 'User',
                 kind: 5,
-                location: { uri: expectedUri },
+                location: { uri: 'file:///User.ranger' },
             },
             {
                 name: 'Account',
                 kind: 5,
-                location: { uri: expectedUri },
+                location: { uri: 'file:///User.ranger' },
             },
             {
                 name: 'Address',
                 kind: 5,
-                location: { uri: expectedUri },
+                location: { uri: 'file:///User.ranger' },
             },
         ]);
     });
