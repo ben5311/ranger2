@@ -29,6 +29,7 @@ import {
     DocumentSymbol,
     FormattingOptions,
     MarkupContent,
+    Position,
     Range,
     ReferenceParams,
     SemanticTokensParams,
@@ -613,8 +614,9 @@ export function expectSemanticToken(
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getPositionParams(document: LangiumDocument, offset: number): TextDocumentPositionParams {
-    return { textDocument: { uri: document.textDocument.uri }, position: document.textDocument.positionAt(offset) };
+export function getPositionParams(document: LangiumDocument, position: Position | number): TextDocumentPositionParams {
+    position = typeof position === 'object' ? position : document.textDocument.positionAt(position);
+    return { textDocument: { uri: document.textDocument.uri }, position };
 }
 
 export type Predicate<T> = (arg: T) => boolean;

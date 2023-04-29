@@ -14,6 +14,7 @@ import { RangerGeneratedModule, RangerGeneratedSharedModule } from './generated/
 import { RangerActionProvider } from './ranger-actions';
 import { RangerExecuteCommandHandler } from './ranger-commands';
 import { RangerCompletionProvider } from './ranger-completions';
+import { RangerDefinitionProvider } from './ranger-definition';
 import { RangerFormatter } from './ranger-formatter';
 import { RangerHoverProvider } from './ranger-hover';
 import { IndexAccess, RangerDocumentBuilder } from './ranger-index';
@@ -66,6 +67,7 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
     lsp: {
         CodeActionProvider: (services) => new RangerActionProvider(services),
         CompletionProvider: (services) => new RangerCompletionProvider(services),
+        DefinitionProvider: (services) => new RangerDefinitionProvider(services),
         DocumentSymbolProvider: (services) => new RangerDocumentSymbolProvider(services),
         Formatter: () => new RangerFormatter(),
         HoverProvider: (services) => new RangerHoverProvider(services),
