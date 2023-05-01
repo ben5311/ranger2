@@ -1,7 +1,9 @@
+import dedent from 'dedent-js';
 import { beforeEach, describe, expect, test } from 'vitest';
+import { SymbolKind } from 'vscode-languageserver';
 
 import { RangerDocumentSymbolProvider, RangerWorkspaceSymbolProvider } from '../../src/language-server/ranger-symbols';
-import { clearIndex, parse, services } from '../../src/utils/test';
+import { clearIndex, parse, range, services } from '../../src/utils/test';
 
 beforeEach(() => {
     clearIndex();
@@ -10,7 +12,7 @@ beforeEach(() => {
 describe('RangerDocumentSymbolProvider', () => {
     test('Symbols', async () => {
         const symbolProvider = new RangerDocumentSymbolProvider(services);
-        let document = await parse(`
+        let document = await parse(dedent`
         Entity User {
             name: "John Doe"
             age: 28
@@ -24,99 +26,57 @@ describe('RangerDocumentSymbolProvider', () => {
         let symbols = symbolProvider.getSymbols(document);
         expect(symbols).toStrictEqual([
             {
-                kind: 5,
+                kind: SymbolKind.Class,
                 name: 'User',
                 detail: undefined,
-                range: {
-                    start: { character: 8, line: 1 },
-                    end: { character: 9, line: 9 },
-                },
-                selectionRange: {
-                    start: { character: 15, line: 1 },
-                    end: { character: 19, line: 1 },
-                },
+                range: range('0:0-8:1'),
+                selectionRange: range('0:7-0:11'),
                 children: [
                     {
-                        kind: 8,
+                        kind: SymbolKind.Field,
                         name: 'name',
                         detail: '"John Doe"',
-                        range: {
-                            start: { character: 12, line: 2 },
-                            end: { character: 28, line: 2 },
-                        },
-                        selectionRange: {
-                            start: { character: 12, line: 2 },
-                            end: { character: 16, line: 2 },
-                        },
+                        range: range('1:4-1:20'),
+                        selectionRange: range('1:4-1:8'),
                         children: undefined,
                     },
                     {
-                        kind: 8,
+                        kind: SymbolKind.Field,
                         name: 'age',
                         detail: '28',
-                        range: {
-                            start: { character: 12, line: 3 },
-                            end: { character: 19, line: 3 },
-                        },
-                        selectionRange: {
-                            start: { character: 12, line: 3 },
-                            end: { character: 15, line: 3 },
-                        },
+                        range: range('2:4-2:11'),
+                        selectionRange: range('2:4-2:7'),
                         children: undefined,
                     },
                     {
-                        kind: 8,
+                        kind: SymbolKind.Field,
                         name: 'married',
                         detail: 'false',
-                        range: {
-                            start: { character: 12, line: 4 },
-                            end: { character: 26, line: 4 },
-                        },
-                        selectionRange: {
-                            start: { character: 12, line: 4 },
-                            end: { character: 19, line: 4 },
-                        },
+                        range: range('3:4-3:18'),
+                        selectionRange: range('3:4-3:11'),
                         children: undefined,
                     },
                     {
-                        kind: 8,
+                        kind: SymbolKind.Field,
                         name: 'address',
                         detail: undefined,
-                        range: {
-                            start: { character: 12, line: 5 },
-                            end: { character: 13, line: 8 },
-                        },
-                        selectionRange: {
-                            start: { character: 12, line: 5 },
-                            end: { character: 19, line: 5 },
-                        },
+                        range: range('4:4-7:5'),
+                        selectionRange: range('4:4-4:11'),
                         children: [
                             {
-                                kind: 8,
+                                kind: SymbolKind.Field,
                                 name: 'phone',
                                 detail: 'null',
-                                range: {
-                                    start: { character: 16, line: 6 },
-                                    end: { character: 27, line: 6 },
-                                },
-                                selectionRange: {
-                                    start: { character: 16, line: 6 },
-                                    end: { character: 21, line: 6 },
-                                },
+                                range: range('5:8-5:19'),
+                                selectionRange: range('5:8-5:13'),
                                 children: undefined,
                             },
                             {
-                                kind: 8,
+                                kind: SymbolKind.Field,
                                 name: 'email',
                                 detail: '"john.doe@gmail.com"',
-                                range: {
-                                    start: { character: 16, line: 7 },
-                                    end: { character: 43, line: 7 },
-                                },
-                                selectionRange: {
-                                    start: { character: 16, line: 7 },
-                                    end: { character: 21, line: 7 },
-                                },
+                                range: range('6:8-6:35'),
+                                selectionRange: range('6:8-6:13'),
                                 children: undefined,
                             },
                         ],
@@ -140,21 +100,22 @@ describe('RangerWorkspaceSymbolProvider', () => {
         });
 
         let symbols = symbolProvider.provideSymbols({ query: '' });
+        let expectedUri = process.platform === 'win32' ? 'file:///c%3A/User.ranger' : 'file:///User.ranger';
         expect(symbols).toStrictEqual([
             {
                 name: 'User',
                 kind: 5,
-                location: { uri: 'file:///User.ranger' },
+                location: { uri: expectedUri },
             },
             {
                 name: 'Account',
                 kind: 5,
-                location: { uri: 'file:///User.ranger' },
+                location: { uri: expectedUri },
             },
             {
                 name: 'Address',
                 kind: 5,
-                location: { uri: 'file:///User.ranger' },
+                location: { uri: expectedUri },
             },
         ]);
     });

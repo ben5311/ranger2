@@ -121,14 +121,32 @@ export function hasNoErrors(document: LangiumDocument): boolean {
  */
 export function resolvePath(filePath: string | FilePath, context: AstNode | LangiumDocument): string {
     filePath = typeof filePath === 'string' ? filePath : filePath.value;
-    if (path.isAbsolute(filePath)) {
-        return filePath;
+
+    if (!path.isAbsolute(filePath)) {
+        let document = isAstNode(context) ? getDocument(context) : context;
+        const documentDir = path.dirname(document.uri.fsPath);
+        filePath = path.join(documentDir, filePath);
     }
 
-    let document = isAstNode(context) ? getDocument(context) : context;
-    const docFilePath = document.uri.fsPath;
-    const resolved = path.join(path.dirname(docFilePath), filePath);
+    let resolved = path.resolve(filePath);
+    resolved = resolved.replace(/^([A-Z]:)/, (_, drive) => drive.toLowerCase()); // Normalize Windows drive letter
+
     return resolved;
+}
+
+/**
+ * Convert absolute file path to file path relative to Document.
+ *
+ * @param absolutePath Absolute file path.
+ * @returns Relative file path.
+ */
+export function relativePath(absolutePath: string, context: AstNode) {
+    const documentDir = path.dirname(getDocument(context).uri.fsPath);
+    let relativePath = path.relative(documentDir, absolutePath);
+    relativePath = relativePath.replace(/\\/g, '/');
+    relativePath = relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
+
+    return relativePath;
 }
 
 /**
@@ -147,7 +165,8 @@ export function parseURI(uri: string): URI {
  * Convert file path to URI.
  */
 export function fileURI(filePath: string): URI {
-    return URI.file(filePath);
+    const absPath = path.resolve(filePath);
+    return URI.file(absPath);
 }
 
 export function isRangerFile(filePath: string | URI) {

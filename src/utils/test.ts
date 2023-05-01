@@ -638,6 +638,32 @@ export function isRangeInside(outer: Range, inner: Range): boolean {
     return true;
 }
 
+/**
+ * Parse range from string.
+ *
+ * Example:
+ * ```ts
+ * '1:0-2:10'
+ * ```
+ * returns
+ * ```ts
+ * {
+ *   start: {line: 1, character: 0},
+ *   end: {line: 2, character: 10}
+ * }
+ * ```
+ *
+ */
+export function range(range: string): Range {
+    let [start, end] = range.split('-');
+    let [stLine, stChar] = start.split(':');
+    let [enLine, enChar] = end.split(':');
+    return {
+        start: { line: Number(stLine), character: Number(stChar) },
+        end: { line: Number(enLine), character: Number(enChar) },
+    };
+}
+
 function rangeToString(range: Range): string {
     return `${range.start.line}:${range.start.character}--${range.end.line}:${range.end.character}`;
 }
