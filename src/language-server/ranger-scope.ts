@@ -15,7 +15,7 @@ import {
 } from 'langium';
 import { Range } from 'vscode-languageclient';
 
-import { fileURI, isRangerFile, resolvePath, resolveURI } from '../utils/documents';
+import { fileURI, isRangerFile, resolvePath } from '../utils/documents';
 import { RangerType } from '../utils/types';
 import * as ast from './generated/ast';
 
@@ -198,9 +198,4 @@ export function findEntityDeclaration(entity: ast.Entity, context: AstNode): Dec
         }
     }
     return undefined;
-}
-
-export function isCircularImport(imp: ast.Import): boolean {
-    const importUri = resolveURI(imp.filePath.value, imp);
-    return importUri.toString() === getDocument(imp).uri.toString();
 }

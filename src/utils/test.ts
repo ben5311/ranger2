@@ -78,7 +78,7 @@ export function createTempDir(options?: tmp.DirOptions) {
             const filePath = path.join(tmpDir.name, fileName);
             fs.mkdirSync(path.dirname(filePath), { recursive: true });
             fs.writeFileSync(filePath, data);
-            return { name: escapePath(filePath) };
+            return { name: escapePath(filePath), data };
         },
     };
 }

@@ -1,12 +1,12 @@
 import fs from 'fs';
-import { streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
+import { AstNode, getDocument, streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { buildDocument, hasErrors, isRangerFile, resolvePath } from '../utils/documents';
 import { Issue, satisfies } from '../utils/types';
 import * as ast from './generated/ast';
 import { generator, isListFunc } from './ranger-generator';
 import { RangerServices } from './ranger-module';
-import { findEntityDeclaration, isCircularImport, RangerScopeProvider, resolveReference } from './ranger-scope';
+import { findEntityDeclaration, RangerScopeProvider, resolveReference } from './ranger-scope';
 
 /**
  * Register custom validation checks.
@@ -19,11 +19,7 @@ export function registerValidationChecks(services: RangerServices) {
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_NoDuplicateImports],
         Entity: [validator.checkEntity_NameStartsWithCapital],
         FilePath: [validator.checkFilePath_FileExists, validator.checkFilePath_NoBackslashes],
-        Import: [
-            validator.checkImport_CorrectFileExtension,
-            validator.checkImport_NoCircularImport,
-            validator.checkImport_NoValidationErrors,
-        ],
+        Import: [validator.checkImport_CorrectFileExtension, validator.checkImport_NoValidationErrors],
         MapFunc: [validator.checkMapFunc_NoCircularReferences],
         MapToList: [validator.checkMapToList_IsBasedOnAListFunc],
         Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_NoReferenceToParentObjekt],
@@ -34,7 +30,6 @@ export function registerValidationChecks(services: RangerServices) {
 
 export const Issues = satisfies<Record<string, Issue>>()({
     CircularReference: { code: 'CircularReference', msg: 'Circular reference' },
-    CircularImport: { code: 'CircularImport', msg: 'Circular import' },
     DocumentHasErrors: { code: 'DocumentHasErrors', msg: 'File has errors' },
     DuplicateEntity: { code: 'DuplicateEntity', msg: 'Duplicate Entity' },
     DuplicateImport: { code: 'DuplicateImport', msg: 'Duplicate Import' },
@@ -54,9 +49,11 @@ export const Issues = satisfies<Record<string, Issue>>()({
  */
 export class RangerValidator {
     scopeProvider: RangerScopeProvider;
+    seen: Set<string>;
 
     constructor(protected services: RangerServices) {
         this.scopeProvider = services.references.ScopeProvider as RangerScopeProvider;
+        this.seen = new Set();
     }
 
     checkCsvFunc_InvalidCsvFile(func: ast.CsvFunc, accept: ValidationAcceptor) {
@@ -136,21 +133,23 @@ export class RangerValidator {
         }
     }
 
-    checkImport_NoCircularImport(import_: ast.Import, accept: ValidationAcceptor) {
-        const issue = Issues.CircularImport;
-        if (isCircularImport(import_)) {
-            accept('error', issue.msg, { node: import_.filePath, property: 'value', code: issue.code });
-        }
-    }
-
     async checkImport_NoValidationErrors(imp: ast.Import, accept: ValidationAcceptor) {
         const relPath = imp.filePath.value;
         const absPath = resolvePath(relPath, imp);
-        if (!isRangerFile(absPath) || isCircularImport(imp)) {
+        if (!isRangerFile(absPath)) {
             return;
         }
 
+        const importId = `${getDocument(imp).uri.fsPath} - ${imp.$cstNode?.text}`;
+        if (this.seen.has(importId)) {
+            // Break circular import check loop
+            return;
+        }
+
+        this.seen.add(importId);
         const document = await buildDocument(this.services, absPath);
+        this.seen.delete(importId);
+
         if (hasErrors(document)) {
             accept('error', `${Issues.DocumentHasErrors.msg}: '${relPath}'`, {
                 node: imp.filePath,
@@ -197,12 +196,29 @@ export class RangerValidator {
     }
 
     checkObjekt_NoReferenceToParentObjekt(obj: ast.Objekt, accept: ValidationAcceptor) {
-        const issue = Issues.CircularReference;
-        for (const ref of streamAllContents(obj)
+        this.doCheckNoReferenceToParent(obj, obj, accept);
+    }
+
+    doCheckNoReferenceToParent(parent: ast.Objekt, current: ast.Objekt, accept: ValidationAcceptor, node?: AstNode) {
+        for (const ref of streamAllContents(current)
             .filter(ast.isPropertyReference)
             .filter((ref) => ref.$containerProperty !== 'previous')) {
-            if (resolveReference(ref) === obj) {
-                accept('error', issue.msg, { node: ref, code: issue.code });
+            const resolved = resolveReference(ref);
+
+            if (resolved === parent) {
+                accept('error', Issues.CircularReference.msg, {
+                    node: node || ref,
+                    code: Issues.CircularReference.code,
+                });
+            } else if (ast.isObjekt(resolved)) {
+                const refId = `${getDocument(current).uri.fsPath} - ${ref.$cstNode?.text}`;
+                if (this.seen.has(refId)) {
+                    return;
+                }
+
+                this.seen.add(refId);
+                this.doCheckNoReferenceToParent(parent, resolved, accept, node || ref);
+                this.seen.delete(refId);
             }
         }
     }

@@ -2,7 +2,15 @@ import { beforeEach, describe, test } from 'vitest';
 
 import { CsvFunc, Objekt } from '../../src/language-server/generated/ast';
 import { Issues } from '../../src/language-server/ranger-validator';
-import { clearIndex, createTempFile, expectError, expectNoIssues, expectWarning, parse } from '../../src/utils/test';
+import {
+    clearIndex,
+    createTempDir,
+    createTempFile,
+    expectError,
+    expectNoIssues,
+    expectWarning,
+    parse,
+} from '../../src/utils/test';
 
 beforeEach(() => {
     clearIndex();
@@ -135,21 +143,6 @@ describe('RangerValidator', () => {
             });
         });
 
-        test('NoCircularImport', async () => {
-            let document = await parse({
-                filePath: '/Test.ranger',
-                text: `
-                from "/Test.ranger" import Test
-                Entity Test {}
-                `,
-                includeImports: false,
-            });
-            expectError(document, Issues.CircularImport.code, {
-                node: document.doc.imports[0].filePath,
-                property: 'value',
-            });
-        });
-
         test('NoValidationErrors', async () => {
             let rangerFile = createTempFile({ postfix: '.ranger', data: `Entity Test {}` });
             let document = await parse(`from "${rangerFile.name}" import Test`);
@@ -232,24 +225,30 @@ describe('RangerValidator', () => {
     });
 
     describe('checkPropertyReference', () => {
-        test('NoCircularReferences', async () => {
+        test('NoCircularReferences #1', async () => {
             let document = await parse(`
             Entity Customer {
                 name: name
             }`);
+
             let [name] = (document.doc.entities[0].value as Objekt).properties;
             expectError(document, Issues.CircularReference.code, { node: name, property: 'value' });
+        });
 
-            document = await parse(`
+        test('NoCircularReferences #2', async () => {
+            let document = await parse(`
             Entity Customer {
                 first: second
                 second: first
             }`);
+
             let [first, second] = (document.doc.entities[0].value as Objekt).properties;
             expectError(document, Issues.CircularReference.code, { node: first, property: 'value' });
             expectError(document, Issues.CircularReference.code, { node: second, property: 'value' });
+        });
 
-            document = await parse(`
+        test('NoCircularReferences #3', async () => {
+            let document = await parse(`
             Entity Account {
                 balance: 1000
                 account: {
@@ -257,12 +256,15 @@ describe('RangerValidator', () => {
                     ref2: Account.account
                 }
             }`);
+
             let account = (document.doc.entities[0].value as Objekt).properties[1].value as Objekt;
             let [ref1, ref2] = account.properties;
             expectError(document, Issues.CircularReference.code, { node: ref1, property: 'value' });
             expectError(document, Issues.CircularReference.code, { node: ref2, property: 'value' });
+        });
 
-            document = await parse(`
+        test('NoCircularReferences #4', async () => {
+            let document = await parse(`
             Entity Customer {
                 account: Account
             }
@@ -270,8 +272,48 @@ describe('RangerValidator', () => {
                 account: Customer.account
             }
             `);
-            let [account_] = (document.doc.entities[1].value as Objekt).properties;
-            expectError(document, Issues.CircularReference.code, { node: account_, property: 'value' });
+
+            let [account] = (document.doc.entities[1].value as Objekt).properties;
+            expectError(document, Issues.CircularReference.code, { node: account, property: 'value' });
+        });
+
+        test('NoCircularReferences #5', async () => {
+            let document = await parse(`
+            Entity Customer {
+                account: Account
+            }
+            Entity Account {
+                customer: Customer
+            }
+            `);
+
+            let [customer] = (document.doc.entities[1].value as Objekt).properties;
+            expectError(document, Issues.CircularReference.code, { node: customer, property: 'value' });
+        });
+
+        test('NoCircularReferences #6', async () => {
+            let tempdir = createTempDir();
+            tempdir.createFile(
+                'Customer.ranger',
+                `
+                from "./Account.ranger" import Account
+                Entity Customer {
+                    account: Account
+                }`,
+            );
+            let accountFile = tempdir.createFile(
+                'Account.ranger',
+                `
+                from "./Customer.ranger" import Customer
+                Entity Account {
+                    customer: Customer
+                }`,
+            );
+
+            let document = await parse({ filePath: accountFile.name, text: accountFile.data });
+
+            let [customer] = (document.doc.entities[0].value as Objekt).properties;
+            expectError(document, Issues.CircularReference.code, { node: customer, property: 'value' });
         });
     });
 });
