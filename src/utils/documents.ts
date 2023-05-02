@@ -123,7 +123,7 @@ export function resolvePath(filePath: string | FilePath, context: AstNode | Lang
     filePath = typeof filePath === 'string' ? filePath : filePath.value;
 
     if (!path.isAbsolute(filePath)) {
-        let document = isAstNode(context) ? getDocument(context) : context;
+        const document = isAstNode(context) ? getDocument(context) : context;
         const documentDir = path.dirname(document.uri.fsPath);
         filePath = path.join(documentDir, filePath);
     }
@@ -140,13 +140,18 @@ export function resolvePath(filePath: string | FilePath, context: AstNode | Lang
  * @param absolutePath Absolute file path.
  * @returns Relative file path.
  */
-export function relativePath(absolutePath: string, context: AstNode) {
-    const documentDir = path.dirname(getDocument(context).uri.fsPath);
-    let relativePath = path.relative(documentDir, absolutePath);
-    relativePath = relativePath.replace(/\\/g, '/');
-    relativePath = relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
+export function relativePath(absolutePath: string, context: AstNode | LangiumDocument) {
+    const document = isAstNode(context) ? getDocument(context) : context;
+    const documentDir = path.dirname(document.uri.fsPath);
 
-    return relativePath;
+    let relPath = path.relative(documentDir, absolutePath);
+    relPath = relPath.replace(/\\/g, '/');
+
+    if (!relPath.startsWith('.')) {
+        relPath = `./${relPath}`;
+    }
+
+    return relPath;
 }
 
 /**

@@ -92,13 +92,21 @@ export function expectFileContent(filePath: string, expectedContent: string) {
 // Parse Document
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-type ParseInput = string | { text: string; filePath?: string; includeImports?: boolean };
+type ParseInput =
+    | string
+    | { text: string; filePath?: string; includeImports?: boolean }
+    | { filePath: string; includeImports?: boolean };
 
 const random = new Random(nativeMath);
 
 export async function parse(input: ParseInput): Promise<LangiumDocument<Document> & { doc: Document }> {
     const fileExtension = services.LanguageMetaData.fileExtensions[0];
-    input = typeof input === 'string' ? { text: input } : input;
+    if (typeof input === 'string') {
+        input = { text: input };
+    } else if (!('text' in input)) {
+        input = { ...input, text: fs.readFileSync(input.filePath, { encoding: 'utf-8' }) };
+    }
+
     const docSpec = {
         filePath: input.filePath || `/${random.integer(1000000, 2000000)}${fileExtension}`,
         text: input.text,
@@ -717,5 +725,5 @@ function replaceIndices(base: ExpectedBase): { output: string; indices: number[]
  * Escape Backslashes in file path to make tests work on Windows.
  */
 export function escapePath(filePath: string) {
-    return filePath.replace(/\\/g, '/');
+    return filePath.replace(/\\/g, '/').replace(/^[A-Z]:\//, '/');
 }

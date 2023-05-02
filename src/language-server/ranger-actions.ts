@@ -10,9 +10,11 @@ import { CodeActionKind, Diagnostic } from 'vscode-languageserver';
 import { CodeActionParams } from 'vscode-languageserver-protocol';
 import { CodeAction, Command } from 'vscode-languageserver-types';
 
+import { relativePath } from '../utils/documents';
+import { Document } from './generated/ast';
 import { Issues } from './ranger-validator';
 
-type ActionProviderFunction = (diagnostic: Diagnostic, document: LangiumDocument) => CodeAction;
+type ActionProviderFunction = (diagnostic: Diagnostic, document: LangiumDocument) => CodeAction | CodeAction[];
 const actionProviders: { [key: string]: ActionProviderFunction[] } = {};
 
 export class RangerActionProvider implements CodeActionProvider {
@@ -68,15 +70,49 @@ export class RangerActionProvider implements CodeActionProvider {
         };
     }
 
-    // TODO: implement Import suggestion for issue "linking-error"
+    @Fix(Issues.ReferenceError.code)
+    private suggestImport(diagnostic: Diagnostic, document: LangiumDocument): CodeAction[] {
+        const lastImportOffset = (document.parseResult.value as Document).imports.last()?.$cstNode?.end ?? 0;
+        const lastImportPos = document.textDocument.positionAt(lastImportOffset);
+        const range = { start: lastImportPos, end: lastImportPos };
+
+        const candidates = this.indexManager
+            .allElements('Entity')
+            .filter((desc) => desc.name === diagnostic.data.refText)
+            .toArray();
+
+        return candidates.map((desc) => {
+            const entityName = desc.name;
+            const filePath = relativePath(desc.documentUri.fsPath, document);
+            let newText = `from "${filePath}" import ${entityName}`;
+            newText = lastImportOffset ? `\n${newText}` : `${newText}\n\n`;
+
+            return {
+                title: `Import ${entityName} from '${filePath}'`,
+                kind: CodeActionKind.QuickFix,
+                diagnostics: [diagnostic],
+                edit: {
+                    changes: {
+                        [document.textDocument.uri]: [{ range, newText }],
+                    },
+                },
+            };
+        });
+    }
 
     getCodeActions(document: LangiumDocument, params: CodeActionParams): MaybePromise<Array<Command | CodeAction>> {
         const result: CodeAction[] = [];
         for (const diagnostic of params.context.diagnostics) {
             const issueCode = diagnostic.code || '';
             const providers = actionProviders[issueCode] || [];
-            for (const provider of providers) {
-                result.push(provider(diagnostic, document));
+            for (let provider of providers) {
+                provider = provider.bind(this);
+                const actions = provider(diagnostic, document);
+                if (Array.isArray(actions)) {
+                    result.push(...actions);
+                } else {
+                    result.push(actions);
+                }
             }
         }
         return result;

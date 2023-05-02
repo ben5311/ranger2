@@ -3,16 +3,16 @@ import * as ast from 'langium/lib/grammar/generated/ast';
 import { CompletionItemKind, CompletionParams, InsertTextFormat } from 'vscode-languageserver';
 
 export class RangerCompletionProvider extends DefaultCompletionProvider {
+    /**
+     * A snippet can define tab stops and placeholders with `$1`, `$2`
+     * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
+     * the end of the snippet. Placeholders with equal identifiers are linked,
+     * that is typing in one will update others too.
+     *
+     * @see
+     * https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
+     */
     DocumentSnippets: Record<string, string> = {
-        /**
-         * A snippet can define tab stops and placeholders with `$1`, `$2`
-         * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
-         * the end of the snippet. Placeholders with equal identifiers are linked,
-         * that is typing in one will update others too.
-         *
-         * See also:
-         * https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
-         */
         '//': '// $0',
         '/*': '/*\n$0\n*/',
     };
@@ -30,7 +30,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'uuid()': 'uuid()',
     };
 
-    // TODO: Add auto completion and Go To Definition for FilePaths
+    // TODO: Add auto completion for FilePaths
 
     /**
      * Provides custom Completions when the cursor is at the beginning of the line.
