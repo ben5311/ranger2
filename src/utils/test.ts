@@ -20,7 +20,7 @@ import { NodeFileSystem } from 'langium/node';
 import path from 'path';
 import { nativeMath, Random } from 'random-js';
 import tmp from 'tmp';
-import { expect as expectFunction } from 'vitest';
+import { afterAll, expect as expectFunction } from 'vitest';
 import {
     CancellationTokenSource,
     CompletionItem,
@@ -62,20 +62,24 @@ function expectEqual(actual: unknown, expected: unknown, message?: string) {
 // Temporary files
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const tempFiles: string[] = [];
+
 export function createTempFile(options?: tmp.FileOptions & { data?: string }) {
-    const tmpFile = tmp.fileSync(options);
-    fs.writeFileSync(tmpFile.fd, options?.data || '');
-    tmpFile.name = escapePath(tmpFile.name);
-    return tmpFile;
+    const tempFile = tmp.fileSync(options);
+    fs.writeFileSync(tempFile.fd, options?.data || '');
+    tempFiles.push(tempFile.name);
+    tempFile.name = escapePath(tempFile.name);
+    return tempFile;
 }
 
 export function createTempDir(options?: tmp.DirOptions) {
-    const tmpDir = tmp.dirSync({ unsafeCleanup: true, ...options });
-    tmpDir.name = escapePath(tmpDir.name);
+    const tempDir = tmp.dirSync(options);
+    tempFiles.push(tempDir.name);
+    tempDir.name = escapePath(tempDir.name);
     return {
-        ...tmpDir,
+        ...tempDir,
         createFile: function (fileName: string, data = '') {
-            const filePath = path.join(tmpDir.name, fileName);
+            const filePath = path.join(tempDir.name, fileName);
             fs.mkdirSync(path.dirname(filePath), { recursive: true });
             fs.writeFileSync(filePath, data);
             return { name: escapePath(filePath), data };
@@ -87,6 +91,19 @@ export function expectFileContent(filePath: string, expectedContent: string) {
     const actualContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
     expectEqual(actualContent, expectedContent);
 }
+
+afterAll(() => {
+    for (let file of tempFiles) {
+        if (fs.existsSync(file)) {
+            try {
+                fs.rmSync(file, { recursive: true });
+            } catch (error) {
+                console.error(`Could not delete '${file}': ${error}`);
+            }
+        }
+    }
+    tempFiles.length = 0;
+});
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Parse Document
