@@ -1,4 +1,5 @@
 import { AstNode } from 'langium';
+import { ParsedPath } from 'path';
 
 import { isEntity, isObjekt, isProperty, Property, RangerAstType, reflection } from '../language-server/generated/ast';
 import { resolveReference } from '../language-server/ranger-scope';
@@ -64,7 +65,7 @@ export interface DynamicObject {
  */
 export type Providers<ReturnT> = { [K in RangerType]?: (node: RangerAstType[K], ...params: any[]) => ReturnT };
 
-export function executeProvider<R>(node: AstNode, providers: Providers<R>, ...params: any[]): R | undefined {
+export function executeProvider<R>(providers: Providers<R>, node: AstNode, ...params: any[]): R | undefined {
     const astNode: any = node; // Suppress type checker
     for (let [Type, provider] of Object.entries(providers)) {
         if (reflection.isInstance(astNode, Type)) {
@@ -147,4 +148,8 @@ export function isPureProperty(node: AstNode): node is Property {
 
 export function isSimpleProperty(node: AstNode): node is Property {
     return isProperty(node) && !isObjekt(resolveReference(node.value));
+}
+
+export interface Path extends ParsedPath {
+    path: string;
 }

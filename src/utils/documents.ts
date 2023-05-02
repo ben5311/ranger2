@@ -123,35 +123,13 @@ export function resolvePath(filePath: string | FilePath, context: AstNode | Lang
     filePath = typeof filePath === 'string' ? filePath : filePath.value;
 
     if (!path.isAbsolute(filePath)) {
-        const document = isAstNode(context) ? getDocument(context) : context;
-        const documentDir = path.dirname(document.uri.fsPath);
+        const documentDir = getDocumentDir(context);
         filePath = path.join(documentDir, filePath);
     }
 
     let resolved = path.resolve(filePath);
     resolved = resolved.replace(/^([A-Z]:)/, (_, drive) => drive.toLowerCase()); // Normalize Windows drive letter
-
     return resolved;
-}
-
-/**
- * Convert absolute file path to file path relative to Document.
- *
- * @param absolutePath Absolute file path.
- * @returns Relative file path.
- */
-export function relativePath(absolutePath: string, context: AstNode | LangiumDocument) {
-    const document = isAstNode(context) ? getDocument(context) : context;
-    const documentDir = path.dirname(document.uri.fsPath);
-
-    let relPath = path.relative(documentDir, absolutePath);
-    relPath = relPath.replace(/\\/g, '/');
-
-    if (!relPath.startsWith('.')) {
-        relPath = `./${relPath}`;
-    }
-
-    return relPath;
 }
 
 /**
@@ -162,8 +140,34 @@ export function resolveURI(filePath: string | FilePath, context: AstNode | Langi
     return fileURI(absPath);
 }
 
-export function parseURI(uri: string): URI {
-    return URI.parse(uri);
+/**
+ * Convert absolute file path to file path relative to Document.
+ *
+ * @param absolutePath Absolute file path.
+ * @returns Relative file path.
+ */
+export function relativePath(absolutePath: string, context: AstNode | LangiumDocument) {
+    const documentDir = getDocumentDir(context);
+    let relPath = path.relative(documentDir, absolutePath);
+    relPath = relPath.replace(/\\/g, '/');
+
+    if (!relPath.startsWith('.')) {
+        relPath = `./${relPath}`;
+    }
+    return relPath;
+}
+
+export function getDocumentUri(context: AstNode | LangiumDocument): URI {
+    const document = isAstNode(context) ? getDocument(context) : context;
+    return document.uri;
+}
+
+export function getDocumentPath(context: AstNode | LangiumDocument): string {
+    return getDocumentUri(context).fsPath;
+}
+
+export function getDocumentDir(context: AstNode | LangiumDocument): string {
+    return path.dirname(getDocumentPath(context));
 }
 
 /**
@@ -172,6 +176,10 @@ export function parseURI(uri: string): URI {
 export function fileURI(filePath: string): URI {
     const absPath = path.resolve(filePath);
     return URI.file(absPath);
+}
+
+export function parseURI(uri: string): URI {
+    return URI.parse(uri);
 }
 
 export function isRangerFile(filePath: string | URI) {

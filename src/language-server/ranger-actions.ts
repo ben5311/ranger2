@@ -6,8 +6,7 @@ import {
     LangiumServices,
     MaybePromise,
 } from 'langium';
-import { CodeActionKind, Diagnostic } from 'vscode-languageserver';
-import { CodeActionParams } from 'vscode-languageserver-protocol';
+import { CodeActionKind, CodeActionParams, Diagnostic } from 'vscode-languageserver';
 import { CodeAction, Command } from 'vscode-languageserver-types';
 
 import { relativePath } from '../utils/documents';
@@ -88,7 +87,7 @@ export class RangerActionProvider implements CodeActionProvider {
             newText = lastImportOffset ? `\n${newText}` : `${newText}\n\n`;
 
             return {
-                title: `Import ${entityName} from '${filePath}'`,
+                title: `Import '${entityName}' from '${filePath}'`,
                 kind: CodeActionKind.QuickFix,
                 diagnostics: [diagnostic],
                 edit: {

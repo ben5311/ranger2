@@ -61,7 +61,7 @@ export class RangerHoverProvider implements HoverProvider {
             List: getListHover,
             Func: this.getFuncHover.bind(this),
         };
-        const hover = executeProvider(node, hoverProviders, highlight);
+        const hover = executeProvider(hoverProviders, node, highlight);
         return hover;
     }
 
@@ -78,7 +78,7 @@ export class RangerHoverProvider implements HoverProvider {
             SequenceFunc: getSequenceFuncHover,
             UuidFunc: getUuidFuncHover,
         };
-        let funcHover = executeProvider(node, hoverProviders, highlight);
+        let funcHover = executeProvider(hoverProviders, node, highlight);
         if (funcHover) {
             let result = dedent`
             ${highlight(funcHover.signature || node.$cstNode?.text)}

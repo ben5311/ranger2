@@ -108,7 +108,7 @@ export class Generator {
             SequenceFunc: this.create_SequenceFunc_Generator.bind(this),
             UuidFunc: this.create_UuidFunc_Generator.bind(this),
         };
-        return executeProvider(func, providers, this);
+        return executeProvider(providers, func, this);
     }
 
     protected create_RandomOfRange_Generator(func: ast.RandomOfRange): ValueGenerator | undefined {
