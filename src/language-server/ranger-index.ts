@@ -46,7 +46,7 @@ export class IndexAccess {
             .toArray();
     }
 
-    protected loadAstNode(nodeDescription: AstNodeDescription): AstNode | undefined {
+    loadAstNode(nodeDescription: AstNodeDescription): AstNode | undefined {
         if (nodeDescription.node) {
             return nodeDescription.node;
         }

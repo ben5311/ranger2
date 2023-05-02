@@ -1,7 +1,6 @@
 import fs from 'fs';
 import {
     AstNode,
-    AstNodeDescription,
     CompletionAcceptor,
     CompletionContext,
     DefaultCompletionProvider,
@@ -145,7 +144,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
     }
 
     /**
-     * Provides custom Completions for specific nodes.
+     * Provides custom Completions for specific Nodes.
      */
     completionForNode(node: AstNode, context: CompletionContext, accept: CompletionAcceptor) {
         const providers: Providers<void> = {
@@ -155,7 +154,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
     }
 
     /**
-     * Provides custom context-aware Completions for language keywords.
+     * Provides custom Completions for language keywords.
      */
     override completionForKeyword(context: CompletionContext, keyword: Keyword, accept: CompletionAcceptor) {
         let matched = false;
@@ -175,11 +174,6 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         if (!matched) {
             return super.completionForKeyword(context, keyword, accept);
         }
-    }
-
-    override filterCrossReference(desc: AstNodeDescription): boolean {
-        // TODO: show only references having a list as completions for source ref 'map(=>[])': 'map($1 => [$0])',
-        return true;
     }
 }
 
