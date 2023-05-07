@@ -1,0 +1,31 @@
+name: Trigger Release
+
+on:
+  workflow_dispatch:
+    inputs:
+        version-increment:
+          description: "Version increment"
+          required: true
+          default: minor
+          type: choice
+          options: [major, minor, patch]
+
+jobs:
+  increment-version:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{secrets.gith_repo_token}}
+      - uses: actions/setup-node@v3
+      - name: Setup Git user
+        run: |
+          git config user.name  github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+      - name: Increment version
+        run: |
+          version=$(npm version "${{ inputs.version-increment }}" --no-git-tag-version)
+          git commit -am "Release $version" --author="$GITHUB_ACTOR <$GITHUB_ACTOR@users.noreply.github.com>"
+          git tag -am "Release $version" "$version"
+      - run: git push origin --follow-tags
