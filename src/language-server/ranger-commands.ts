@@ -8,7 +8,7 @@ import {
 import * as lsp from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
-import { generateOutputFile } from '../cli';
+import { generateOutputFile } from '../cli/generator';
 import { fileURI, hasNoErrors, parseURI } from '../utils/documents';
 
 export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {

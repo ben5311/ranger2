@@ -77,17 +77,20 @@
     },
     "main": "./out/extension.js",
     "scripts": {
+        "prepare": "npm run build",
         "build": "langium generate && tsc -b tsconfig.json",
-        "build:bundle:extension": "esbuild ./src/extension.ts src/language-server/main.ts --bundle --outdir=out --external:vscode --format=cjs --platform=node --minify",
-        "build:bundle:webworker": "esbuild ./src/language-server/main.ts --bundle --outdir=out --format=iife --minify",
+        "bundle:cli": "esbuild ./src/cli/index.ts --bundle --outdir=out --format=cjs --platform=node --minify",
+        "bundle:extension": "esbuild ./src/extension.ts src/language-server/main.ts --bundle --outdir=out --external:vscode --format=cjs --platform=node --minify",
+        "bundle:webworker": "esbuild ./src/language-server/main.ts --bundle --outdir=out --format=iife --minify",
         "watch": "concurrently \"langium generate --watch\" \"tsc -b tsconfig.json --watch\"",
         "lint": "eslint src --ext ts",
         "test": "vitest",
-        "test-run": "vitest run",
-        "package": "npm run build:bundle:extension && vsce package"
+        "test:once": "vitest run",
+        "package:cli": "npm run bundle:cli && pkg ./out/index.js -o ranger -t win && pkg ./out/index.js -o ranger -t linux",
+        "package:extension": "npm run bundle:extension && vsce package"
     },
     "pre-commit": {
-        "run": ["test-run"],
+        "run": ["test:once"],
         "silent": true
     },
     "dependencies": {
@@ -118,6 +121,7 @@
         "esbuild": "~0.17.11",
         "eslint": "~8.33.0",
         "langium-cli": "~1.1.0",
+        "pkg": "~5.8.1",
         "pre-commit": "~1.2.2",
         "typescript": "~4.9.5",
         "tmp": "~0.2.1",

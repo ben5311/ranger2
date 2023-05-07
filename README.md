@@ -31,14 +31,54 @@ Note that each individual's first name corresponds to their gender.
 
 Using the Ranger language, you can design test entities specific to your needs in a `.ranger` file. Once you've configured your entities, you can generate test data in one of two ways:
 
-* Use the Ranger Command Line Interface to create CSV or JSONL files containing the data.
+* Use the Ranger command line interface to create CSV or JSONL files containing the data.
 * Utilize the JavaScript API to generate JavaScript objects and integrate them directly into your code.
 
-## Getting started
+## Installation
+
+### Command Line Interface
+
+To setup the Ranger Command Line Interface (CLI), you have two options.
+
+**Option 1**: Download one of the [prebuilt binaries](https://github.com/ben5311/ranger2/releases) (Windows and Linux  only).
+
+**Option 2**: Install [Node.js](https://nodejs.org/) and execute `npm install -g ben5311/ranger2`.
+
+To test it, create new file `Customer.ranger` and paste the following content into the file:
+
+```ranger
+Entity Customer {
+    age: random(20..60)
+    gender: random("male", "female")
+    firstname: map(gender => {
+        "male": random("James", "Robert")
+        "female": random("Emily", "Lucy")
+    })
+    lastname: "Parker"
+}
+```
+
+Open a Terminal and execute
+
+```bash
+ranger Customer.ranger -c 100000 -f jsonl
+```
+
+It will generate 100'000 rows and save the output to file `generated/Customer.jsonl`.
+
+```bash
+ ██████████████████████████████ 100% | T: 1s | ETA: 0s | 100000/100000
+Output file generated successfully: generated/Customer.jsonl
+```
+
+### Visual Studio Code
+
+To get editing assistance for `.ranger` files, you may
+use the Visual Studio Code editor with its Ranger extension.
 
 1. Install [Visual Studio Code](https://code.visualstudio.com/).
 2. Install the VS Code [Ranger extension](https://marketplace.visualstudio.com/items?itemName=bheimann.ranger).
-3. Open a folder in VS Code
+3. Open a folder in VS Code.
 4. Create new file `Customer.ranger`.
 5. Paste the following content into the file
 
@@ -61,6 +101,8 @@ Using the Ranger language, you can design test entities specific to your needs i
 ### What's in the folder
 
 This folder contains all necessary files for the VS Code Ranger extension.
+
+It's built using the [Langium](https://langium.org/) framework.
 
 ```text
 ├── examples                    - Example .ranger files
@@ -88,19 +130,20 @@ Important to note:
 
 ### Get up and running
 
-1. Ensure that [Node](https://nodejs.org/en/download/) is installed.
-2. Run `npm install` to download all project dependencies.
-3. Run `npm run watch` to generate TypeScript code from the grammar definition and to compile it to JavaScript.
-
-    This task runs automatically the next time you open this project folder with VS Code.
+1. Open the project folder in [VS Code](https://code.visualstudio.com/).
+2. Ensure that [Node](https://nodejs.org/en/download/) is installed.
+3. Run `npm install` to download all project dependencies.
 4. Press `F5` to open a new window with the extension loaded (VS Code Extension Host).
 5. Open a file inside `examples` folder or create a new file with file name suffix `.ranger`.
 6. Verify that syntax highlighting, validation, completion etc. are working as expected.
 
 ### Make changes
 
-* Changes to the grammar and the source code take effect when you reload the VS Code Extension Host (`Ctrl+R` or `Cmd+R` on Mac).
-Alternatively, close the Extension Host and press `F5` again.
+* There is a background task that automatically compiles changes to the grammar
+and the source code into JavaScript code.
+* To apply the changes, reload the VS Code Extension Host (`Ctrl+R` or `Cmd+R` on Mac).
+* Alternatively, you can close the Extension Host and press `F5` again.
+* If the changes don't seem to take effect, go to the VS Code Terminal panel and check for errors in the output of the `npm watch` task.
 
 ### Debug
 
@@ -117,7 +160,7 @@ Alternatively, close the Extension Host and press `F5` again.
 
 ### Package
 
-* Run `npm run package` to create a VS Code `.vsix` extension file that can be installed in any VS Code editor.
+* Run `npm run package:extension` to create a VS Code `.vsix` extension file that can be installed in any VS Code editor.
 
 ### To Go Further
 

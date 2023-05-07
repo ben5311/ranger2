@@ -1,7 +1,7 @@
 import dedent from 'dedent-js';
 import { describe, test } from 'vitest';
 
-import { generateOutputFile } from '../../src/cli';
+import { generateOutputFile } from '../../src/cli/generator';
 import { createTempDir, expectFileContent } from '../../src/utils/test';
 
 const testEntity = `

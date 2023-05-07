@@ -1,3 +1,5 @@
+import chalk from 'chalk';
+import { Presets, SingleBar } from 'cli-progress';
 import * as csv from 'csv-stringify';
 import fs from 'fs';
 import { NodeFileSystem } from 'langium/node';
@@ -7,7 +9,6 @@ import * as stream from 'stream';
 import { Generator } from '../language-server/ranger-generator';
 import { createRangerServices } from '../language-server/ranger-module';
 import { DocumentSpec, parseDocument } from '../utils/documents';
-import { Format } from './';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Object Generator for use when outside of the LSP server
@@ -31,6 +32,49 @@ export async function createObjectGenerator(docSpec: DocumentSpec): Promise<Obje
             return nextValue;
         },
     };
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Ranger CLI Generator
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export type Options = {
+    count: number;
+    format: Format;
+    outputDir: string;
+};
+export const formats = ['jsonl', 'csv'] as const;
+export type Format = (typeof formats)[number];
+
+/**
+ * Generate JSONL or CSV test data file based on a Ranger configuration file.
+ */
+export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): Promise<string> {
+    const outputFileName = path.parse(docSpec.filePath).name;
+    const outputFilePath = path.join(opts.outputDir, `${outputFileName}.${opts.format}`);
+
+    const progressBarFormat = ' {bar} {percentage}% | T: {duration_formatted} | ETA: {eta_formatted} | {value}/{total}';
+    const progressBar = new SingleBar({ format: progressBarFormat }, Presets.shades_classic);
+
+    const generator = await ObjectGeneratorStream(docSpec, opts.count);
+    const reporter = ProxyTransformer(() => progressBar.increment());
+    const transformer = Transformer(opts.format);
+    const writer = FileWriter(outputFilePath);
+
+    progressBar.start(opts.count, 0);
+
+    return new Promise((resolve, reject) => {
+        stream.pipeline(generator, reporter, transformer, writer, (error) => {
+            progressBar.stop();
+            if (error) {
+                console.error(chalk.red(`Error generating [${outputFilePath}]: ${error}`));
+                reject(error);
+            } else {
+                console.log(chalk.green(`Output file generated successfully: ${outputFilePath}`));
+                resolve(outputFilePath);
+            }
+        });
+    });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

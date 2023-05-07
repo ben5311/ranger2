@@ -7,6 +7,7 @@ on:
   push:
     branches: [ "**" ]
     paths:
+    - .github/**
     - src/**
     - test/**
   release:
@@ -35,10 +36,10 @@ jobs:
     - run: npm run lint
     - run: npm run test
       if: always()
-    - run: npm run package
-      if: always()
+    #- run: npm run package:extension
+    - run: npm run package:cli
     - name: Release
       if: github.event_name == 'release'
       uses: softprops/action-gh-release@v1
       with:
-          files: "*.vsix"
+          files: "ranger*"
