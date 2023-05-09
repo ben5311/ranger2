@@ -210,10 +210,11 @@ describe('RangerHoverProvider', () => {
         let { doc } = await parse(dedent`
         Entity Customer {
             data: csv("${csvFile.name}", delimiter=",")
+            first: data.first
         }`);
 
         let Customer = doc.entities[0];
-        let data = (Customer.value as Objekt).properties[0];
+        let [data, first] = (Customer.value as Objekt).properties;
 
         expect(hover(data)).toBe(dedent`
         data: {
@@ -222,6 +223,9 @@ describe('RangerHoverProvider', () => {
           "third": "3"
         }
         `);
+        expect(hover(first)).toBe('first: "1"');
+        expect(hover(first.value)).toBe('first: "1"');
+
         let signature = hover(data.value)?.replace(new RegExp(csvFile.name, 'g'), 'data.csv');
         expect(signature).toBe(dedent`
         csv("data.csv", delimiter=",")

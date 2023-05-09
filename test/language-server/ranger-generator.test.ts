@@ -176,6 +176,7 @@ describe('ObjectGenerator', () => {
         const objectGenerator = await createObjectGenerator(`
         Entity Test {
             data: csv("${csvFile.name}", delimiter=",")
+            first: data.first
         }`);
         range(20).forEach((_) => {
             const output = objectGenerator.next();
@@ -185,6 +186,7 @@ describe('ObjectGenerator', () => {
                     second: '2',
                     third: '3',
                 },
+                first: '1',
             });
         });
     });

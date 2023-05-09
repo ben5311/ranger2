@@ -53,6 +53,12 @@ export class Generator {
             }
             return result;
         }
+        if (ast.isPropertyExtractor(value)) {
+            const source: any = this.getValue(value.source);
+            if (source) {
+                return source[value.name];
+            }
+        }
         return undefined;
     }
 
@@ -100,18 +106,18 @@ export class Generator {
 
     protected createValueGenerator(func: ast.Func): ValueGenerator | undefined {
         const providers: Providers<ValueGenerator | undefined> = {
-            RandomOfRange: this.create_RandomOfRange_Generator.bind(this),
-            RandomOfList: this.create_RandomOfList_Generator.bind(this),
-            MapToObject: this.create_MapToObject_Generator.bind(this),
-            MapToList: this.create_MapToList_Generator.bind(this),
-            CsvFunc: this.create_CsvFunc_Generator.bind(this),
-            SequenceFunc: this.create_SequenceFunc_Generator.bind(this),
-            UuidFunc: this.create_UuidFunc_Generator.bind(this),
+            RandomOfRange: this.create_RandomOfRange_Generator,
+            RandomOfList: this.create_RandomOfList_Generator,
+            MapToObject: this.create_MapToObject_Generator,
+            MapToList: this.create_MapToList_Generator,
+            CsvFunc: this.create_CsvFunc_Generator,
+            SequenceFunc: this.create_SequenceFunc_Generator,
+            UuidFunc: this.create_UuidFunc_Generator,
         };
         return executeProvider(providers, func, this);
     }
 
-    protected create_RandomOfRange_Generator(func: ast.RandomOfRange): ValueGenerator | undefined {
+    protected create_RandomOfRange_Generator(func: ast.RandomOfRange, g: Generator): ValueGenerator | undefined {
         const [minVal, maxVal] = [func.range.min, func.range.max];
         if (!minVal || !maxVal) return undefined; // can be undefined if there are parsing errors
 
@@ -120,8 +126,8 @@ export class Generator {
         const decimalPlaces = Math.max(minPrecision, maxPrecision);
         const [min, max] = [minVal.value, maxVal.value];
 
-        let randomGenerator = decimalPlaces ? this.random.real : this.random.integer;
-        randomGenerator = randomGenerator.bind(this.random);
+        let randomGenerator = decimalPlaces ? g.random.real : g.random.integer;
+        randomGenerator = randomGenerator.bind(g.random);
         return {
             nextValue: () => {
                 const randomNumber = randomGenerator(min, max);
@@ -212,6 +218,7 @@ export const generator = new Generator();
 export const numRegex = new RegExp(/[+-]?[0-9]+(\.([0-9]+))?/);
 
 export type ListFunc = ast.Func & { list: ast.List };
+
 export function isListFunc(value?: ast.Value): value is ListFunc {
     return ast.isFunc(value) && 'list' in value && ast.isList(value.list);
 }

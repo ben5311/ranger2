@@ -15,7 +15,7 @@ import { Hover, HoverParams } from 'vscode-languageserver';
 import { executeProvider, Providers } from '../utils/types';
 import * as ast from './generated/ast';
 import { generator, isListFunc } from './ranger-generator';
-import { resolveReference } from './ranger-scope';
+import { getPropertyName, resolveReference } from './ranger-scope';
 
 export class RangerHoverProvider implements HoverProvider {
     protected readonly references: References;
@@ -47,6 +47,7 @@ export class RangerHoverProvider implements HoverProvider {
         }
         return undefined;
     }
+
     /**
      * Returns Hover text for node.
      */
@@ -57,9 +58,10 @@ export class RangerHoverProvider implements HoverProvider {
             Null: getNullHover,
             Literal: getLiteralHover,
             FilePath: getLiteralHover,
-            Objekt: getObjektHover,
-            List: getListHover,
-            Func: this.getFuncHover.bind(this),
+            Func: this.getFuncHover,
+            Objekt: getJsonHover,
+            List: getJsonHover,
+            Value: getJsonHover,
         };
         const hover = executeProvider(hoverProviders, node, highlight);
         return hover;
@@ -109,7 +111,8 @@ function getPropertyHover(prop: ast.Property, highlight = highlighter) {
 function getPropertyReferenceHover(ref: ast.PropertyReference, highlight = highlighter) {
     const resolved = resolveReference(ref);
     if (resolved !== undefined) {
-        return getPropertyHover(resolved.$container as ast.Property, highlight);
+        let valueText = generator.getValueAsJson(resolved);
+        return highlight(`${getPropertyName(ref)}: ${valueText}`);
     }
     return undefined;
 }
@@ -124,13 +127,8 @@ function getLiteralHover(literal: ast.Literal | ast.FilePath, highlight = highli
     return highlight(`${literal.$cstNode?.text} : ${type}`);
 }
 
-function getObjektHover(obj: ast.Objekt, highlight = highlighter) {
-    let valueText = generator.getValueAsJson(obj);
-    return highlight(valueText);
-}
-
-function getListHover(list: ast.List, highlight = highlighter) {
-    let valueText = generator.getValueAsJson(list);
+function getJsonHover(value: ast.Value, highlight = highlighter) {
+    let valueText = generator.getValueAsJson(value);
     return highlight(valueText);
 }
 

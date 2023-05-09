@@ -21,14 +21,16 @@ Property returns Property:
 ValueOrPropertyReference:
      Value | PropertyReference;
 
-Value:
+Value returns Value:
      Objekt | List | Func | Literal;
 
 EntityReference returns PropertyReference:
     element=[Property:ID];
 
 PropertyReference returns PropertyReference:
-    element=[Property:ID] ({PropertyReference.previous=current} "." element=[Property:ID])*;
+    element=[Property:ID]
+    ({PropertyReference.previous=current} "." element=[Property:ID])*
+    ({PropertyReference.previous=current} "." element=[PropertyExtractor:ID])*;
 
 List returns List:
     "["
@@ -100,7 +102,9 @@ KeyValuePair:
 interface Entity extends Property {}
 interface Property { name: string; value: ValueOrPropertyReference }
 interface List { values: ValueOrPropertyReference[] }
-interface PropertyReference { element: @Property; previous?: PropertyReference }
+interface PropertyReference { element: @Property | @PropertyExtractor; previous?: PropertyReference }
+interface PropertyExtractor { source: Value; name: string}
+type Value = Objekt | List | Func | Literal | PropertyExtractor
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Terminals

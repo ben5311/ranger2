@@ -13,11 +13,13 @@ import {
     stream,
     StreamScope,
 } from 'langium';
+import { isObject } from 'lodash';
 import { Range } from 'vscode-languageclient';
 
 import { fileURI, isRangerFile, resolvePath } from '../utils/documents';
 import { RangerType } from '../utils/types';
 import * as ast from './generated/ast';
+import { generator } from './ranger-generator';
 
 /**
  * Implements Import mechanism and Class member scoping for Entities.
@@ -42,7 +44,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
      */
     override getScope(context: ReferenceInfo): Scope {
         const node = context.container;
-        const referenceType = this.reflection.getReferenceType(context) as keyof ast.RangerAstType;
+        const referenceType = this.reflection.getReferenceType(context) as RangerType;
 
         if (ast.isImport(node.$container) && ast.isPropertyReference(node)) {
             return this.getImportScope(node.$container, referenceType);
@@ -138,22 +140,49 @@ export class RangerScopeProvider extends DefaultScopeProvider {
     /**
      * Resolves the child Properties that can be reached from a certain PropertyReference.
      */
-    getPropertyReferenceScope(reference: ast.PropertyReference, referenceType: RangerType = 'PropertyReference') {
-        const previousElement = reference.previous?.element?.ref;
+    getPropertyReferenceScope(propRef: ast.PropertyReference, referenceType: RangerType = 'PropertyReference') {
+        const previousElement = propRef.previous?.element?.ref;
         if (!previousElement) {
-            return this.doGetScope(reference, referenceType);
+            return this.doGetScope(propRef, referenceType);
         }
 
         const resolvedValue = resolveReference(previousElement);
-        return this.scopeValue(resolvedValue);
+        return this.scopeValue(resolvedValue, propRef);
     }
 
-    protected scopeValue(value?: ast.Value): Scope {
+    protected scopeValue(value: ast.Value | undefined, propRef: ast.PropertyReference): Scope {
+        if (!value) {
+            return EMPTY_SCOPE;
+        }
+
         if (ast.isObjekt(value)) {
             return this.createScopeForNodes(value.properties);
         }
+
+        let generated = generator.getValue(value);
+        if (isObject(generated)) {
+            return this.createPropertyExtractors(value, generated, propRef);
+        }
+
         // When the target of our reference isn't an Object, it must be a primitive type and has no scope
         return EMPTY_SCOPE;
+    }
+
+    protected createPropertyExtractors(value: ast.Value, generated: object, propRef: ast.PropertyReference): Scope {
+        const descriptions = stream(Object.keys(generated))
+            .filter((k) => k.match(/[_a-zA-Z][\w_]*/))
+            .map((key) => {
+                const extractor: ast.PropertyExtractor = {
+                    $container: propRef,
+                    $containerProperty: 'element',
+                    $type: 'PropertyExtractor',
+                    $cstNode: value.$cstNode,
+                    source: value,
+                    name: key,
+                };
+                return this.descriptions.createDescription(extractor, key);
+            });
+        return new StreamScope(descriptions);
     }
 }
 
@@ -174,6 +203,10 @@ export function resolveReference(element?: ValueOrProperty, onError?: (error: st
         }
     }
     return element;
+}
+
+export function getPropertyName(propRef: ast.PropertyReference): string | undefined {
+    return propRef.$cstNode?.text.split('.').pop();
 }
 
 export type DeclarationInfo = { node: AstNode; range: Range };
