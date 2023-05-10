@@ -13,7 +13,8 @@
                 { "include": "#list" },
                 { "include": "#object" },
                 { "include": "#map-function" },
-                { "include": "#comment" }
+                { "include": "#comment" },
+                { "include": "source.js#regex" }
             ]
         },
 
@@ -112,7 +113,7 @@
         "map-function": {
             "begin": "(map)\\s*\\(",
             "end": "\\)",
-            "beginCaptures": {"0": {"name": "keyword.control.ranger"}},
+            "beginCaptures": { "0": { "name": "keyword.control.ranger" } },
             "name": "meta.structure.map-function.ranger",
             "patterns": [{ "include": "#map-object" }, { "include": "#value" }]
         },

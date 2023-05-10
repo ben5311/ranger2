@@ -1,14 +1,14 @@
 import dedent from 'dedent-js';
 import {
-    AstNode,
-    DocumentationProvider,
-    findDeclarationNodeAtOffset,
-    GrammarConfig,
-    HoverProvider,
-    LangiumDocument,
-    LangiumServices,
-    MaybePromise,
-    References,
+	AstNode,
+	DocumentationProvider,
+	findDeclarationNodeAtOffset,
+	GrammarConfig,
+	HoverProvider,
+	LangiumDocument,
+	LangiumServices,
+	MaybePromise,
+	References,
 } from 'langium';
 import { Hover, HoverParams } from 'vscode-languageserver';
 
@@ -53,12 +53,12 @@ export class RangerHoverProvider implements HoverProvider {
      */
     getAstNodeHover(node: AstNode, highlight = highlighter): string | undefined {
         const hoverProviders: Providers<string | undefined> = {
+            Func: this.getFuncHover,
             Property: getPropertyHover,
             PropertyReference: getPropertyReferenceHover,
             Null: getNullHover,
             Literal: getLiteralHover,
             FilePath: getLiteralHover,
-            Func: this.getFuncHover,
             Objekt: getJsonHover,
             List: getJsonHover,
             Value: getJsonHover,
@@ -76,21 +76,19 @@ export class RangerHoverProvider implements HoverProvider {
             RandomOfList: getRandomOfListHover,
             MapToList: getMapToListHover,
             MapToObject: getMapToObjectHover,
-            CsvFunc: getCsvFuncHover,
-            SequenceFunc: getSequenceFuncHover,
-            UuidFunc: getUuidFuncHover,
+            CsvFunc: getCsvHover,
+            SequenceFunc: getSequenceHover,
+            UuidFunc: getUuidHover,
+            Regex: getRegexHover,
         };
         let funcHover = executeProvider(hoverProviders, node, highlight);
-        if (funcHover) {
-            let result = dedent`
-            ${highlight(funcHover.signature || node.$cstNode?.text)}
-            \n---\n
-            ${funcHover.description}
+        let result = dedent`
+        ${highlight(funcHover?.signature || node.$cstNode?.text)}
+        \n---\n
+        ${funcHover?.description}
 
-            ${highlight(`Example: ${generator.getValueAsJson(node)}`)}`;
-            return result;
-        }
-        return undefined;
+        ${highlight(`Example: ${generator.getValueAsJson(node)}`)}`;
+        return result;
     }
 }
 
@@ -177,19 +175,26 @@ function getMapToObjectHover(func: ast.MapToObject): FuncHover {
     return { description };
 }
 
-function getCsvFuncHover(func: ast.CsvFunc): FuncHover {
+function getCsvHover(func: ast.CsvFunc): FuncHover {
     const [filePath, delimiter, noHeader] = [func.filePath.value, func.delimiter, func.noHeader];
     const signature = `csv("${filePath}", delimiter="${delimiter}"${noHeader ? ', noHeader' : ''})`;
     return { signature, description: `Generates a random row of CSV file \`${filePath}\`.` };
 }
 
-function getSequenceFuncHover(func: ast.SequenceFunc): FuncHover {
+function getSequenceHover(func: ast.SequenceFunc): FuncHover {
     const start = func.start.value;
     return { description: `Generates number sequence \`${start}, ${start + 1}, ${start + 2}, ...\`` };
 }
 
-function getUuidFuncHover(_func: ast.UuidFunc): FuncHover {
+function getUuidHover(_func: ast.UuidFunc): FuncHover {
     return { description: `Generates a random [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier).` };
+}
+
+function getRegexHover(func: ast.Regex): FuncHover {
+    return {
+        signature: `${func.$cstNode?.text} : regex`,
+        description: `Generates a random string that matches given [Regular expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions).`,
+    };
 }
 
 type FuncHover = { signature?: string; description?: string } | undefined;

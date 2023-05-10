@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import * as csv from 'csv/sync';
 import fs from 'fs';
+import RandExp from 'randexp';
 import { MersenneTwister19937, nativeMath, Random } from 'random-js';
 
 import { resolvePath } from '../utils/documents';
@@ -110,9 +111,10 @@ export class Generator {
             RandomOfList: this.create_RandomOfList_Generator,
             MapToObject: this.create_MapToObject_Generator,
             MapToList: this.create_MapToList_Generator,
-            CsvFunc: this.create_CsvFunc_Generator,
-            SequenceFunc: this.create_SequenceFunc_Generator,
-            UuidFunc: this.create_UuidFunc_Generator,
+            CsvFunc: this.create_Csv_Generator,
+            SequenceFunc: this.create_Sequence_Generator,
+            UuidFunc: this.create_Uuid_Generator,
+            Regex: this.create_Regex_Generator,
         };
         return executeProvider(providers, func, this);
     }
@@ -180,7 +182,7 @@ export class Generator {
         };
     }
 
-    protected create_CsvFunc_Generator(func: ast.CsvFunc, g: Generator): ValueGenerator | undefined {
+    protected create_Csv_Generator(func: ast.CsvFunc, g: Generator): ValueGenerator | undefined {
         const filePath = resolvePath(func.filePath.value, func)!;
         const data = fs.readFileSync(filePath, 'utf-8');
         if (!func.delimiter) {
@@ -199,16 +201,23 @@ export class Generator {
         };
     }
 
-    protected create_SequenceFunc_Generator(func: ast.SequenceFunc): ValueGenerator | undefined {
+    protected create_Sequence_Generator(func: ast.SequenceFunc): ValueGenerator | undefined {
         let number = func.start?.value || 1;
         return {
             nextValue: () => number++,
         };
     }
 
-    protected create_UuidFunc_Generator(_func: ast.UuidFunc): ValueGenerator | undefined {
+    protected create_Uuid_Generator(_func: ast.UuidFunc): ValueGenerator | undefined {
         return {
             nextValue: () => randomUUID(), // TODO: Apply seed to random UUID generator
+        };
+    }
+
+    protected create_Regex_Generator(regex: ast.Regex): ValueGenerator | undefined {
+        const regexGen = new RandExp(regex.value);
+        return {
+            nextValue: () => regexGen.gen(),
         };
     }
 }

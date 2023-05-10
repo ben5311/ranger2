@@ -236,4 +236,17 @@ describe('ObjectGenerator', () => {
             expect(output.id).toMatch(/\w{8}-\w{4}-4\w{3}-[89AB]\w{3}-\w{12}/i);
         });
     });
+
+    test('regex()', async () => {
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            iban: /DE\\d{20}/
+            email: /john\\.doe@(gmail|outlook)\\.com/
+        }`);
+        range(20).forEach((_) => {
+            const output = objectGenerator.next();
+            expect(output.iban).toMatch(/DE\d{20}/);
+            expect(output.email).toMatch(/john\.doe@(gmail|outlook)\.com/);
+        });
+    });
 });

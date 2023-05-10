@@ -3,7 +3,10 @@ import { describe, expect, test } from 'vitest';
 
 import { Objekt } from '../../src/language-server/generated/ast';
 import { generator } from '../../src/language-server/ranger-generator';
-import { noHighlight, RangerHoverProvider } from '../../src/language-server/ranger-hover';
+import {
+	noHighlight,
+	RangerHoverProvider,
+} from '../../src/language-server/ranger-hover';
 import { createTempFile, parse, services } from '../../src/utils/test';
 
 const hoverProvider = new RangerHoverProvider(services);
@@ -282,5 +285,24 @@ describe('RangerHoverProvider', () => {
         Generates a random [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier).
 
         Example: "${uuidValue}"`);
+    });
+
+    test('regex()', async () => {
+        let { doc } = await parse(dedent`
+        Entity Customer {
+            iban: /DE\\d{20}/
+        }`);
+
+        let Customer = doc.entities[0];
+        let [iban] = (Customer.value as Objekt).properties;
+        const ibanValue = generator.getValue(iban);
+
+        expect(hover(iban)).toBe(`iban: "${ibanValue}"`);
+        expect(hover(iban.value)).toBe(dedent`
+        /DE\\d{20}/ : regex
+        \n---\n
+        Generates a random string that matches given [Regular expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions).
+
+        Example: "${ibanValue}"`);
     });
 });

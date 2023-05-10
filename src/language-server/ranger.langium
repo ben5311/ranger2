@@ -53,11 +53,27 @@ Null:
     {infer Null} "null";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Other data structures
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Range:
+    min=Num ".." max=Num;
+
+ListWithoutBrackets returns List:
+    (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?;
+
+MapObject:
+    "{" (pairs+=KeyValuePair)* "}";
+
+KeyValuePair:
+    key=Literal ":" value=ValueOrPropertyReference ","?;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Func:
-    RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc;
+    RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc | Regex;
 
 RandomFunc:
     RandomOfRange | RandomOfList;     // TODO: Allow references for range and list
@@ -82,18 +98,8 @@ SequenceFunc:
 UuidFunc:
     {infer UuidFunc} "uuid" "(" ")";
 
-Range:
-    min=Num ".." max=Num;
-
-ListWithoutBrackets returns List:
-    (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?;
-
-MapObject:
-    "{" (pairs+=KeyValuePair)* "}";
-
-KeyValuePair:
-    key=Literal ":" value=ValueOrPropertyReference ","?;
-
+Regex:
+    value=REGEXLITERAL;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Interfaces
@@ -114,6 +120,7 @@ terminal NUMBER returns number: /[+-]?[0-9]+(\.[0-9]+)?/;
 terminal BOOL returns boolean: "true" | "false";
 terminal DATE returns string: /"\d{4}-\d{2}-\d{2}"/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*?'/;
+terminal REGEXLITERAL: /\/(\\.|[^/\\])+?\//;
 terminal ID: /[_a-zA-Z][\w_]*/;
 
 hidden terminal WS: /\s+/;
