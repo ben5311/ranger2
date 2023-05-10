@@ -1,5 +1,0 @@
-Entity Imported {
-    bank: csv("bank.csv")
-    ort: bank.Ort
-    bic: bank.BIC
-}

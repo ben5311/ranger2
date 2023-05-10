@@ -1,4 +1,4 @@
-Entity SimpleUser {
+Entity Customer {
     name: "John Doe"
     age: 28
     married: false
