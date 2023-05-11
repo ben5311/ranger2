@@ -1,0 +1,9 @@
+Entity BankAccount {
+    iban: /DE\d{20}/
+    bic: Data.bank.BIC
+    bank: Data.bank.Bezeichnung
+}
+
+Entity Data {
+    bank: csv("./data/bank.csv")
+}

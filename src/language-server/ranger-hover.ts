@@ -1,14 +1,14 @@
 import dedent from 'dedent-js';
 import {
-	AstNode,
-	DocumentationProvider,
-	findDeclarationNodeAtOffset,
-	GrammarConfig,
-	HoverProvider,
-	LangiumDocument,
-	LangiumServices,
-	MaybePromise,
-	References,
+    AstNode,
+    DocumentationProvider,
+    findDeclarationNodeAtOffset,
+    GrammarConfig,
+    HoverProvider,
+    LangiumDocument,
+    LangiumServices,
+    MaybePromise,
+    References,
 } from 'langium';
 import { Hover, HoverParams } from 'vscode-languageserver';
 
@@ -37,6 +37,7 @@ export class RangerHoverProvider implements HoverProvider {
                 let hover = this.getAstNodeHover(cstNode.element, highlighter);
                 if (hover !== undefined) {
                     return {
+                        range: cstNode.range,
                         contents: {
                             kind: 'markdown',
                             value: hover,
