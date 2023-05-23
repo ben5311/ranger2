@@ -3,7 +3,10 @@ import { describe, expect, test } from 'vitest';
 
 import { Obj } from '../../src/language-server/generated/ast';
 import { generator } from '../../src/language-server/ranger-generator';
-import { noHighlight, RangerHoverProvider } from '../../src/language-server/ranger-hover';
+import {
+	noHighlight,
+	RangerHoverProvider,
+} from '../../src/language-server/ranger-hover';
 import { createTempFile, parse, services } from '../../src/utils/test';
 
 const hoverProvider = new RangerHoverProvider(services);
@@ -301,5 +304,45 @@ describe('RangerHoverProvider', () => {
         Generates a random string that matches given [Regular expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions).
 
         Example: "${ibanValue}"`);
+    });
+
+    test('today()', async () => {
+        let { doc } = await parse(dedent`
+        Entity Test {
+            date: today()
+        }`);
+
+        let [date] = (doc.entities[0].value as Obj).properties;
+        const todayDate = generator.getValue(date);
+
+        expect(hover(date)).toBe(`date: "${todayDate}"`);
+        expect(hover(date.value)).toBe(dedent`
+        today()
+        \n---\n
+        Retrieves the current date.
+
+        It is determined once and remains constant throughout.
+
+        Example: "${todayDate}"`);
+    });
+
+    test('now()', async () => {
+        let { doc } = await parse(dedent`
+        Entity Test {
+            timestamp: now()
+        }`);
+
+        let [timestamp] = (doc.entities[0].value as Obj).properties;
+        const nowTimestamp = generator.getValue(timestamp);
+
+        expect(hover(timestamp)).toBe(`timestamp: "${nowTimestamp}"`);
+        expect(hover(timestamp.value)).toBe(dedent`
+        now()
+        \n---\n
+        Retrieves the current timestamp.
+
+        It is determined once and remains constant throughout.
+
+        Example: "${nowTimestamp}"`);
     });
 });

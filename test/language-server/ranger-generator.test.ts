@@ -249,4 +249,29 @@ describe('ObjectGenerator', () => {
             expect(output.email).toMatch(/john\.doe@(gmail|outlook)\.com/);
         });
     });
+
+    test('today()', async () => {
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            date: today()
+        }`);
+        const today = new Date().toISOString().substring(0, 10);
+        range(20).forEach((_) => {
+            const output = objectGenerator.next();
+            expect(output.date).toBe(today);
+        });
+    });
+
+    test('now()', async () => {
+        const objectGenerator = await createObjectGenerator(`
+        Entity Test {
+            timestamp: now()
+        }`);
+        const today = new Date().toISOString().substring(0, 10);
+        range(20).forEach((_) => {
+            const output = objectGenerator.next();
+            expect(output.timestamp.substring(0, 10)).toBe(today);
+            expect(output.timestamp).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/);
+        });
+    });
 });

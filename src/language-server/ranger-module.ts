@@ -18,6 +18,7 @@ import { RangerDefinitionProvider } from './ranger-definition';
 import { RangerFormatter } from './ranger-formatter';
 import { RangerHoverProvider } from './ranger-hover';
 import { IndexAccess, RangerDocumentBuilder } from './ranger-index';
+import { RangerValueConverter } from './ranger-parser';
 import { RangerScopeProvider } from './ranger-scope';
 import { RangerLanguageServer } from './ranger-server';
 import { RangerDocumentSymbolProvider, RangerWorkspaceSymbolProvider, WorkspaceSymbolProvider } from './ranger-symbols';
@@ -72,6 +73,9 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
         Formatter: () => new RangerFormatter(),
         HoverProvider: (services) => new RangerHoverProvider(services),
         SemanticTokenProvider: (services) => new RangerTokenProvider(services),
+    },
+    parser: {
+        ValueConverter: () => new RangerValueConverter(),
     },
     references: {
         ScopeProvider: (services) => new RangerScopeProvider(services),

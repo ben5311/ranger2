@@ -39,7 +39,7 @@ List returns List:
     "]";
 
 Literal:
-    AString | ABool | ANumber | AFilePath | ANull;
+    AString | ABool | ANumber | ADate | ATimestamp | AFilePath | ANull;
 
 AString:
     value=STRING;
@@ -49,6 +49,12 @@ ABool:
 
 ANumber:
     value=NUMBER;
+
+ADate:
+    value=DATE;
+
+ATimestamp:
+    value=TIMESTAMP;
 
 AFilePath:
     value=STRING;
@@ -77,7 +83,7 @@ KeyValuePair:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Func:
-    RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc | Regex;
+    RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc | Regex | TodayFunc | NowFunc;
 
 RandomFunc:
     RandomOfRange | RandomOfList;     // TODO: Allow references for range and list
@@ -105,6 +111,12 @@ UuidFunc:
 Regex:
     value=REGEXLITERAL;
 
+TodayFunc:
+    {infer TodayFunc} "today" "(" ")";
+
+NowFunc:
+    {infer NowFunc} "now" "(" ")";
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,6 +134,8 @@ type Value = Obj | List | Func | Literal | PropertyExtractor
 
 terminal NUMBER returns number: /[+-]?[0-9]+(\.[0-9]+)?/;
 terminal BOOL returns boolean: "true" | "false";
+terminal DATE: /"\d{4}-\d{2}-\d{2}"/;
+terminal TIMESTAMP: /"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z?"/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*?'/;
 terminal REGEXLITERAL: /\/(\\.|[^/\\])+?\//;
 terminal ID: /[_a-zA-Z][\w_]*/;

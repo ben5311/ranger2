@@ -79,6 +79,8 @@ export class RangerHoverProvider implements HoverProvider {
             SequenceFunc: getSequenceHover,
             UuidFunc: getUuidHover,
             Regex: getRegexHover,
+            TodayFunc: getTodayHover,
+            NowFunc: getNowHover,
         };
         let funcHover = executeProvider(hoverProviders, node, highlight);
         let result = dedent`
@@ -194,6 +196,16 @@ function getRegexHover(func: ast.Regex): FuncHover {
     return {
         signature: `${func.$cstNode?.text} : regex`,
         description: `Generates a random string that matches given [Regular expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions).`,
+    };
+}
+
+function getTodayHover(_func: ast.TodayFunc): FuncHover {
+    return { description: `Retrieves the current date.\n\nIt is determined once and remains constant throughout.` };
+}
+
+function getNowHover(_func: ast.NowFunc): FuncHover {
+    return {
+        description: `Retrieves the current timestamp.\n\nIt is determined once and remains constant throughout.`,
     };
 }
 

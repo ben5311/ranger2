@@ -115,6 +115,8 @@ export class Generator {
             SequenceFunc: this.create_Sequence_Generator,
             UuidFunc: this.create_Uuid_Generator,
             Regex: this.create_Regex_Generator,
+            TodayFunc: this.create_Today_Generator,
+            NowFunc: this.create_Now_Generator,
         };
         return executeProvider(providers, func, this);
     }
@@ -208,7 +210,7 @@ export class Generator {
         };
     }
 
-    protected create_Uuid_Generator(_func: ast.UuidFunc): ValueGenerator | undefined {
+    protected create_Uuid_Generator(): ValueGenerator | undefined {
         return {
             nextValue: () => randomUUID(), // TODO: Apply seed to random UUID generator
         };
@@ -218,6 +220,20 @@ export class Generator {
         const regexGen = new RandExp(regex.value);
         return {
             nextValue: () => regexGen.gen(),
+        };
+    }
+
+    protected create_Today_Generator(): ValueGenerator | undefined {
+        const today = new Date().toISOString().substring(0, 10);
+        return {
+            nextValue: () => today,
+        };
+    }
+
+    protected create_Now_Generator(): ValueGenerator | undefined {
+        const now = new Date().toISOString();
+        return {
+            nextValue: () => now,
         };
     }
 }

@@ -13,6 +13,7 @@
                 { "include": "#list" },
                 { "include": "#object" },
                 { "include": "#map-function" },
+                { "include": "#function" },
                 { "include": "#comment" },
                 { "include": "source.js#regex" }
             ]
@@ -20,7 +21,7 @@
 
         "keyword": {
             "name": "keyword.control.ranger",
-            "match": "\\b(Entity|csv|from|import|noHeader|random|sequence|uuid)\\b|\\b(delimiter=)\\B",
+            "match": "\\b(Entity|from|import|noHeader)\\b|\\b(delimiter=)\\B",
             "description": "Do not include 'map' keyword here!"
         },
 
@@ -124,6 +125,14 @@
             "endCaptures": { "0": { "name": "punctuation.definition.map.end.ranger" } },
             "name": "meta.structure.map.ranger",
             "patterns": [{ "include": "#comment" }, { "include": "#value" }, { "match": ":" }]
+        },
+
+        "function": {
+            "begin": "(\\w+)\\s*\\(",
+            "end": "\\)",
+            "beginCaptures": { "0": { "name": "keyword.control.ranger" } },
+            "name": "meta.structure.function.ranger",
+            "patterns": [{ "include": "#value" }]
         },
 
         "comment": {
