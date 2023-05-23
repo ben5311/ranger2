@@ -8,7 +8,7 @@ Import:
     "from" filePath=AFilePath "import" entities+=EntityReference ("," entities+=EntityReference)* ","?;
 
 Entity returns Entity:
-    "Entity" name=ID value=Obj;
+    "Entity" name=ID ":"? value=ObjValue;
 
 // "Object", "String", "Number", "Date" are reserved keywords :(
 Obj:
@@ -24,6 +24,9 @@ ValueOrPropertyReference:
 
 Value returns Value:
      Obj | List | Func | Literal;
+
+ObjValue returns Value:
+    Obj | CsvFunc;
 
 EntityReference returns PropertyReference:
     element=[Property:ID];

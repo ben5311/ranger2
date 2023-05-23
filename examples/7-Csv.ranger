@@ -1,9 +1,7 @@
 Entity BankAccount {
     iban: /DE\d{20}/
-    bic: Data.bank.BIC
-    bank: Data.bank.Bezeichnung
+    bic: Bank.BIC
+    bank: Bank.Bezeichnung
 }
 
-Entity Data {
-    bank: csv("./data/bank.csv")
-}
+Entity Bank: csv("./data/bank.csv")
