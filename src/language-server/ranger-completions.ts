@@ -21,8 +21,9 @@ import {
 } from 'vscode-languageserver';
 
 import { getDocumentDir } from '../utils/documents';
-import { executeProvider, Path, Providers } from '../utils/types';
+import { Path } from '../utils/types';
 import * as ast from './generated/ast';
+import { executeProvider, Providers } from './ranger-ast';
 
 export class RangerCompletionProvider extends DefaultCompletionProvider {
     /**
@@ -148,7 +149,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
      */
     completionForNode(node: AstNode, context: CompletionContext, accept: CompletionAcceptor) {
         const providers: Providers<void> = {
-            FilePath: completionForFilePath,
+            AFilePath: completionForFilePath,
         };
         executeProvider(providers, node, accept, context);
     }
@@ -177,7 +178,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
     }
 }
 
-function completionForFilePath(filePath: ast.FilePath, accept: CompletionAcceptor, context: CompletionContext) {
+function completionForFilePath(filePath: ast.AFilePath, accept: CompletionAcceptor, context: CompletionContext) {
     if (!filePath.$cstNode) {
         return;
     }

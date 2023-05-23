@@ -8,8 +8,8 @@ import {
 } from 'vscode-languageserver';
 
 import { hasErrors } from '../utils/documents';
-import { isSimpleProperty } from '../utils/types';
 import * as ast from './generated/ast';
+import { isSimpleProperty, RangerType } from './ranger-ast';
 import { generator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 import { resolveReference } from './ranger-scope';
@@ -27,7 +27,7 @@ export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider 
             const value = isSimpleProperty(astNode) ? generator.getValueAsJson(astNode) : undefined;
             return [
                 {
-                    kind: getSymbolKind(astNode.$type),
+                    kind: getSymbolKind(astNode.$type as RangerType),
                     name: name ?? nameNode.text,
                     detail: value,
                     range: node.range,
@@ -44,10 +44,10 @@ export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider 
     }
 }
 
-export function getSymbolKind(type: string): SymbolKind {
+export function getSymbolKind(type: RangerType): SymbolKind {
     switch (type) {
         case 'Entity':
-        case 'Objekt':
+        case 'Obj':
             return SymbolKind.Class;
         case 'Property':
             return SymbolKind.Field;
@@ -66,7 +66,7 @@ export class RangerWorkspaceSymbolProvider implements WorkspaceSymbolProvider {
         for (const element of this.services.shared.workspace.IndexManager.allElements()) {
             symbols.push({
                 name: element.name,
-                kind: getSymbolKind(element.type),
+                kind: getSymbolKind(element.type as RangerType),
                 location: {
                     uri: element.documentUri.toString(),
                 },

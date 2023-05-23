@@ -1,12 +1,9 @@
 import dedent from 'dedent-js';
 import { describe, expect, test } from 'vitest';
 
-import { Objekt } from '../../src/language-server/generated/ast';
+import { Obj } from '../../src/language-server/generated/ast';
 import { generator } from '../../src/language-server/ranger-generator';
-import {
-	noHighlight,
-	RangerHoverProvider,
-} from '../../src/language-server/ranger-hover';
+import { noHighlight, RangerHoverProvider } from '../../src/language-server/ranger-hover';
 import { createTempFile, parse, services } from '../../src/utils/test';
 
 const hoverProvider = new RangerHoverProvider(services);
@@ -28,9 +25,9 @@ describe('RangerHoverProvider', () => {
         }`);
 
         let User = doc.entities[0];
-        let props = (User.value as Objekt).properties;
+        let props = (User.value as Obj).properties;
         let [name, age, birthday, married, balance, address] = props;
-        let email = (address.value as Objekt).properties[0];
+        let email = (address.value as Obj).properties[0];
 
         expect(hover(User)).toBe(dedent`
         User: {
@@ -64,7 +61,7 @@ describe('RangerHoverProvider', () => {
         expect(hover(name.value)).toBe('"John Doe" : string');
         expect(hover(age.value)).toBe('28 : number');
         expect(hover(birthday.value)).toBe('null');
-        expect(hover(married.value)).toBe('false : boolean');
+        expect(hover(married.value)).toBe('false : bool');
         expect(hover(balance.value)).toBe('1000.51 : number');
         expect(hover(address.value)).toBe(dedent`
         {
@@ -94,7 +91,7 @@ describe('RangerHoverProvider', () => {
         }`);
 
         let References = doc.entities[1];
-        let props = (References.value as Objekt).properties;
+        let props = (References.value as Obj).properties;
         let [user, addr, mail] = props;
 
         expect(hover(user)).toBe(dedent`
@@ -149,7 +146,7 @@ describe('RangerHoverProvider', () => {
         }`);
 
         let Customer = doc.entities[0];
-        let props = (Customer.value as Objekt).properties;
+        let props = (Customer.value as Obj).properties;
         let [age, gender] = props;
 
         expect(hover(age)).toBe(`age: 18`);
@@ -179,7 +176,7 @@ describe('RangerHoverProvider', () => {
         }`);
 
         let Customer = doc.entities[0];
-        let props = (Customer.value as Objekt).properties;
+        let props = (Customer.value as Obj).properties;
         let [G, firstname1, firstname2] = props;
 
         expect(hover(firstname1)).toBe(`firstname1: "Max"`);
@@ -217,7 +214,7 @@ describe('RangerHoverProvider', () => {
         }`);
 
         let Customer = doc.entities[0];
-        let [data, first] = (Customer.value as Objekt).properties;
+        let [data, first] = (Customer.value as Obj).properties;
 
         expect(hover(data)).toBe(dedent`
         data: {
@@ -250,7 +247,7 @@ describe('RangerHoverProvider', () => {
         }`);
 
         let Customer = doc.entities[0];
-        let [num1, num2] = (Customer.value as Objekt).properties;
+        let [num1, num2] = (Customer.value as Obj).properties;
 
         expect(hover(num1)).toBe('num1: 1');
         expect(hover(num2)).toBe('num2: 11');
@@ -275,7 +272,7 @@ describe('RangerHoverProvider', () => {
         }`);
 
         let Customer = doc.entities[0];
-        let [uuid] = (Customer.value as Objekt).properties;
+        let [uuid] = (Customer.value as Obj).properties;
         const uuidValue = generator.getValue(uuid);
 
         expect(hover(uuid)).toBe(`id: "${uuidValue}"`);
@@ -294,7 +291,7 @@ describe('RangerHoverProvider', () => {
         }`);
 
         let Customer = doc.entities[0];
-        let [iban] = (Customer.value as Objekt).properties;
+        let [iban] = (Customer.value as Obj).properties;
         const ibanValue = generator.getValue(iban);
 
         expect(hover(iban)).toBe(`iban: "${ibanValue}"`);

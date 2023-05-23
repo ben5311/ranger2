@@ -5,12 +5,13 @@ entry Document:
     (entities+=Entity)*;
 
 Import:
-    "from" filePath=FilePath "import" entities+=EntityReference ("," entities+=EntityReference)* ","?;
+    "from" filePath=AFilePath "import" entities+=EntityReference ("," entities+=EntityReference)* ","?;
 
 Entity returns Entity:
-    "Entity" name=ID value=Objekt;
+    "Entity" name=ID value=Obj;
 
-Objekt:
+// "Object", "String", "Number", "Date" are reserved keywords :(
+Obj:
     "{"
         (properties+=Property)*
     "}";
@@ -22,7 +23,7 @@ ValueOrPropertyReference:
      Value | PropertyReference;
 
 Value returns Value:
-     Objekt | List | Func | Literal;
+     Obj | List | Func | Literal;
 
 EntityReference returns PropertyReference:
     element=[Property:ID];
@@ -38,26 +39,29 @@ List returns List:
     "]";
 
 Literal:
-    Primitive | Num | Null;
+    AString | ABool | ANumber | AFilePath | ANull;
 
-Primitive:
-    value=(STRING | BOOL | DATE);
-
-FilePath:
+AString:
     value=STRING;
 
-Num:
+ABool:
+    value=BOOL;
+
+ANumber:
     value=NUMBER;
 
-Null:
-    {infer Null} "null";
+AFilePath:
+    value=STRING;
+
+ANull:
+    {infer ANull} "null";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Other data structures
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Range:
-    min=Num ".." max=Num;
+    min=ANumber ".." max=ANumber;
 
 ListWithoutBrackets returns List:
     (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?;
@@ -90,10 +94,10 @@ MapToObject:
     "map" "(" source=PropertyReference "=>" object=MapObject ")";
 
 CsvFunc:
-    "csv" "(" filePath=FilePath (",""delimiter=" delimiter=STRING)? ("," noHeader?="noHeader")? ")";
+    "csv" "(" filePath=AFilePath (",""delimiter=" delimiter=STRING)? ("," noHeader?="noHeader")? ")";
 
 SequenceFunc:
-    "sequence" "(" start=Num ")";
+    "sequence" "(" start=ANumber ")";
 
 UuidFunc:
     {infer UuidFunc} "uuid" "(" ")";
@@ -110,7 +114,7 @@ interface Property { name: string; value: ValueOrPropertyReference }
 interface List { values: ValueOrPropertyReference[] }
 interface PropertyReference { element: @Property | @PropertyExtractor; previous?: PropertyReference }
 interface PropertyExtractor { source: Value; name: string}
-type Value = Objekt | List | Func | Literal | PropertyExtractor
+type Value = Obj | List | Func | Literal | PropertyExtractor
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Terminals
@@ -118,7 +122,6 @@ type Value = Objekt | List | Func | Literal | PropertyExtractor
 
 terminal NUMBER returns number: /[+-]?[0-9]+(\.[0-9]+)?/;
 terminal BOOL returns boolean: "true" | "false";
-terminal DATE returns string: /"\d{4}-\d{2}-\d{2}"/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*?'/;
 terminal REGEXLITERAL: /\/(\\.|[^/\\])+?\//;
 terminal ID: /[_a-zA-Z][\w_]*/;

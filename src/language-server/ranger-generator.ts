@@ -5,8 +5,9 @@ import RandExp from 'randexp';
 import { MersenneTwister19937, nativeMath, Random } from 'random-js';
 
 import { resolvePath } from '../utils/documents';
-import { DynamicObject, executeProvider, Providers } from '../utils/types';
+import { DynamicObject } from '../utils/types';
 import * as ast from './generated/ast';
+import { executeProvider, Providers } from './ranger-ast';
 import { resolveReference, ValueOrProperty } from './ranger-scope';
 
 interface ValueGenerator {
@@ -42,12 +43,11 @@ export class Generator {
 
     protected doGetValue(value?: ast.Value): unknown {
         if (value === undefined) return undefined;
-        if (ast.isNull(value) || value === null) return null;
-        if (ast.isPrimitive(value)) return value.value;
-        if (ast.isNum(value)) return value.value;
+        if (ast.isANull(value) || value === null) return null;
+        if (ast.isLiteral(value)) return value.value;
         if (ast.isList(value)) return value.values.map((v) => this.getValue(v));
         if (ast.isFunc(value)) return this.getFuncValue(value);
-        if (ast.isObjekt(value)) {
+        if (ast.isObj(value)) {
             let result: DynamicObject = {};
             for (let prop of value.properties) {
                 result[prop.name] = this.getValue(prop.value);

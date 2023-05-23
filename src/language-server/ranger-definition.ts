@@ -8,14 +8,14 @@ import * as ast from './generated/ast';
 export class RangerDefinitionProvider extends DefaultDefinitionProvider {
     override collectLocationLinks(cstNode: CstNode, _params: DefinitionParams) {
         const astNode = cstNode.element;
-        if (ast.isFilePath(astNode)) {
+        if (ast.isAFilePath(astNode)) {
             return this.getFilePathLink(astNode);
         }
 
         return super.collectLocationLinks(cstNode, _params);
     }
 
-    getFilePathLink(filePath: ast.FilePath): LocationLink[] | undefined {
+    getFilePathLink(filePath: ast.AFilePath): LocationLink[] | undefined {
         const absPath = resolvePath(filePath.value, filePath);
         const fileUri = fileURI(absPath);
         if (fs.existsSync(absPath)) {

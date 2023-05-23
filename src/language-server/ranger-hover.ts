@@ -12,8 +12,8 @@ import {
 } from 'langium';
 import { Hover, HoverParams } from 'vscode-languageserver';
 
-import { executeProvider, Providers } from '../utils/types';
 import * as ast from './generated/ast';
+import { executeProvider, Providers } from './ranger-ast';
 import { generator, isListFunc } from './ranger-generator';
 import { getPropertyName, resolveReference } from './ranger-scope';
 
@@ -57,10 +57,8 @@ export class RangerHoverProvider implements HoverProvider {
             Func: this.getFuncHover,
             Property: getPropertyHover,
             PropertyReference: getPropertyReferenceHover,
-            Null: getNullHover,
             Literal: getLiteralHover,
-            FilePath: getLiteralHover,
-            Objekt: getJsonHover,
+            Obj: getJsonHover,
             List: getJsonHover,
             Value: getJsonHover,
         };
@@ -116,14 +114,15 @@ function getPropertyReferenceHover(ref: ast.PropertyReference, highlight = highl
     return undefined;
 }
 
-function getNullHover(_null: ast.Null, highlight = highlighter) {
-    return highlight('null');
-}
+function getLiteralHover(literal: ast.Literal, highlight = highlighter) {
+    let type = literal.$type.substring(1).toLowerCase(); // Strip leading A from AString, ANumber, ...
+    let value = literal.$cstNode?.text;
 
-function getLiteralHover(literal: ast.Literal | ast.FilePath, highlight = highlighter) {
-    let type = ast.isPrimitive(literal) ? typeof literal.value : literal.$type.toLowerCase();
-    type = type === 'num' ? 'number' : type;
-    return highlight(`${literal.$cstNode?.text} : ${type}`);
+    if (type === 'null') {
+        return highlight(`null`);
+    } else {
+        return highlight(`${value} : ${type}`);
+    }
 }
 
 function getJsonHover(value: ast.Value, highlight = highlighter) {

@@ -17,14 +17,14 @@ import { isObject } from 'lodash';
 import { Range } from 'vscode-languageclient';
 
 import { fileURI, isRangerFile, resolvePath } from '../utils/documents';
-import { RangerType } from '../utils/types';
 import * as ast from './generated/ast';
+import { RangerType } from './ranger-ast';
 import { generator } from './ranger-generator';
 
 /**
  * Implements Import mechanism and Class member scoping for Entities.
  *
- * Class member scoping allows to reference Properties from the current and any parent Objekts.
+ * Class member scoping allows to reference Properties from the current and any parent Objects.
  *
  * @example
  * Entity Customer {
@@ -155,7 +155,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
             return EMPTY_SCOPE;
         }
 
-        if (ast.isObjekt(value)) {
+        if (ast.isObj(value)) {
             return this.createScopeForNodes(value.properties);
         }
 

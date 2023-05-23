@@ -1,25 +1,23 @@
 import { AbstractSemanticTokenProvider, AstNode, SemanticTokenAcceptor } from 'langium';
 
-import { isPureProperty } from '../utils/types';
-import * as ast from './generated/ast';
+import { executeProvider, Providers } from './ranger-ast';
 
 export class RangerTokenProvider extends AbstractSemanticTokenProvider {
     protected override highlightElement(node: AstNode, highlight: SemanticTokenAcceptor): void | 'prune' | undefined {
-        if (ast.isNull(node)) {
-            highlight({ node, keyword: 'null', type: 'keyword' });
-        } else if (ast.isPrimitive(node) && typeof node.value === 'boolean') {
-            highlight({ node, property: 'value', type: 'keyword' });
-        } else if (ast.isPrimitive(node) && typeof node.value === 'string') {
-            highlight({ node, property: 'value', type: 'string' });
-        } else if (ast.isNum(node)) {
-            highlight({ node, property: 'value', type: 'number' });
-        } else if (isPureProperty(node)) {
-            highlight({ node, property: 'name', type: 'property' });
-        } else if (ast.isEntity(node)) {
-            highlight({ node, keyword: 'Entity', type: 'keyword' });
-        } else if (ast.isFunc(node)) {
-            const match = node.$cstNode?.text?.match(/([\w_]+)\(/);
-            if (match) highlight({ node, keyword: match[1], type: 'keyword' });
-        }
+        const providers: Providers = {
+            AString: () => highlight({ node, property: 'value', type: 'string' }),
+            ABool: () => highlight({ node, property: 'value', type: 'keyword' }),
+            ANumber: () => highlight({ node, property: 'value', type: 'number' }),
+            ADate: () => highlight({ node, property: 'value', type: 'string' }),
+            ATimestamp: () => highlight({ node, property: 'value', type: 'string' }),
+            ANull: () => highlight({ node, keyword: 'null', type: 'keyword' }),
+            Entity: () => highlight({ node, keyword: 'Entity', type: 'keyword' }),
+            Property: () => highlight({ node, property: 'name', type: 'property' }),
+            Func: () => {
+                const match = node.$cstNode?.text?.match(/([\w_]+)\(/);
+                if (match) highlight({ node, keyword: match[1], type: 'keyword' });
+            },
+        };
+        executeProvider(providers, node);
     }
 }

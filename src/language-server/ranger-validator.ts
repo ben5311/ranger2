@@ -18,11 +18,11 @@ export function registerValidationChecks(services: RangerServices) {
         CsvFunc: [validator.checkCsvFunc_InvalidCsvFile],
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_NoDuplicateImports],
         Entity: [validator.checkEntity_NameStartsWithCapital],
-        FilePath: [validator.checkFilePath_FileExists, validator.checkFilePath_NoBackslashes],
+        AFilePath: [validator.checkFilePath_FileExists, validator.checkFilePath_NoBackslashes],
         Import: [validator.checkImport_CorrectFileExtension, validator.checkImport_NoValidationErrors],
         MapFunc: [validator.checkMapFunc_NoCircularReferences],
         MapToList: [validator.checkMapToList_IsBasedOnAListFunc],
-        Objekt: [validator.checkObjekt_NoDuplicateProperties, validator.checkObjekt_NoReferenceToParentObjekt],
+        Obj: [validator.checkObj_NoDuplicateProperties, validator.checkObj_NoReferenceToParentObject],
         PropertyReference: [validator.checkPropertyReference_NoCircularReferences],
     };
     registry.register(checks, validator);
@@ -110,7 +110,7 @@ export class RangerValidator {
         }
     }
 
-    checkFilePath_FileExists(filePath: ast.FilePath, accept: ValidationAcceptor) {
+    checkFilePath_FileExists(filePath: ast.AFilePath, accept: ValidationAcceptor) {
         const issue = Issues.FileDoesNotExist;
         const path = resolvePath(filePath, filePath);
         if (!fs.existsSync(path)) {
@@ -118,7 +118,7 @@ export class RangerValidator {
         }
     }
 
-    checkFilePath_NoBackslashes(filePath: ast.FilePath, accept: ValidationAcceptor) {
+    checkFilePath_NoBackslashes(filePath: ast.AFilePath, accept: ValidationAcceptor) {
         const issue = Issues.FilePathWithBackslashes;
         if (filePath.$cstNode?.text.includes('\\')) {
             accept('warning', issue.msg, { node: filePath, property: 'value', code: issue.code });
@@ -187,19 +187,19 @@ export class RangerValidator {
         }
     }
 
-    checkObjekt_NoDuplicateProperties(objekt: ast.Objekt, accept: ValidationAcceptor): void {
+    checkObj_NoDuplicateProperties(object: ast.Obj, accept: ValidationAcceptor): void {
         const issue = Issues.DuplicateProperty;
-        const duplicates = this.findDuplicates(objekt.properties);
+        const duplicates = this.findDuplicates(object.properties);
         for (let dup of duplicates) {
             accept('error', `${issue.msg}: '${dup.name}'`, { node: dup, property: 'name', code: issue.code });
         }
     }
 
-    checkObjekt_NoReferenceToParentObjekt(obj: ast.Objekt, accept: ValidationAcceptor) {
+    checkObj_NoReferenceToParentObject(obj: ast.Obj, accept: ValidationAcceptor) {
         this.doCheckNoReferenceToParent(obj, obj, accept);
     }
 
-    doCheckNoReferenceToParent(parent: ast.Objekt, current: ast.Objekt, accept: ValidationAcceptor, node?: AstNode) {
+    doCheckNoReferenceToParent(parent: ast.Obj, current: ast.Obj, accept: ValidationAcceptor, node?: AstNode) {
         for (const ref of streamAllContents(current)
             .filter(ast.isPropertyReference)
             .filter((ref) => ref.$containerProperty !== 'previous')) {
@@ -210,7 +210,7 @@ export class RangerValidator {
                     node: node || ref,
                     code: Issues.CircularReference.code,
                 });
-            } else if (ast.isObjekt(resolved)) {
+            } else if (ast.isObj(resolved)) {
                 const refId = `${getDocument(current).uri.fsPath} - ${ref.$cstNode?.text}`;
                 if (this.seen.has(refId)) {
                     return;

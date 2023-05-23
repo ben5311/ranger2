@@ -5,7 +5,7 @@ import path from 'path';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
-import { Document, FilePath } from '../language-server/generated/ast';
+import { AFilePath, Document } from '../language-server/generated/ast';
 
 /**
  * A Ranger Document specification.
@@ -119,7 +119,7 @@ export function hasNoErrors(document: LangiumDocument): boolean {
  * @param filePath Relative file path.
  * @returns Absolute file path.
  */
-export function resolvePath(filePath: string | FilePath, context: AstNode | LangiumDocument): string {
+export function resolvePath(filePath: string | AFilePath, context: AstNode | LangiumDocument): string {
     filePath = typeof filePath === 'string' ? filePath : filePath.value;
 
     if (!path.isAbsolute(filePath)) {
@@ -135,7 +135,7 @@ export function resolvePath(filePath: string | FilePath, context: AstNode | Lang
 /**
  * Resolve file URI relative to Document.
  */
-export function resolveURI(filePath: string | FilePath, context: AstNode | LangiumDocument): URI {
+export function resolveURI(filePath: string | AFilePath, context: AstNode | LangiumDocument): URI {
     const absPath = resolvePath(filePath, context);
     return fileURI(absPath);
 }
