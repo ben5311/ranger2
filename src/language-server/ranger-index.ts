@@ -10,7 +10,7 @@ import {
     ScopeComputation,
 } from 'langium';
 
-import { RangerType } from './ranger-ast';
+import { RangerType } from './ast/Providers';
 import { generator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 

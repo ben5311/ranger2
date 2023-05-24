@@ -39,7 +39,7 @@ export class RangerFormatter extends AbstractFormatter {
 
     override format(node: AstNode): void {
         const formatter = this.getNodeFormatter(node);
-        if (ast.isObj(node)) {
+        if (ast.isObjekt(node)) {
             const bracesOpen = formatter.keyword('{');
             const bracesClose = formatter.keyword('}');
             const interior = formatter.interior(bracesOpen, bracesClose);

@@ -8,8 +8,9 @@ import {
 } from 'vscode-languageserver';
 
 import { hasErrors } from '../utils/documents';
+import { isSimpleProperty } from './ast/core/propertyChecks';
+import { RangerType } from './ast/Providers';
 import * as ast from './generated/ast';
-import { isSimpleProperty, RangerType } from './ranger-ast';
 import { generator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 import { resolveReference } from './ranger-scope';
@@ -47,7 +48,7 @@ export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider 
 export function getSymbolKind(type: RangerType): SymbolKind {
     switch (type) {
         case 'Entity':
-        case 'Obj':
+        case 'Objekt':
             return SymbolKind.Class;
         case 'Property':
             return SymbolKind.Field;

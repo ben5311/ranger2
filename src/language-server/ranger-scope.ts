@@ -17,8 +17,8 @@ import { isObject } from 'lodash';
 import { Range } from 'vscode-languageclient';
 
 import { fileURI, isRangerFile, resolvePath } from '../utils/documents';
+import { RangerType } from './ast/Providers';
 import * as ast from './generated/ast';
-import { RangerType } from './ranger-ast';
 import { generator } from './ranger-generator';
 
 /**
@@ -155,7 +155,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
             return EMPTY_SCOPE;
         }
 
-        if (ast.isObj(value)) {
+        if (ast.isObjekt(value)) {
             return this.createScopeForNodes(value.properties);
         }
 

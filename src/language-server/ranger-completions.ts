@@ -22,8 +22,8 @@ import {
 
 import { getDocumentDir } from '../utils/documents';
 import { Path } from '../utils/types';
+import { executeProvider, Providers } from './ast/Providers';
 import * as ast from './generated/ast';
-import { executeProvider, Providers } from './ranger-ast';
 
 export class RangerCompletionProvider extends DefaultCompletionProvider {
     /**

@@ -8,10 +8,12 @@ Import:
     "from" filePath=AFilePath "import" entities+=EntityReference ("," entities+=EntityReference)* ","?;
 
 Entity returns Entity:
-    "Entity" name=ID ":"? value=ObjValue;
+    "Entity" name=ID ":"? value=ObjectValue;
 
-// "Object", "String", "Number", "Date" are reserved keywords :(
-Obj:
+ObjectValue returns Value:
+    Objekt | CsvFunc;
+
+Objekt:  // Object is a reserved keyword.
     "{"
         (properties+=Property)*
     "}";
@@ -23,10 +25,7 @@ ValueOrPropertyReference:
      Value | PropertyReference;
 
 Value returns Value:
-     Obj | List | Func | Literal;
-
-ObjValue returns Value:
-    Obj | CsvFunc;
+     Objekt | List | Func | Literal;
 
 EntityReference returns PropertyReference:
     element=[Property:ID];
@@ -42,12 +41,17 @@ List returns List:
     "]";
 
 Literal:
-    AString | ABool | ANumber | ADate | ATimestamp | AFilePath | ANull;
+    AString | ABoolean | ANumber | ADate | ATimestamp | AFilePath | ANull;
 
+/**
+ * "String", "Number" and "Date" cannot be used
+ * as type names because they are reserved keywords.
+ * Therefore, all literal types are prefixed with an "A" here.
+ */
 AString:
     value=STRING;
 
-ABool:
+ABoolean:
     value=BOOL;
 
 ANumber:
@@ -75,7 +79,7 @@ Range:
 ListWithoutBrackets returns List:
     (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?;
 
-MapObject:
+Dictionary:
     "{" (pairs+=KeyValuePair)* "}";
 
 KeyValuePair:
@@ -96,11 +100,11 @@ RandomOfList:
     "random" "(" list=(List|ListWithoutBrackets) ")";
 
 MapFunc:
-    MapToList | MapToObject;
+    MapToList | MapToDict;
 MapToList:
     "map" "(" source=PropertyReference "=>" list=List ")";
-MapToObject:
-    "map" "(" source=PropertyReference "=>" object=MapObject ")";
+MapToDict:
+    "map" "(" source=PropertyReference "=>" dictionary=Dictionary ")";
 
 CsvFunc:
     "csv" "(" filePath=AFilePath (",""delimiter=" delimiter=STRING)? ("," noHeader?="noHeader")? ")";
@@ -129,7 +133,7 @@ interface Property { name: string; value: ValueOrPropertyReference }
 interface List { values: ValueOrPropertyReference[] }
 interface PropertyReference { element: @Property | @PropertyExtractor; previous?: PropertyReference }
 interface PropertyExtractor { source: Value; name: string}
-type Value = Obj | List | Func | Literal | PropertyExtractor
+type Value = Objekt | List | Func | Literal | PropertyExtractor
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Terminals

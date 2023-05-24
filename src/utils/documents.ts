@@ -81,7 +81,7 @@ async function doParseDocument(opts: ParseOptions, imported: LangiumDocument[]) 
 
     if (includeImports) {
         for (const imp of document.parseResult?.value.imports || []) {
-            const filePath = resolvePath(imp.filePath.value, document);
+            const filePath = resolvePath(imp.filePath, document);
             const fileUri = fileURI(filePath);
             if (!LangiumDocuments.hasDocument(fileUri)) {
                 await doParseDocument({ ...opts, docSpec: { filePath } }, imported);

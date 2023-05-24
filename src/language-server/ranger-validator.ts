@@ -3,8 +3,9 @@ import { AstNode, getDocument, streamAllContents, ValidationAcceptor, Validation
 
 import { buildDocument, hasErrors, isRangerFile, resolvePath } from '../utils/documents';
 import { Issue, satisfies } from '../utils/types';
+import { isListFunc } from './ast/core/list';
 import * as ast from './generated/ast';
-import { generator, isListFunc } from './ranger-generator';
+import { generator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 import { findEntityDeclaration, RangerScopeProvider, resolveReference } from './ranger-scope';
 
@@ -22,7 +23,7 @@ export function registerValidationChecks(services: RangerServices) {
         Import: [validator.checkImport_CorrectFileExtension, validator.checkImport_NoValidationErrors],
         MapFunc: [validator.checkMapFunc_NoCircularReferences],
         MapToList: [validator.checkMapToList_IsBasedOnAListFunc],
-        Obj: [validator.checkObj_NoDuplicateProperties, validator.checkObj_NoReferenceToParentObject],
+        Objekt: [validator.checkObject_NoDuplicateProperties, validator.checkObject_NoReferenceToParentObject],
         PropertyReference: [validator.checkPropertyReference_NoCircularReferences],
     };
     registry.register(checks, validator);
@@ -187,7 +188,7 @@ export class RangerValidator {
         }
     }
 
-    checkObj_NoDuplicateProperties(object: ast.Obj, accept: ValidationAcceptor): void {
+    checkObject_NoDuplicateProperties(object: ast.Objekt, accept: ValidationAcceptor): void {
         const issue = Issues.DuplicateProperty;
         const duplicates = this.findDuplicates(object.properties);
         for (let dup of duplicates) {
@@ -195,11 +196,11 @@ export class RangerValidator {
         }
     }
 
-    checkObj_NoReferenceToParentObject(obj: ast.Obj, accept: ValidationAcceptor) {
-        this.doCheckNoReferenceToParent(obj, obj, accept);
+    checkObject_NoReferenceToParentObject(object: ast.Objekt, accept: ValidationAcceptor) {
+        this.doCheckNoReferenceToParent(object, object, accept);
     }
 
-    doCheckNoReferenceToParent(parent: ast.Obj, current: ast.Obj, accept: ValidationAcceptor, node?: AstNode) {
+    doCheckNoReferenceToParent(parent: ast.Objekt, current: ast.Objekt, accept: ValidationAcceptor, node?: AstNode) {
         for (const ref of streamAllContents(current)
             .filter(ast.isPropertyReference)
             .filter((ref) => ref.$containerProperty !== 'previous')) {
@@ -210,7 +211,7 @@ export class RangerValidator {
                     node: node || ref,
                     code: Issues.CircularReference.code,
                 });
-            } else if (ast.isObj(resolved)) {
+            } else if (ast.isObjekt(resolved)) {
                 const refId = `${getDocument(current).uri.fsPath} - ${ref.$cstNode?.text}`;
                 if (this.seen.has(refId)) {
                     return;
