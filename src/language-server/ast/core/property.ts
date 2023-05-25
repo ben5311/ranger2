@@ -1,12 +1,12 @@
-import { AstNode, SemanticTokenAcceptor } from 'langium';
+import { SemanticTokenAcceptor } from 'langium';
 
 import * as ast from '../../generated/ast';
 import { resolveReference } from '../../ranger-scope';
 import { CodeHighlighter } from '../CodeHighlighter';
-import { TypeCompanion } from '../TypeCompanion';
+import { Companion } from '../Companion';
 import { ValueGenerator } from '../ValueGenerator';
 
-export class PropertyCompanion extends TypeCompanion<ast.Property> {
+export class PropertyCompanion extends Companion<ast.Property> {
     override valueGenerator(_node: ast.Property): ValueGenerator {
         throw 'Not implemented - Properties and References are resolved in Generator.getValue() method';
     }

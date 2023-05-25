@@ -1,21 +1,21 @@
 import { MersenneTwister19937, nativeMath, Random } from 'random-js';
 
-import { Companions, createCompanions } from './ast/registry';
+import { Companions, createCompanions } from './ast/CompanionRegistry';
 import { ValueGenerator } from './ast/ValueGenerator';
 import * as ast from './generated/ast';
 import { resolveReference, ValueOrProperty } from './ranger-scope';
 
 export class Generator {
+    companions: Companions;
     cache: Map<ast.Value | undefined, any>;
     /** Stores the state of Function values. */
     valueGenerators: Map<ast.Value, ValueGenerator | undefined>;
-    companions: Companions;
     random: Random;
 
     constructor(seed?: number) {
+        this.companions = createCompanions(this);
         this.cache = new Map();
         this.valueGenerators = new Map();
-        this.companions = createCompanions(this);
         this.random = new Random(seed !== undefined ? MersenneTwister19937.seed(seed) : nativeMath);
     }
 

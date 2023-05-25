@@ -2,6 +2,7 @@ import { AstNode } from 'langium';
 
 import * as ast from '../generated/ast';
 import { Generator } from '../ranger-generator';
+import { Companion } from './Companion';
 import { EntityCompanion } from './core/entity';
 import { ListCompanion } from './core/list';
 import { LiteralCompanion } from './core/literal';
@@ -19,9 +20,8 @@ import { RegexCompanion } from './functions/regex';
 import { SequenceFuncCompanion } from './functions/sequence';
 import { TodayFuncCompanion } from './functions/today';
 import { UuidFuncCompanion } from './functions/uuid';
-import { TypeCompanion } from './TypeCompanion';
 
-const companionTypes: { [key in keyof ast.RangerAstType]?: new (...args: any[]) => any } = {
+const registry: { [key in keyof ast.RangerAstType]?: new (...args: any[]) => any } = {
     Entity: EntityCompanion,
     List: ListCompanion,
     Literal: LiteralCompanion,
@@ -50,12 +50,12 @@ const companionTypes: { [key in keyof ast.RangerAstType]?: new (...args: any[]) 
     UuidFunc: UuidFuncCompanion,
 };
 
-export type Companions = { get(node: AstNode): TypeCompanion<AstNode> | undefined };
+export type Companions = { get(node: AstNode): Companion<AstNode> | undefined };
 
 export function createCompanions(generator: Generator): Companions {
-    const companions: { [key: string]: TypeCompanion<any> } = {};
+    const companions: { [key: string]: Companion<any> } = {};
 
-    for (const [key, Companion] of Object.entries(companionTypes)) {
+    for (const [key, Companion] of Object.entries(registry)) {
         companions[key] = new Companion(generator);
     }
 

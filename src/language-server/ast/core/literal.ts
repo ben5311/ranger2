@@ -2,10 +2,10 @@ import { SemanticTokenAcceptor } from 'langium';
 
 import * as ast from '../../generated/ast';
 import { CodeHighlighter } from '../CodeHighlighter';
-import { TypeCompanion } from '../TypeCompanion';
+import { Companion } from '../Companion';
 import { ValueGenerator } from '../ValueGenerator';
 
-export class LiteralCompanion extends TypeCompanion<ast.Literal> {
+export class LiteralCompanion extends Companion<ast.Literal> {
     override valueGenerator(node: ast.Literal): ValueGenerator {
         const value = ast.isANull(node) ? null : node.value;
         return new ValueGenerator(() => value);

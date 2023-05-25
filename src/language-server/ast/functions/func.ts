@@ -3,11 +3,11 @@ import { SemanticTokenAcceptor } from 'langium';
 
 import * as ast from '../../generated/ast';
 import { CodeHighlighter } from '../CodeHighlighter';
-import { TypeCompanion } from '../TypeCompanion';
+import { Companion } from '../Companion';
 
 export type FuncHover = { signature?: string; description?: string } | undefined;
 
-export abstract class FuncCompanion<FuncType extends ast.Func> extends TypeCompanion<FuncType> {
+export abstract class FuncCompanion<FuncType extends ast.Func> extends Companion<FuncType> {
     override hover(node: FuncType, highlight: CodeHighlighter): string | undefined {
         const hover = this.funcHover(node, highlight);
 

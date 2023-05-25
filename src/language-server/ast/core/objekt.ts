@@ -1,10 +1,10 @@
 import { DynamicObject } from '../../../utils/types';
 import * as ast from '../../generated/ast';
 import { CodeHighlighter } from '../CodeHighlighter';
-import { TypeCompanion } from '../TypeCompanion';
+import { Companion } from '../Companion';
 import { ValueGenerator } from '../ValueGenerator';
 
-export class ObjektCompanion extends TypeCompanion<ast.Objekt> {
+export class ObjektCompanion extends Companion<ast.Objekt> {
     override valueGenerator(node: ast.Objekt): ValueGenerator {
         return new ValueGenerator(() => {
             let result: DynamicObject = {};

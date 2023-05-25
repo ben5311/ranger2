@@ -1,10 +1,10 @@
 import * as ast from '../../generated/ast';
 import { getPropertyName, resolveReference } from '../../ranger-scope';
 import { CodeHighlighter } from '../CodeHighlighter';
-import { TypeCompanion } from '../TypeCompanion';
+import { Companion } from '../Companion';
 import { ValueGenerator } from '../ValueGenerator';
 
-export class PropertyReferenceCompanion extends TypeCompanion<ast.PropertyReference> {
+export class PropertyReferenceCompanion extends Companion<ast.PropertyReference> {
     override valueGenerator(_node: ast.PropertyReference): ValueGenerator {
         throw 'Not implemented - Properties and References are resolved in Generator.getValue() method';
     }

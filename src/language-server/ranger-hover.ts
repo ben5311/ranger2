@@ -1,30 +1,24 @@
 import {
     AstNode,
-    DocumentationProvider,
     findDeclarationNodeAtOffset,
     GrammarConfig,
     HoverProvider,
     LangiumDocument,
     LangiumServices,
     MaybePromise,
-    References,
 } from 'langium';
 import { Hover, HoverParams } from 'vscode-languageserver';
 
 import { highlighter } from './ast/CodeHighlighter';
-import { Companions, createCompanions } from './ast/registry';
+import { Companions, createCompanions } from './ast/CompanionRegistry';
 import { generator } from './ranger-generator';
 
 export class RangerHoverProvider implements HoverProvider {
-    protected readonly references: References;
     protected readonly grammarConfig: GrammarConfig;
-    protected readonly documentationProvider: DocumentationProvider;
     protected readonly companions: Companions;
 
     constructor(services: LangiumServices) {
-        this.references = services.references.References;
         this.grammarConfig = services.parser.GrammarConfig;
-        this.documentationProvider = services.documentation.DocumentationProvider;
         this.companions = createCompanions(generator);
     }
 
