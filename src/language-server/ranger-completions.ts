@@ -11,7 +11,7 @@ import {
     stream,
 } from 'langium';
 import { isKeyword, Keyword } from 'langium/lib/grammar/generated/ast';
-import path from 'path';
+import path, { ParsedPath } from 'path';
 import {
     CompletionItem,
     CompletionItemKind,
@@ -20,10 +20,9 @@ import {
     InsertTextFormat,
 } from 'vscode-languageserver';
 
-import { getDocumentDir } from '../utils/documents';
-import { Path } from '../utils/types';
 import { executeProvider, Providers } from './ast/Providers';
 import * as ast from './generated/ast';
+import { getDocumentDir } from './ranger-documents';
 
 export class RangerCompletionProvider extends DefaultCompletionProvider {
     /**
@@ -228,4 +227,8 @@ function listFilesWithPrefix(prefix: string, opts: { workingDir?: string; suffix
 
 function isDirectory(filePath: string): boolean {
     return fs.existsSync(filePath) && fs.statSync(filePath).isDirectory();
+}
+
+export interface Path extends ParsedPath {
+    path: string;
 }

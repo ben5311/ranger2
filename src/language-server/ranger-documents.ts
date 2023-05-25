@@ -1,11 +1,36 @@
 import { AssertionError } from 'assert';
 import fs from 'fs';
-import { AstNode, getDocument, isAstNode, LangiumDocument, LangiumServices } from 'langium';
+import {
+    AstNode,
+    DefaultDocumentBuilder,
+    getDocument,
+    isAstNode,
+    LangiumDocument,
+    LangiumServices,
+    LangiumSharedServices,
+} from 'langium';
 import path from 'path';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
-import { AFilePath, Document } from '../language-server/generated/ast';
+import { AFilePath, Document } from './generated/ast';
+import { generator } from './ranger-generator';
+
+export class RangerDocumentBuilder extends DefaultDocumentBuilder {
+    constructor(services: LangiumSharedServices) {
+        super(services);
+        this.onUpdate((_changed, _deleted) => generator.clearValues());
+    }
+
+    invalidateAllDocuments() {
+        const documentUris = this.langiumDocuments.all.map((doc) => doc.uri).toArray();
+        this.update(documentUris, []);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Ranger Document parser
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * A Ranger Document specification.
@@ -92,6 +117,9 @@ async function doParseDocument(opts: ParseOptions, imported: LangiumDocument[]) 
     return document;
 }
 
+/**
+ * Parse and validate a Document.
+ */
 export async function buildDocument(services: LangiumServices, filePath: string | URI) {
     const documentUri = typeof filePath === 'string' ? fileURI(filePath) : filePath;
     const document = services.shared.workspace.LangiumDocuments.getOrCreateDocument(documentUri);
@@ -100,17 +128,19 @@ export async function buildDocument(services: LangiumServices, filePath: string 
 }
 
 /**
- * Returns true if the Document has validation errors.
+ * Check if the file is a valid Ranger file.
  */
-export function hasErrors(document: LangiumDocument): boolean {
-    return !!document.diagnostics?.filter((d) => d.severity === DiagnosticSeverity.Error).length;
+export function isRangerFile(filePath: string | URI) {
+    filePath = typeof filePath === 'string' ? filePath : filePath.fsPath;
+    return !!filePath && filePath.endsWith('.ranger') && fs.existsSync(filePath);
 }
 
 /**
- * Returns true if the Document has no validation errors.
+ * Check if the Document has validation errors.
  */
-export function hasNoErrors(document: LangiumDocument): boolean {
-    return !hasErrors(document);
+export function hasErrors(document: LangiumDocument): boolean {
+    const errors = document.diagnostics?.filter((d) => d.severity === DiagnosticSeverity.Error);
+    return (errors?.length || 0) > 0;
 }
 
 /**
@@ -133,20 +163,12 @@ export function resolvePath(filePath: string | AFilePath, context: AstNode | Lan
 }
 
 /**
- * Resolve file URI relative to Document.
- */
-export function resolveURI(filePath: string | AFilePath, context: AstNode | LangiumDocument): URI {
-    const absPath = resolvePath(filePath, context);
-    return fileURI(absPath);
-}
-
-/**
  * Convert absolute file path to file path relative to Document.
  *
  * @param absolutePath Absolute file path.
  * @returns Relative file path.
  */
-export function relativePath(absolutePath: string, context: AstNode | LangiumDocument) {
+export function resolveRelativePath(absolutePath: string, context: AstNode | LangiumDocument) {
     const documentDir = getDocumentDir(context);
     let relPath = path.relative(documentDir, absolutePath);
     relPath = relPath.replace(/\\/g, '/');
@@ -162,12 +184,8 @@ export function getDocumentUri(context: AstNode | LangiumDocument): URI {
     return document.uri;
 }
 
-export function getDocumentPath(context: AstNode | LangiumDocument): string {
-    return getDocumentUri(context).fsPath;
-}
-
 export function getDocumentDir(context: AstNode | LangiumDocument): string {
-    return path.dirname(getDocumentPath(context));
+    return path.dirname(getDocumentUri(context).fsPath);
 }
 
 /**
@@ -180,9 +198,4 @@ export function fileURI(filePath: string): URI {
 
 export function parseURI(uri: string): URI {
     return URI.parse(uri);
-}
-
-export function isRangerFile(filePath: string | URI) {
-    filePath = typeof filePath === 'string' ? filePath : filePath.fsPath;
-    return !!filePath && filePath.endsWith('.ranger') && fs.existsSync(filePath);
 }

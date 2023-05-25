@@ -1,7 +1,5 @@
 import './extensions';
 
-import { ParsedPath } from 'path';
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility types
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -11,15 +9,6 @@ import { ParsedPath } from 'path';
  */
 export interface DynamicObject {
     [key: string]: any;
-}
-
-export interface Issue {
-    code: string;
-    msg: string;
-}
-
-export interface Path extends ParsedPath {
-    path: string;
 }
 
 /**

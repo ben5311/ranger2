@@ -1,8 +1,8 @@
 import * as csv from 'csv/sync';
 import fs from 'fs';
 
-import { resolvePath } from '../../../utils/documents';
 import * as ast from '../../generated/ast';
+import { resolvePath } from '../../ranger-documents';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
 

@@ -16,9 +16,9 @@ import {
 import { isObject } from 'lodash';
 import { Range } from 'vscode-languageclient';
 
-import { fileURI, isRangerFile, resolvePath } from '../utils/documents';
 import { RangerType } from './ast/Providers';
 import * as ast from './generated/ast';
+import { fileURI, isRangerFile, resolvePath } from './ranger-documents';
 import { generator } from './ranger-generator';
 
 /**

@@ -7,10 +7,10 @@ import {
     WorkspaceSymbolParams,
 } from 'vscode-languageserver';
 
-import { hasErrors } from '../utils/documents';
 import { isSimpleProperty } from './ast/core/propertyChecks';
 import { RangerType } from './ast/Providers';
 import * as ast from './generated/ast';
+import { hasErrors } from './ranger-documents';
 import { generator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 import { resolveReference } from './ranger-scope';

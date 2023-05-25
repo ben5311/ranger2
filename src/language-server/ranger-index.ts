@@ -1,32 +1,17 @@
-import {
-    AstNode,
-    AstNodeDescription,
-    AstNodeLocator,
-    DefaultDocumentBuilder,
-    DocumentBuilder,
-    IndexManager,
-    LangiumDocuments,
-    LangiumSharedServices,
-    ScopeComputation,
-} from 'langium';
+import { AstNode, AstNodeDescription, AstNodeLocator, IndexManager, LangiumDocuments } from 'langium';
 
 import { RangerType } from './ast/Providers';
-import { generator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 
 export class IndexAccess {
-    protected readonly documentBuilder: DocumentBuilder;
     protected readonly documents: LangiumDocuments;
     protected readonly indexManager: IndexManager;
     protected readonly astNodeLocator: AstNodeLocator;
-    protected readonly scopeComputation: ScopeComputation;
 
     constructor(protected services: RangerServices) {
-        this.documentBuilder = services.shared.workspace.DocumentBuilder;
         this.documents = services.shared.workspace.LangiumDocuments;
         this.indexManager = services.shared.workspace.IndexManager;
         this.astNodeLocator = services.workspace.AstNodeLocator;
-        this.scopeComputation = services.references.ScopeComputation;
     }
 
     /**
@@ -52,17 +37,5 @@ export class IndexAccess {
         }
         const doc = this.documents.getOrCreateDocument(nodeDescription.documentUri);
         return this.astNodeLocator.getAstNode(doc.parseResult.value, nodeDescription.path);
-    }
-}
-
-export class RangerDocumentBuilder extends DefaultDocumentBuilder {
-    constructor(services: LangiumSharedServices) {
-        super(services);
-        this.onUpdate((_changed, _deleted) => generator.clearValues());
-    }
-
-    invalidateAllDocuments() {
-        const documentUris = this.langiumDocuments.all.map((doc) => doc.uri).toArray();
-        this.update(documentUris, []);
     }
 }

@@ -9,7 +9,7 @@ import * as lsp from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
 import { generateOutputFile } from '../cli/generator';
-import { fileURI, hasNoErrors, parseURI } from '../utils/documents';
+import { fileURI, hasErrors, parseURI } from './ranger-documents';
 
 export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
     protected readonly config: ConfigurationProvider;
@@ -23,7 +23,7 @@ export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
         this.fileWatchers = new Set();
         services.workspace.DocumentBuilder.onBuildPhase(DocumentState.Validated, (documents, _cancelToken) => {
             documents
-                .filter(hasNoErrors)
+                .filter((doc) => !hasErrors(doc))
                 .filter((doc) => this.fileWatchers.has(doc.uri.toString()))
                 .forEach((doc) => this.generateFile(doc.uri));
         });

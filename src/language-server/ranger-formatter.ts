@@ -11,8 +11,8 @@ import {
 import { FormattingOptions, Range, TextEdit } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-import { hasErrors, relativePath, resolvePath } from '../utils/documents';
 import * as ast from './generated/ast';
+import { hasErrors, resolvePath, resolveRelativePath } from './ranger-documents';
 
 export class RangerFormatter extends AbstractFormatter {
     constructor(public formatOnErrors = false) {
@@ -143,7 +143,7 @@ function optimizeImports(document: ast.Document) {
     const optimized: string[] = [];
 
     for (let [filePath, entities] of imports) {
-        const relPath = relativePath(filePath, document);
+        const relPath = resolveRelativePath(filePath, document);
         const sortedEntities = entities.toArray().sort().join(', ');
         optimized.push(`from "${relPath}" import ${sortedEntities}`);
     }

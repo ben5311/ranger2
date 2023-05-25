@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { RangerDefinitionProvider } from '../../src/language-server/ranger-definition';
-import { fileURI } from '../../src/utils/documents';
+import { fileURI } from '../../src/language-server/ranger-documents';
 import { createTempDir, getPositionParams, parse, services } from '../../src/utils/test';
 
 const definitionProvider = new RangerDefinitionProvider(services);

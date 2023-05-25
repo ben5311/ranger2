@@ -1,13 +1,28 @@
 import fs from 'fs';
-import { AstNode, getDocument, streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
+import {
+	AstNode,
+	getDocument,
+	streamAllContents,
+	ValidationAcceptor,
+	ValidationChecks,
+} from 'langium';
 
-import { buildDocument, hasErrors, isRangerFile, resolvePath } from '../utils/documents';
-import { Issue, satisfies } from '../utils/types';
+import { satisfies } from '../utils/types';
 import { isListFunc } from './ast/core/list';
 import * as ast from './generated/ast';
+import {
+	buildDocument,
+	hasErrors,
+	isRangerFile,
+	resolvePath,
+} from './ranger-documents';
 import { generator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
-import { findEntityDeclaration, RangerScopeProvider, resolveReference } from './ranger-scope';
+import {
+	findEntityDeclaration,
+	RangerScopeProvider,
+	resolveReference,
+} from './ranger-scope';
 
 /**
  * Register custom validation checks.
@@ -29,7 +44,7 @@ export function registerValidationChecks(services: RangerServices) {
     registry.register(checks, validator);
 }
 
-export const Issues = satisfies<Record<string, Issue>>()({
+export const Issues = satisfies<Record<string, {code: string, msg: string}>>()({
     CircularReference: { code: 'CircularReference', msg: 'Circular reference' },
     DocumentHasErrors: { code: 'DocumentHasErrors', msg: 'File has errors' },
     DuplicateEntity: { code: 'DuplicateEntity', msg: 'Duplicate Entity' },

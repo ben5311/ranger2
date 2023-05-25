@@ -9,8 +9,8 @@ import {
 import { CodeActionKind, CodeActionParams, Diagnostic } from 'vscode-languageserver';
 import { CodeAction, Command } from 'vscode-languageserver-types';
 
-import { relativePath } from '../utils/documents';
 import { Document } from './generated/ast';
+import { resolveRelativePath } from './ranger-documents';
 import { Issues } from './ranger-validator';
 
 type ActionProviderFunction = (diagnostic: Diagnostic, document: LangiumDocument) => CodeAction | CodeAction[];
@@ -82,7 +82,7 @@ export class RangerActionProvider implements CodeActionProvider {
 
         return candidates.map((desc) => {
             const entityName = desc.name;
-            const filePath = relativePath(desc.documentUri.fsPath, document);
+            const filePath = resolveRelativePath(desc.documentUri.fsPath, document);
             let newText = `from "${filePath}" import ${entityName}`;
             newText = lastImportOffset ? `\n${newText}` : `${newText}\n\n`;
 

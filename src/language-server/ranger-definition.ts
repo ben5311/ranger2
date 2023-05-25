@@ -2,8 +2,8 @@ import fs from 'fs';
 import { CstNode, DefaultDefinitionProvider } from 'langium';
 import { DefinitionParams, LocationLink, Range } from 'vscode-languageserver';
 
-import { fileURI, resolvePath } from '../utils/documents';
 import * as ast from './generated/ast';
+import { fileURI, resolvePath } from './ranger-documents';
 
 export class RangerDefinitionProvider extends DefaultDefinitionProvider {
     override collectLocationLinks(cstNode: CstNode, _params: DefinitionParams) {

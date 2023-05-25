@@ -43,9 +43,9 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CodeAction } from 'vscode-languageserver-types';
 
 import { Document } from '../language-server/generated/ast';
+import { parseDocument } from '../language-server/ranger-documents';
 import { RangerFormatter } from '../language-server/ranger-formatter';
 import { createRangerServices } from '../language-server/ranger-module';
-import { parseDocument } from './documents';
 
 export const services = createRangerServices(NodeFileSystem).Ranger;
 

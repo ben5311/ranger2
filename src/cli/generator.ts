@@ -6,9 +6,9 @@ import { NodeFileSystem } from 'langium/node';
 import path from 'path';
 import * as stream from 'stream';
 
+import { DocumentSpec, parseDocument } from '../language-server/ranger-documents';
 import { Generator } from '../language-server/ranger-generator';
 import { createRangerServices } from '../language-server/ranger-module';
-import { DocumentSpec, parseDocument } from '../utils/documents';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Object Generator for use when outside of the LSP server
