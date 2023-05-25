@@ -1,7 +1,7 @@
 import dedent from 'dedent-js';
 import { describe, test } from 'vitest';
 
-import { createTempDir, parse, testQuickFix } from '../../src/utils/test';
+import { createTempDir, parseDocument, testQuickFix } from '../../src/utils/test';
 
 describe('RangerActionProvider', () => {
     describe('fixEntity', () => {
@@ -50,8 +50,8 @@ describe('RangerActionProvider', () => {
             let tempdir = createTempDir();
             let accountFile = tempdir.createFile('Account.ranger', `Entity Account {}`);
             let addressFile = tempdir.createFile('Address.ranger', `Entity Address {}`);
-            await parse({ filePath: accountFile.name });
-            await parse({ filePath: addressFile.name });
+            await parseDocument({ filePath: accountFile.name });
+            await parseDocument({ filePath: addressFile.name });
 
             await testQuickFix({
                 before: dedent`

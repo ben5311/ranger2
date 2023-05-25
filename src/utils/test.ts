@@ -42,9 +42,12 @@ import { CodeActionParams } from 'vscode-languageserver-protocol';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CodeAction } from 'vscode-languageserver-types';
 
-import { Document } from '../language-server/generated/ast';
-import { parseDocument } from '../language-server/ranger-documents';
+import * as cli from '../cli/generator';
+import { noHighlight } from '../language-server/ast/CodeHighlighter';
+import { Document, isObjekt, isProperty, Objekt } from '../language-server/generated/ast';
+import * as documents from '../language-server/ranger-documents';
 import { RangerFormatter } from '../language-server/ranger-formatter';
+import { RangerHoverProvider } from '../language-server/ranger-hover';
 import { createRangerServices } from '../language-server/ranger-module';
 
 export const services = createRangerServices(NodeFileSystem).Ranger;
@@ -116,7 +119,7 @@ type ParseInput =
 
 const random = new Random(nativeMath);
 
-export async function parse(input: ParseInput): Promise<LangiumDocument<Document> & { doc: Document }> {
+export async function parseDocument(input: ParseInput): Promise<LangiumDocument<Document> & { doc: Document }> {
     const fileExtension = services.LanguageMetaData.fileExtensions[0];
     if (typeof input === 'string') {
         input = { text: input };
@@ -128,13 +131,43 @@ export async function parse(input: ParseInput): Promise<LangiumDocument<Document
         filePath: input.filePath || `/${random.integer(1000000, 2000000)}${fileExtension}`,
         text: input.text,
     };
-    const document = await parseDocument({
+    const document = await documents.parseDocument({
         services,
         docSpec,
         strictMode: false,
         includeImports: input.includeImports,
     });
     return document;
+}
+
+export function entities(document: LangiumDocument<Document>) {
+    return document.parseResult.value.entities;
+}
+
+export function properties(context: LangiumDocument<Document> | AstNode) {
+    if ('uri' in context) {
+        const entity = context.parseResult.value.entities.first();
+        return (entity?.value as Objekt).properties;
+    }
+    if (isProperty(context)) {
+        context = context.value;
+    }
+    if (isObjekt(context)) {
+        return context.properties;
+    }
+    return [];
+}
+
+export function firstEntity(document: LangiumDocument<Document>) {
+    return entities(document).first()!;
+}
+
+export function firstProperty(document: LangiumDocument<Document> | AstNode) {
+    return properties(document).first()!;
+}
+
+export function firstValue(document: LangiumDocument<Document> | AstNode) {
+    return firstProperty(document).value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -300,7 +333,7 @@ function severityString(severity?: DiagnosticSeverity): string | undefined {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export async function testQuickFix(input: { before: string; after: string }) {
-    const document = await parse(input.before);
+    const document = await parseDocument(input.before);
     const params: CodeActionParams = {
         textDocument: document.textDocument,
         range: { start: { line: 1, character: 1 }, end: { line: 1, character: 1 } },
@@ -338,7 +371,7 @@ export interface ExpectedSymbols extends ExpectedBase {
 
 export async function expectSymbols(input: ExpectedSymbols): Promise<void> {
     const symbolProvider = services.lsp.DocumentSymbolProvider;
-    const document = await parse(input.text);
+    const document = await parseDocument(input.text);
 
     const symbols = (await symbolProvider?.getSymbols(document, textDocumentParams(document))) ?? [];
 
@@ -366,7 +399,7 @@ export async function expectSymbols(input: ExpectedSymbols): Promise<void> {
 export function expectFoldings(services: LangiumServices): (input: ExpectedBase) => Promise<void> {
     return async (input) => {
         const { output, ranges } = replaceIndices(input);
-        const document = await parse(output);
+        const document = await parseDocument(output);
         const foldingRangeProvider = services.lsp.FoldingRangeProvider;
         const foldings = (await foldingRangeProvider?.getFoldingRanges(document, textDocumentParams(document))) ?? [];
         foldings.sort((a, b) => a.startLine - b.startLine);
@@ -410,7 +443,7 @@ export interface ExpectedCompletion extends ExpectedBase {
 export function expectCompletion(services: LangiumServices): (completion: ExpectedCompletion) => Promise<void> {
     return async (expectedCompletion) => {
         const { output, indices } = replaceIndices(expectedCompletion);
-        const document = await parse(output);
+        const document = await parseDocument(output);
         const completionProvider = services.lsp.CompletionProvider;
         const offset = indices[expectedCompletion.index];
         const completions = (await completionProvider?.getCompletion(
@@ -448,7 +481,7 @@ export interface ExpectedGoToDefinition extends ExpectedBase {
 export async function expectGoToDefinition(expected: ExpectedGoToDefinition): Promise<void> {
     const definitionProvider = services.lsp.DefinitionProvider;
     const { output, indices, ranges } = replaceIndices(expected);
-    const document = await parse(output);
+    const document = await parseDocument(output);
     const positionParams = getPositionParams(document, indices[expected.index]);
 
     let locationLinks = (await definitionProvider?.getDefinition(document, positionParams)) ?? [];
@@ -500,7 +533,7 @@ export function expectFindReferences(
 ): (expectedFindReferences: ExpectedFindReferences) => Promise<void> {
     return async (expectedFindReferences) => {
         const { output, indices, ranges } = replaceIndices(expectedFindReferences);
-        const document = await parse(output);
+        const document = await parseDocument(output);
         const expectedRanges: Range[] = ranges.map((range) => ({
             start: document.textDocument.positionAt(range[0]),
             end: document.textDocument.positionAt(range[1]),
@@ -547,7 +580,7 @@ export interface ExpectedHover extends ExpectedBase {
 export function expectHover(services: LangiumServices): (expectedHover: ExpectedHover) => Promise<void> {
     return async (expectedHover) => {
         const { output, indices } = replaceIndices(expectedHover);
-        const document = await parse(output);
+        const document = await parseDocument(output);
         const hoverProvider = services.lsp.HoverProvider;
         const hover = await hoverProvider?.getHoverContent(
             document,
@@ -567,6 +600,12 @@ export function expectHover(services: LangiumServices): (expectedHover: Expected
     };
 }
 
+export const hoverProvider = new RangerHoverProvider(services);
+
+export function hover(node: any) {
+    return hoverProvider.getAstNodeHover(node, noHighlight);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Formatting
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -582,7 +621,7 @@ export async function testFormatting(expected: ExpectFormatting) {
     const formatter = services.lsp.Formatter as RangerFormatter;
     formatter.formatOnErrors = true;
 
-    const document = await parse({ text: expected.before, includeImports: false });
+    const document = await parseDocument({ text: expected.before, includeImports: false });
     const textDocument = { uri: document.uri.toString() };
 
     const options = expected.options ?? {
@@ -613,7 +652,7 @@ export interface DecodedSemanticTokensWithRanges {
 export async function highlight(input: string): Promise<DecodedSemanticTokensWithRanges> {
     const tokenProvider = services.lsp.SemanticTokenProvider!;
     const { output, ranges } = replaceIndices({ text: input });
-    const document = await parse(output);
+    const document = await parseDocument(output);
     const params: SemanticTokensParams = { textDocument: { uri: document.textDocument.uri } };
     const tokens = await tokenProvider.semanticHighlight(document, params, new CancellationTokenSource().token);
     return { tokens: SemanticTokensDecoder.decode(tokens, document), ranges };
@@ -638,6 +677,11 @@ export function expectSemanticToken(
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function createObjectGenerator(doc: string | { text: string; filePath: string }) {
+    doc = typeof doc === 'object' ? doc : { filePath: 'Test.ranger', text: doc };
+    return cli.createObjectGenerator(doc);
+}
 
 export function getPositionParams(document: LangiumDocument, position: Position | number): TextDocumentPositionParams {
     position = typeof position === 'object' ? position : document.textDocument.positionAt(position);

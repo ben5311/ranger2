@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { RangerDefinitionProvider } from '../../src/language-server/ranger-definition';
 import { fileURI } from '../../src/language-server/ranger-documents';
-import { createTempDir, getPositionParams, parse, services } from '../../src/utils/test';
+import { createTempDir, getPositionParams, parseDocument, services } from '../../src/utils/test';
 
 const definitionProvider = new RangerDefinitionProvider(services);
 
@@ -11,7 +11,7 @@ describe('RangerDefinitionProvider', () => {
         let tempdir = createTempDir();
         tempdir.createFile('User.ranger');
 
-        let document = await parse({
+        let document = await parseDocument({
             filePath: `${tempdir.name}/Test.ranger`,
             text: 'from "./User.ranger" import User',
         });

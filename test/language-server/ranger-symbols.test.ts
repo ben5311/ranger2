@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { SymbolKind } from 'vscode-languageserver';
 
 import { RangerDocumentSymbolProvider, RangerWorkspaceSymbolProvider } from '../../src/language-server/ranger-symbols';
-import { clearIndex, parse, range, services } from '../../src/utils/test';
+import { clearIndex, parseDocument, range, services } from '../../src/utils/test';
 
 beforeEach(() => {
     clearIndex();
@@ -12,7 +12,7 @@ beforeEach(() => {
 describe('RangerDocumentSymbolProvider', () => {
     test('Symbols', async () => {
         const symbolProvider = new RangerDocumentSymbolProvider(services);
-        let document = await parse(dedent`
+        let document = await parseDocument(dedent`
         Entity User {
             name: "John Doe"
             age: 28
@@ -90,7 +90,7 @@ describe('RangerDocumentSymbolProvider', () => {
 describe('RangerWorkspaceSymbolProvider', () => {
     test('Symbols', async () => {
         const symbolProvider = new RangerWorkspaceSymbolProvider(services);
-        await parse({
+        await parseDocument({
             filePath: '/User.ranger',
             text: `
             Entity User {}

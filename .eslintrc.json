@@ -19,7 +19,7 @@
         // List of [ESLint rules](https://eslint.org/docs/rules/)
         "@typescript-eslint/no-unused-vars": ["warn", {    // Disallow unused Variables
             "argsIgnorePattern": "^_",
-            "varsIgnorePattern": "^[A-Z]$"
+            "varsIgnorePattern": "^_.*|[A-Z]$"
         }],
         "prefer-const": "off",                               // Allow use let instead of const
         "@typescript-eslint/no-explicit-any": "off",         // Allow use :any type
