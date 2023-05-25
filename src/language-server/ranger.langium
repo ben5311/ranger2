@@ -32,16 +32,15 @@ EntityReference returns PropertyReference:
 
 PropertyReference returns PropertyReference:
     element=[Property:ID]
-    ({PropertyReference.previous=current} "." element=[Property:ID])*
-    ({PropertyReference.previous=current} "." element=[PropertyExtractor:ID])*;
+    ({PropertyReference.previous=current} "." element=[Property:ID])*;
 
 List returns List:
     "["
         (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?
     "]";
 
-Literal:
-    AString | ABoolean | ANumber | ADate | ATimestamp | AFilePath | ANull;
+Literal returns Literal:
+    AString | ABoolean | ANumber | ADate | ATimestamp | ANull;
 
 /**
  * "String", "Number" and "Date" cannot be used
@@ -133,6 +132,7 @@ interface Property { name: string; value: ValueOrPropertyReference }
 interface List { values: ValueOrPropertyReference[] }
 interface PropertyReference { element: @Property | @PropertyExtractor; previous?: PropertyReference }
 interface PropertyExtractor { source: Value; name: string}
+type Literal = AString | ABoolean | ANumber | ADate | ATimestamp | AFilePath | ANull
 type Value = Objekt | List | Func | Literal | PropertyExtractor
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
