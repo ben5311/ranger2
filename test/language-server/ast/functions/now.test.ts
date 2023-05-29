@@ -2,8 +2,7 @@ import dedent from 'dedent-js';
 import { range } from 'lodash';
 import { describe, expect, test } from 'vitest';
 
-import { generator as rangerGenerator } from '../../../../src/language-server/ranger-generator';
-import { createObjectGenerator, hover, parseDocument, properties } from '../../../../src/utils/test';
+import { createObjectGenerator, hover, parseDocument, properties, rangerGenerator } from '../../../../src/utils/test';
 
 describe('now()', () => {
     const document = `

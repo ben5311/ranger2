@@ -1,22 +1,21 @@
 import { MersenneTwister19937, nativeMath, Random } from 'random-js';
 
-import { Companions, createCompanions } from './ast/CompanionRegistry';
 import { ValueGenerator } from './ast/ValueGenerator';
 import * as ast from './generated/ast';
+import { RangerServices } from './ranger-module';
 import { resolveReference, ValueOrProperty } from './ranger-scope';
 
-export class Generator {
-    companions: Companions;
+export class RangerGenerator {
     cache: Map<ast.Value | undefined, any>;
     /** Stores the state of Function values. */
     valueGenerators: Map<ast.Value, ValueGenerator | undefined>;
     random: Random;
 
-    constructor(seed?: number) {
-        this.companions = createCompanions(this);
+    constructor(protected services: RangerServices, seed?: number) {
         this.cache = new Map();
         this.valueGenerators = new Map();
         this.random = new Random(seed !== undefined ? MersenneTwister19937.seed(seed) : nativeMath);
+        services.shared.workspace.DocumentBuilder.onUpdate((_changed, _deleted) => this.clearValues());
     }
 
     /**
@@ -47,7 +46,7 @@ export class Generator {
     }
 
     protected createValueGenerator(value: ast.Value) {
-        return this.companions.get(value)?.valueGenerator(value);
+        return this.services.generator.Companions.get(value).valueGenerator(value);
     }
 
     /**
@@ -80,5 +79,3 @@ export class Generator {
         this.valueGenerators.clear();
     }
 }
-
-export const generator = new Generator();

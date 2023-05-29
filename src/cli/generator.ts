@@ -7,7 +7,6 @@ import path from 'path';
 import * as stream from 'stream';
 
 import { DocumentSpec, parseDocument } from '../language-server/ranger-documents';
-import { Generator } from '../language-server/ranger-generator';
 import { createRangerServices } from '../language-server/ranger-module';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,8 +22,8 @@ type ObjectGenerator = { next(): any };
 export async function createObjectGenerator(docSpec: DocumentSpec): Promise<ObjectGenerator> {
     const services = createRangerServices(NodeFileSystem).Ranger;
     const document = await parseDocument({ services, docSpec });
-    const outputEntity = document.doc.entities[0]; // Pick the first entity of the document
-    const generator = new Generator();
+    const generator = services.generator.Generator;
+    const outputEntity = document.doc.entities.first();
     return {
         next: () => {
             const nextValue = generator.getValue(outputEntity) as object;
@@ -156,17 +155,4 @@ export function ProxyTransformer(notify: (chunk: object) => void): stream.Transf
             callback();
         },
     });
-}
-
-export async function closeWriter(...writers: stream.Writable[]): Promise<void> {
-    const promises: Promise<void>[] = [];
-    writers.forEach((writer) =>
-        promises.push(
-            new Promise((resolve, _reject) => {
-                writer.end();
-                writer.on('finish', () => resolve());
-            }),
-        ),
-    );
-    await Promise.all(promises);
 }

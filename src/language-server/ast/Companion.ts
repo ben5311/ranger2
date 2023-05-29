@@ -1,15 +1,18 @@
-import { AstNode, SemanticTokenAcceptor } from 'langium';
+import { AstNode, SemanticTokenAcceptor, ValidationCheck } from 'langium';
 
-import { Generator } from '../ranger-generator';
+import { RangerAstType } from '../generated/ast';
+import { RangerGenerator } from '../ranger-generator';
+import { RangerServices } from '../ranger-module';
 import { CodeHighlighter } from './CodeHighlighter';
 import { ValueGenerator } from './ValueGenerator';
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Companion
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 export abstract class Companion<T extends AstNode> {
-    constructor(protected generator: Generator) {}
+    checks: ValidationCheck<T>[] = [];
+    generator: RangerGenerator;
+
+    constructor(protected services: RangerServices) {
+        this.generator = services.generator.Generator;
+    }
 
     /**
      * Create the ValueGenerator for this node.
@@ -25,4 +28,14 @@ export abstract class Companion<T extends AstNode> {
      * Highlight semantic tokens for this node.
      */
     abstract highlight(node: T, highlight: SemanticTokenAcceptor): void;
+}
+
+export type CheckType = keyof RangerAstType | 'default';
+
+/**
+ * Check Decorator
+ */
+export function Check(target: Companion<any>, propertyKey: string, propertyDescriptor: PropertyDescriptor) {
+    target.checks = target.checks || [];
+    target.checks.push(propertyDescriptor.value);
 }

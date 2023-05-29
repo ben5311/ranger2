@@ -1,36 +1,11 @@
 import { AssertionError } from 'assert';
 import fs from 'fs';
-import {
-    AstNode,
-    DefaultDocumentBuilder,
-    getDocument,
-    isAstNode,
-    LangiumDocument,
-    LangiumServices,
-    LangiumSharedServices,
-} from 'langium';
+import { AstNode, getDocument, isAstNode, LangiumDocument, LangiumServices } from 'langium';
 import path from 'path';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
 import { AFilePath, Document } from './generated/ast';
-import { generator } from './ranger-generator';
-
-export class RangerDocumentBuilder extends DefaultDocumentBuilder {
-    constructor(services: LangiumSharedServices) {
-        super(services);
-        this.onUpdate((_changed, _deleted) => generator.clearValues());
-    }
-
-    invalidateAllDocuments() {
-        const documentUris = this.langiumDocuments.all.map((doc) => doc.uri).toArray();
-        this.update(documentUris, []);
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Ranger Document parser
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * A Ranger Document specification.

@@ -13,10 +13,11 @@ import {
 import { RangerGeneratedModule, RangerGeneratedSharedModule } from './generated/module';
 import { RangerActionProvider } from './ranger-actions';
 import { RangerExecuteCommandHandler } from './ranger-commands';
+import { RangerCompanions } from './ranger-companions';
 import { RangerCompletionProvider } from './ranger-completions';
 import { RangerDefinitionProvider } from './ranger-definition';
-import { RangerDocumentBuilder } from './ranger-documents';
 import { RangerFormatter } from './ranger-formatter';
+import { RangerGenerator } from './ranger-generator';
 import { RangerHoverProvider } from './ranger-hover';
 import { IndexAccess } from './ranger-index';
 import { RangerValueConverter } from './ranger-parser';
@@ -36,8 +37,12 @@ export type RangerServices = LangiumServices & RangerAddedServices;
  * Declaration of custom services - add your own service types here.
  */
 export type RangerAddedServices = {
+    generator: {
+        Generator: RangerGenerator;
+        Companions: RangerCompanions;
+    };
     validation: {
-        RangerValidator: RangerValidator;
+        Validator: RangerValidator;
     };
     workspace: {
         IndexAccess: IndexAccess;
@@ -55,9 +60,7 @@ export const RangerSharedModule: Module<LangiumSharedServices, PartialLangiumSha
         ExecuteCommandHandler: (services) => new RangerExecuteCommandHandler(services),
         LanguageServer: (services) => new RangerLanguageServer(services),
     },
-    workspace: {
-        DocumentBuilder: (services) => new RangerDocumentBuilder(services),
-    },
+    workspace: {},
 };
 
 /**
@@ -66,6 +69,10 @@ export const RangerSharedModule: Module<LangiumSharedServices, PartialLangiumSha
  * selected services, while the custom services must be fully specified.
  */
 export const RangerModule: Module<RangerServices, PartialLangiumServices & RangerAddedServices> = {
+    generator: {
+        Generator: (services) => new RangerGenerator(services),
+        Companions: (services) => new RangerCompanions(services),
+    },
     lsp: {
         CodeActionProvider: (services) => new RangerActionProvider(services),
         CompletionProvider: (services) => new RangerCompletionProvider(services),
@@ -82,7 +89,7 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
         ScopeProvider: (services) => new RangerScopeProvider(services),
     },
     validation: {
-        RangerValidator: (services) => new RangerValidator(services),
+        Validator: (services) => new RangerValidator(services),
     },
     workspace: {
         IndexAccess: (services) => new IndexAccess(services),

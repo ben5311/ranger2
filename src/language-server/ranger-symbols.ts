@@ -11,11 +11,18 @@ import { isSimpleProperty } from './ast/core/propertyChecks';
 import { RangerType } from './ast/Providers';
 import * as ast from './generated/ast';
 import { hasErrors } from './ranger-documents';
-import { generator } from './ranger-generator';
+import { RangerGenerator } from './ranger-generator';
 import { RangerServices } from './ranger-module';
 import { resolveReference } from './ranger-scope';
 
 export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider {
+    generator: RangerGenerator;
+
+    constructor(protected services: RangerServices) {
+        super(services);
+        this.generator = services.generator.Generator;
+    }
+
     public override getSymbol(document: LangiumDocument, astNode: AstNode): DocumentSymbol[] {
         if (hasErrors(document)) {
             return [];
@@ -25,7 +32,7 @@ export class RangerDocumentSymbolProvider extends DefaultDocumentSymbolProvider 
         const nameNode = this.nameProvider.getNameNode(astNode);
         if (nameNode && node) {
             const name = this.nameProvider.getName(astNode);
-            const value = isSimpleProperty(astNode) ? generator.getValueAsJson(astNode) : undefined;
+            const value = isSimpleProperty(astNode) ? this.generator.getValueAsJson(astNode) : undefined;
             return [
                 {
                     kind: getSymbolKind(astNode.$type as RangerType),

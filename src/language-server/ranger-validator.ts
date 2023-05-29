@@ -1,35 +1,19 @@
 import fs from 'fs';
-import {
-	AstNode,
-	getDocument,
-	streamAllContents,
-	ValidationAcceptor,
-	ValidationChecks,
-} from 'langium';
+import { AstNode, getDocument, streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
 
 import { satisfies } from '../utils/types';
 import { isListFunc } from './ast/core/list';
 import * as ast from './generated/ast';
-import {
-	buildDocument,
-	hasErrors,
-	isRangerFile,
-	resolvePath,
-} from './ranger-documents';
-import { generator } from './ranger-generator';
+import { buildDocument, hasErrors, isRangerFile, resolvePath } from './ranger-documents';
 import { RangerServices } from './ranger-module';
-import {
-	findEntityDeclaration,
-	RangerScopeProvider,
-	resolveReference,
-} from './ranger-scope';
+import { findEntityDeclaration, RangerScopeProvider, resolveReference } from './ranger-scope';
 
 /**
  * Register custom validation checks.
  */
 export function registerValidationChecks(services: RangerServices) {
     const registry = services.validation.ValidationRegistry;
-    const validator = services.validation.RangerValidator;
+    const validator = services.validation.Validator;
     const checks: ValidationChecks<ast.RangerAstType> = {
         CsvFunc: [validator.checkCsvFunc_InvalidCsvFile],
         Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_NoDuplicateImports],
@@ -44,7 +28,7 @@ export function registerValidationChecks(services: RangerServices) {
     registry.register(checks, validator);
 }
 
-export const Issues = satisfies<Record<string, {code: string, msg: string}>>()({
+export const Issues = satisfies<Record<string, { code: string; msg: string }>>()({
     CircularReference: { code: 'CircularReference', msg: 'Circular reference' },
     DocumentHasErrors: { code: 'DocumentHasErrors', msg: 'File has errors' },
     DuplicateEntity: { code: 'DuplicateEntity', msg: 'Duplicate Entity' },
@@ -53,7 +37,7 @@ export const Issues = satisfies<Record<string, {code: string, msg: string}>>()({
     EntityDoesNotExist: { code: 'EntityDoesNotExist', msg: 'Entity does not exist' },
     FileDoesNotExist: { code: 'FileDoesNotExist', msg: 'File does not exist' },
     FilePathWithBackslashes: { code: 'FilePathWithBackslashes', msg: 'File paths should only contain forward slashes' },
-    InvalidCsvFile: { code: 'InvalidCsvFile', msg: 'File does not contain valid CSV values (or delimiter is wrong)' },
+    InvalidCsvFile: { code: 'InvalidCsvFile', msg: 'File does not contain valid CSV values or delimiter is wrong' },
     MapToList_NotBasedOnAListFunc: { code: 'MapToList.NotBasedOnAListFunc', msg: 'Unsupported value source' },
     NameNotCapitalized: { code: 'NameNotCapitalized', msg: 'Entity name should start with a capital' },
     ReferenceError: { code: 'linking-error', msg: 'Could not resolve reference' },
@@ -77,7 +61,7 @@ export class RangerValidator {
         const filePath = resolvePath(func.filePath.value, func)!;
         if (!fs.existsSync(filePath)) return;
         try {
-            generator.getValue(func);
+            this.services.generator.Generator.getValue(func);
         } catch (error) {
             accept('error', issue.msg, { node: func, property: 'filePath', code: issue.code });
         }

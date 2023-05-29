@@ -19,7 +19,8 @@ import { Range } from 'vscode-languageclient';
 import { RangerType } from './ast/Providers';
 import * as ast from './generated/ast';
 import { fileURI, isRangerFile, resolvePath } from './ranger-documents';
-import { generator } from './ranger-generator';
+import { RangerGenerator } from './ranger-generator';
+import { RangerServices } from './ranger-module';
 
 /**
  * Implements Import mechanism and Class member scoping for Entities.
@@ -39,6 +40,13 @@ import { generator } from './ranger-generator';
  *
  */
 export class RangerScopeProvider extends DefaultScopeProvider {
+    generator: RangerGenerator;
+
+    constructor(protected services: RangerServices) {
+        super(services);
+        this.generator = services.generator.Generator;
+    }
+
     /**
      * Computes the elements that can be reached from a certain reference context (aka The Scope).
      */
@@ -159,7 +167,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
             return this.createScopeForNodes(value.properties);
         }
 
-        let generated = generator.getValue(value);
+        let generated = this.generator.getValue(value);
         if (isObject(generated)) {
             return this.createPropertyExtractors(value, generated, propRef);
         }

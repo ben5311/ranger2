@@ -4,22 +4,21 @@ import {
     GrammarConfig,
     HoverProvider,
     LangiumDocument,
-    LangiumServices,
     MaybePromise,
 } from 'langium';
 import { Hover, HoverParams } from 'vscode-languageserver';
 
 import { highlighter } from './ast/CodeHighlighter';
-import { Companions, createCompanions } from './ast/CompanionRegistry';
-import { generator } from './ranger-generator';
+import { RangerCompanions } from './ranger-companions';
+import { RangerServices } from './ranger-module';
 
 export class RangerHoverProvider implements HoverProvider {
     protected readonly grammarConfig: GrammarConfig;
-    protected readonly companions: Companions;
+    protected readonly companions: RangerCompanions;
 
-    constructor(services: LangiumServices) {
+    constructor(services: RangerServices) {
         this.grammarConfig = services.parser.GrammarConfig;
-        this.companions = createCompanions(generator);
+        this.companions = services.generator.Companions;
     }
 
     getHoverContent(document: LangiumDocument, params: HoverParams): MaybePromise<Hover | undefined> {
@@ -51,6 +50,6 @@ export class RangerHoverProvider implements HoverProvider {
      * Returns Hover text for node.
      */
     getAstNodeHover(node: AstNode, highlight = highlighter): string | undefined {
-        return this.companions.get(node)?.hover(node, highlight);
+        return this.companions.get(node).hover(node, highlight);
     }
 }

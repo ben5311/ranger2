@@ -2,6 +2,8 @@ import { AstNode } from 'langium';
 
 import * as ast from '../generated/ast';
 
+export type RangerType = keyof ast.RangerAstType;
+
 /**
  * Create a Mapping from AstNode types to Functions.
  *
@@ -21,9 +23,6 @@ import * as ast from '../generated/ast';
  * ...
  * ```
  */
-
-export type RangerType = keyof ast.RangerAstType;
-
 export type Providers<ReturnT = void> = {
     [Key in keyof ast.RangerAstType]?: (node: ast.RangerAstType[Key], ...params: any[]) => ReturnT;
 };

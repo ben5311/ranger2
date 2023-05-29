@@ -51,6 +51,7 @@ import { RangerHoverProvider } from '../language-server/ranger-hover';
 import { createRangerServices } from '../language-server/ranger-module';
 
 export const services = createRangerServices(NodeFileSystem).Ranger;
+export const rangerGenerator = services.generator.Generator;
 
 export function clearIndex() {
     const documentUris = services.shared.workspace.LangiumDocuments.all.map((doc) => doc.uri).toArray();
