@@ -1,8 +1,8 @@
 import { AstNode } from 'langium';
 
-import * as ast from '../generated/ast';
+import { RangerAstType, reflection } from '../generated/ast';
 
-export type RangerType = keyof ast.RangerAstType;
+export type RangerType = keyof RangerAstType;
 
 /**
  * Create a Mapping from AstNode types to Functions.
@@ -24,13 +24,13 @@ export type RangerType = keyof ast.RangerAstType;
  * ```
  */
 export type Providers<ReturnT = void> = {
-    [Key in keyof ast.RangerAstType]?: (node: ast.RangerAstType[Key], ...params: any[]) => ReturnT;
+    [Key in keyof RangerAstType]?: (node: RangerAstType[Key], ...params: any[]) => ReturnT;
 };
 
 export function executeProvider<R>(providers: Providers<R>, node: AstNode, ...params: any[]): R | undefined {
     const astNode: any = node; // Suppress type checker
     for (let [Type, provider] of Object.entries(providers)) {
-        if (ast.reflection.isInstance(astNode, Type)) {
+        if (reflection.isInstance(astNode, Type)) {
             const ret = provider(astNode, ...params);
             return ret;
         }

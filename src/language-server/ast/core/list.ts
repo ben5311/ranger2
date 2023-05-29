@@ -1,15 +1,15 @@
-import * as ast from '../../generated/ast';
+import { Func, isFunc, isList, List, Value } from '../../generated/ast';
 import { CodeHighlighter } from '../CodeHighlighter';
 import { Companion } from '../Companion';
 import { ValueGenerator } from '../ValueGenerator';
 
-export class ListCompanion extends Companion<ast.List> {
-    override valueGenerator(node: ast.List): ValueGenerator {
-        return new ValueGenerator(() => node.values.map((val) => this.generator.getValue(val)));
+export class ListCompanion extends Companion<List> {
+    override valueGenerator(list: List): ValueGenerator {
+        return new ValueGenerator(() => list.values.map((val) => this.generator.getValue(val)));
     }
 
-    override hover(node: ast.List, highlight: CodeHighlighter): string | undefined {
-        return highlight(this.generator.getValueAsJson(node));
+    override hover(list: List, highlight: CodeHighlighter): string | undefined {
+        return highlight(this.generator.getValueAsJson(list));
     }
 
     override highlight(): void {
@@ -17,8 +17,8 @@ export class ListCompanion extends Companion<ast.List> {
     }
 }
 
-export type ListFunc = ast.Func & { list: ast.List };
+export type ListFunc = Func & { list: List };
 
-export function isListFunc(value?: ast.Value): value is ListFunc {
-    return ast.isFunc(value) && 'list' in value && ast.isList(value.list);
+export function isListFunc(value?: Value): value is ListFunc {
+    return isFunc(value) && 'list' in value && isList(value.list);
 }

@@ -1,7 +1,10 @@
 import { AstNode } from 'langium';
 
-import { Companion } from './ast/Companion';
+import { Companion, NoOpCompanion } from './ast/Companion';
+import { DocumentCompanion } from './ast/core/document';
 import { EntityCompanion } from './ast/core/entity';
+import { FilePathCompanion } from './ast/core/filePath';
+import { ImportCompanion } from './ast/core/import';
 import { ListCompanion } from './ast/core/list';
 import { LiteralCompanion } from './ast/core/literal';
 import { ObjektCompanion } from './ast/core/objekt';
@@ -9,6 +12,7 @@ import { PropertyCompanion } from './ast/core/property';
 import { PropertyExtractorCompanion } from './ast/core/propertyExtractor';
 import { PropertyReferenceCompanion } from './ast/core/propertyReference';
 import { CsvFuncCompanion } from './ast/functions/csv';
+import { MapFuncCompanion } from './ast/functions/map';
 import { MapToDictCompanion } from './ast/functions/mapToDict';
 import { MapToListCompanion } from './ast/functions/mapToList';
 import { NowFuncCompanion } from './ast/functions/now';
@@ -21,15 +25,11 @@ import { UuidFuncCompanion } from './ast/functions/uuid';
 import { RangerAstType } from './generated/ast';
 import { RangerServices } from './ranger-module';
 
-class NoOpCompanion extends Companion<AstNode> {
-    valueGenerator = () => undefined;
-    hover = () => undefined;
-    highlight = () => undefined;
-}
-
 type CompanionClass = new (...args: any[]) => Companion<any>;
 
 export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass } = {
+    Document: DocumentCompanion,
+    Import: ImportCompanion,
     Entity: EntityCompanion,
     List: ListCompanion,
     Literal: LiteralCompanion,
@@ -43,10 +43,11 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     AString: LiteralCompanion,
     ADate: LiteralCompanion,
     ATimestamp: LiteralCompanion,
-    AFilePath: LiteralCompanion,
+    AFilePath: FilePathCompanion,
     ANull: LiteralCompanion,
     // Functions
     CsvFunc: CsvFuncCompanion,
+    MapFunc: MapFuncCompanion,
     MapToDict: MapToDictCompanion,
     MapToList: MapToListCompanion,
     NowFunc: NowFuncCompanion,
@@ -56,13 +57,10 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     SequenceFunc: SequenceFuncCompanion,
     TodayFunc: TodayFuncCompanion,
     UuidFunc: UuidFuncCompanion,
-    // No op
-    Document: NoOpCompanion,
-    Import: NoOpCompanion,
+    // Other
     Value: NoOpCompanion,
     ValueOrPropertyReference: NoOpCompanion,
     Func: NoOpCompanion,
-    MapFunc: NoOpCompanion,
     RandomFunc: NoOpCompanion,
     Range: NoOpCompanion,
     Dictionary: NoOpCompanion,
@@ -70,15 +68,15 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
 };
 
 export class RangerCompanions {
-    companions: { [key: string]: Companion<any> } = {};
+    companions = new Map<string, Companion<any>>();
 
     constructor(services: RangerServices) {
-        for (const [key, Companion] of Object.entries(companionRegistry)) {
-            this.companions[key] = new Companion(services);
+        for (const [type, Companion] of Object.entries(companionRegistry)) {
+            this.companions.set(type, new Companion(services));
         }
     }
 
     get(node: AstNode): Companion<AstNode> {
-        return this.companions[node.$type];
+        return this.companions.get(node.$type)!;
     }
 }

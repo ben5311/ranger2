@@ -1,32 +1,7 @@
-import fs from 'fs';
-import { AstNode, getDocument, streamAllContents, ValidationAcceptor, ValidationChecks } from 'langium';
+import { ValidationCheck } from 'langium';
 
 import { satisfies } from '../utils/types';
-import { isListFunc } from './ast/core/list';
-import * as ast from './generated/ast';
-import { buildDocument, hasErrors, isRangerFile, resolvePath } from './ranger-documents';
 import { RangerServices } from './ranger-module';
-import { findEntityDeclaration, RangerScopeProvider, resolveReference } from './ranger-scope';
-
-/**
- * Register custom validation checks.
- */
-export function registerValidationChecks(services: RangerServices) {
-    const registry = services.validation.ValidationRegistry;
-    const validator = services.validation.Validator;
-    const checks: ValidationChecks<ast.RangerAstType> = {
-        CsvFunc: [validator.checkCsvFunc_InvalidCsvFile],
-        Document: [validator.checkDocument_NoDuplicateEntities, validator.checkDocument_NoDuplicateImports],
-        Entity: [validator.checkEntity_NameStartsWithCapital],
-        AFilePath: [validator.checkFilePath_FileExists, validator.checkFilePath_NoBackslashes],
-        Import: [validator.checkImport_CorrectFileExtension, validator.checkImport_NoValidationErrors],
-        MapFunc: [validator.checkMapFunc_NoCircularReferences],
-        MapToList: [validator.checkMapToList_IsBasedOnAListFunc],
-        Objekt: [validator.checkObject_NoDuplicateProperties, validator.checkObject_NoReferenceToParentObject],
-        PropertyReference: [validator.checkPropertyReference_NoCircularReferences],
-    };
-    registry.register(checks, validator);
-}
 
 export const Issues = satisfies<Record<string, { code: string; msg: string }>>()({
     CircularReference: { code: 'CircularReference', msg: 'Circular reference' },
@@ -37,7 +12,7 @@ export const Issues = satisfies<Record<string, { code: string; msg: string }>>()
     EntityDoesNotExist: { code: 'EntityDoesNotExist', msg: 'Entity does not exist' },
     FileDoesNotExist: { code: 'FileDoesNotExist', msg: 'File does not exist' },
     FilePathWithBackslashes: { code: 'FilePathWithBackslashes', msg: 'File paths should only contain forward slashes' },
-    InvalidCsvFile: { code: 'InvalidCsvFile', msg: 'File does not contain valid CSV values or delimiter is wrong' },
+    InvalidCsvFile: { code: 'InvalidCsvFile', msg: 'Invalid CSV file, check delimiter.' },
     MapToList_NotBasedOnAListFunc: { code: 'MapToList.NotBasedOnAListFunc', msg: 'Unsupported value source' },
     NameNotCapitalized: { code: 'NameNotCapitalized', msg: 'Entity name should start with a capital' },
     ReferenceError: { code: 'linking-error', msg: 'Could not resolve reference' },
@@ -45,197 +20,14 @@ export const Issues = satisfies<Record<string, { code: string; msg: string }>>()
 });
 
 /**
- * Implementation of custom validations.
+ * Register custom validation checks.
  */
-export class RangerValidator {
-    scopeProvider: RangerScopeProvider;
-    seen: Set<string>;
-
-    constructor(protected services: RangerServices) {
-        this.scopeProvider = services.references.ScopeProvider as RangerScopeProvider;
-        this.seen = new Set();
+export function registerValidationChecks(services: RangerServices) {
+    const registry = services.validation.ValidationRegistry;
+    const companions = services.generator.Companions.companions;
+    const checks: Record<string, ValidationCheck[]> = {};
+    for (let [type, companion] of companions) {
+        checks[type] = companion.checks.map((check) => check.bind(companion));
     }
-
-    checkCsvFunc_InvalidCsvFile(func: ast.CsvFunc, accept: ValidationAcceptor) {
-        const issue = Issues.InvalidCsvFile;
-        const filePath = resolvePath(func.filePath.value, func)!;
-        if (!fs.existsSync(filePath)) return;
-        try {
-            this.services.generator.Generator.getValue(func);
-        } catch (error) {
-            accept('error', issue.msg, { node: func, property: 'filePath', code: issue.code });
-        }
-    }
-
-    checkDocument_NoDuplicateEntities(document: ast.Document, accept: ValidationAcceptor) {
-        const issue = Issues.DuplicateEntity;
-        const entities = this.scopeProvider.doGetScope(document, 'Entity').getAllElements().toArray();
-        const duplicates = this.findDuplicates(entities);
-        for (let dup of duplicates) {
-            accept('error', `${issue.msg}: '${dup.name}'`, {
-                ...findEntityDeclaration(dup.node as ast.Entity, document)!,
-                code: issue.code,
-            });
-        }
-    }
-
-    checkDocument_NoDuplicateImports(document: ast.Document, accept: ValidationAcceptor) {
-        const issue = Issues.DuplicateImport;
-        const importedEntities: { name: string; node: ast.PropertyReference }[] = [];
-
-        for (let imp of document.imports) {
-            for (let entityRef of imp.entities) {
-                const absPath = resolvePath(imp.filePath, document);
-                const entityName = entityRef.element.ref?.name;
-                const fullyQualifiedName = `${absPath}$${entityName}`;
-                if (entityName) {
-                    importedEntities.push({ name: fullyQualifiedName, node: entityRef });
-                }
-            }
-        }
-
-        const duplicates = this.findDuplicates(importedEntities, false);
-        for (let dup of duplicates) {
-            accept('warning', issue.msg, { node: dup.node, property: 'element', code: issue.code });
-        }
-    }
-
-    checkEntity_NameStartsWithCapital(entity: ast.Entity, accept: ValidationAcceptor): void {
-        if (entity.name) {
-            const issue = Issues.NameNotCapitalized;
-            const firstChar = entity.name.substring(0, 1);
-            if (firstChar.toUpperCase() !== firstChar) {
-                accept('warning', issue.msg, { node: entity, property: 'name', code: issue.code });
-            }
-        }
-    }
-
-    checkFilePath_FileExists(filePath: ast.AFilePath, accept: ValidationAcceptor) {
-        const issue = Issues.FileDoesNotExist;
-        const path = resolvePath(filePath, filePath);
-        if (!fs.existsSync(path)) {
-            accept('error', `${issue.msg}: '${path}'`, { node: filePath, property: 'value', code: issue.code });
-        }
-    }
-
-    checkFilePath_NoBackslashes(filePath: ast.AFilePath, accept: ValidationAcceptor) {
-        const issue = Issues.FilePathWithBackslashes;
-        if (filePath.$cstNode?.text.includes('\\')) {
-            accept('warning', issue.msg, { node: filePath, property: 'value', code: issue.code });
-        }
-    }
-
-    checkImport_CorrectFileExtension(import_: ast.Import, accept: ValidationAcceptor) {
-        const issue = Issues.WrongFileExtension;
-        const filePath = import_.filePath.value;
-        if (filePath && !filePath.endsWith('.ranger')) {
-            accept('error', issue.msg, { node: import_.filePath, property: 'value', code: issue.code });
-        }
-    }
-
-    async checkImport_NoValidationErrors(imp: ast.Import, accept: ValidationAcceptor) {
-        const relPath = imp.filePath.value;
-        const absPath = resolvePath(relPath, imp);
-        if (!isRangerFile(absPath)) {
-            return;
-        }
-
-        const importId = `${getDocument(imp).uri.fsPath} - ${imp.$cstNode?.text}`;
-        if (this.seen.has(importId)) {
-            // Break circular import check loop
-            return;
-        }
-
-        this.seen.add(importId);
-        const document = await buildDocument(this.services, absPath);
-        this.seen.delete(importId);
-
-        if (hasErrors(document)) {
-            accept('error', `${Issues.DocumentHasErrors.msg}: '${relPath}'`, {
-                node: imp.filePath,
-                property: 'value',
-                code: Issues.DocumentHasErrors.code,
-            });
-        }
-    }
-
-    checkMapFunc_NoCircularReferences(func: ast.MapFunc, accept: ValidationAcceptor): void {
-        const issue = Issues.CircularReference;
-        if (func === resolveReference(func.source)) {
-            accept('error', issue.msg, { node: func, property: 'source', code: issue.code });
-        }
-    }
-
-    checkMapToList_IsBasedOnAListFunc(mapFunc: ast.MapToList, accept: ValidationAcceptor): void {
-        const issue = Issues.MapToList_NotBasedOnAListFunc;
-        const sourceValue = resolveReference(mapFunc.source);
-        if (!isListFunc(sourceValue)) {
-            accept('error', issue.msg, {
-                node: mapFunc,
-                property: 'source',
-                code: issue.code,
-                data: {
-                    suggestedChange: {
-                        range: mapFunc.list.$cstNode?.range,
-                        newText:
-                            '{' +
-                            mapFunc.list.values.map((val, i) => `"val${i}": ${val.$cstNode?.text}`).join(', ') +
-                            '}',
-                    },
-                },
-            });
-        }
-    }
-
-    checkObject_NoDuplicateProperties(object: ast.Objekt, accept: ValidationAcceptor): void {
-        const issue = Issues.DuplicateProperty;
-        const duplicates = this.findDuplicates(object.properties);
-        for (let dup of duplicates) {
-            accept('error', `${issue.msg}: '${dup.name}'`, { node: dup, property: 'name', code: issue.code });
-        }
-    }
-
-    checkObject_NoReferenceToParentObject(object: ast.Objekt, accept: ValidationAcceptor) {
-        this.doCheckNoReferenceToParent(object, object, accept);
-    }
-
-    doCheckNoReferenceToParent(parent: ast.Objekt, current: ast.Objekt, accept: ValidationAcceptor, node?: AstNode) {
-        for (const ref of streamAllContents(current)
-            .filter(ast.isPropertyReference)
-            .filter((ref) => ref.$containerProperty !== 'previous')) {
-            const resolved = resolveReference(ref);
-
-            if (resolved === parent) {
-                accept('error', Issues.CircularReference.msg, {
-                    node: node || ref,
-                    code: Issues.CircularReference.code,
-                });
-            } else if (ast.isObjekt(resolved)) {
-                const refId = `${getDocument(current).uri.fsPath} - ${ref.$cstNode?.text}`;
-                if (this.seen.has(refId)) {
-                    return;
-                }
-
-                this.seen.add(refId);
-                this.doCheckNoReferenceToParent(parent, resolved, accept, node || ref);
-                this.seen.delete(refId);
-            }
-        }
-    }
-
-    checkPropertyReference_NoCircularReferences(ref: ast.PropertyReference, accept: ValidationAcceptor): void {
-        const issue = Issues.CircularReference;
-        resolveReference(ref, (_) => {
-            accept('error', issue.msg, { node: ref, code: issue.code });
-        });
-    }
-
-    findDuplicates<T extends { name: string }>(elements: T[], includeFirst = true): T[] {
-        return elements
-            .groupBy((el) => el.name)
-            .valuesArray()
-            .filter((arr) => arr.length >= 2)
-            .map((arr) => arr.slice(includeFirst ? 0 : 1))
-            .flat();
-    }
+    registry.register(checks);
 }

@@ -1,19 +1,19 @@
 import { SemanticTokenAcceptor } from 'langium';
 
-import * as ast from '../../generated/ast';
+import { Property } from '../../generated/ast';
 import { resolveReference } from '../../ranger-scope';
 import { CodeHighlighter } from '../CodeHighlighter';
 import { Companion } from '../Companion';
 import { ValueGenerator } from '../ValueGenerator';
 
-export class PropertyCompanion extends Companion<ast.Property> {
-    override valueGenerator(_node: ast.Property): ValueGenerator {
+export class PropertyCompanion extends Companion<Property> {
+    override valueGenerator(_property: Property): ValueGenerator {
         throw 'Not implemented - Properties and References are resolved in Generator.getValue() method';
     }
 
-    override hover(node: ast.Property, highlight: CodeHighlighter): string | undefined {
-        const name = node.name;
-        const value = resolveReference(node.value);
+    override hover(property: Property, highlight: CodeHighlighter): string | undefined {
+        const name = property.name;
+        const value = resolveReference(property.value);
         if (value) {
             let valueText = this.generator.getValueAsJson(value);
             return highlight(`${name}: ${valueText}`);
@@ -21,7 +21,7 @@ export class PropertyCompanion extends Companion<ast.Property> {
         return undefined;
     }
 
-    override highlight(node: ast.Property, highlight: SemanticTokenAcceptor): void {
-        highlight({ node, property: 'name', type: 'property' });
+    override highlight(property: Property, highlight: SemanticTokenAcceptor): void {
+        highlight({ node: property, property: 'name', type: 'property' });
     }
 }

@@ -1,19 +1,19 @@
 import { SemanticTokenAcceptor } from 'langium';
 
-import * as ast from '../../generated/ast';
+import { isANull, Literal } from '../../generated/ast';
 import { CodeHighlighter } from '../CodeHighlighter';
 import { Companion } from '../Companion';
 import { ValueGenerator } from '../ValueGenerator';
 
-export class LiteralCompanion extends Companion<ast.Literal> {
-    override valueGenerator(node: ast.Literal): ValueGenerator {
-        const value = ast.isANull(node) ? null : node.value;
+export class LiteralCompanion extends Companion<Literal> {
+    override valueGenerator(literal: Literal): ValueGenerator {
+        const value = isANull(literal) ? null : literal.value;
         return new ValueGenerator(() => value);
     }
 
-    override hover(node: ast.Literal, highlight: CodeHighlighter): string | undefined {
-        let type = node.$type.substring(1).toLowerCase(); // Strip leading A from AString, ANumber, ...
-        let value = node.$cstNode?.text;
+    override hover(literal: Literal, highlight: CodeHighlighter): string | undefined {
+        let type = literal.$type.substring(1).toLowerCase(); // Strip leading A from AString, ANumber, ...
+        let value = literal.$cstNode?.text;
 
         if (type === 'null') {
             return highlight('null');
@@ -22,18 +22,18 @@ export class LiteralCompanion extends Companion<ast.Literal> {
         }
     }
 
-    override highlight(node: ast.Literal, highlight: SemanticTokenAcceptor): void {
-        switch (node.$type) {
+    override highlight(literal: Literal, highlight: SemanticTokenAcceptor): void {
+        switch (literal.$type) {
             case 'ANumber':
-                return highlight({ node, property: 'value', type: 'number' });
+                return highlight({ node: literal, property: 'value', type: 'number' });
             case 'ABoolean':
             case 'ANull':
-                return highlight({ node, property: 'value', type: 'keyword' });
+                return highlight({ node: literal, property: 'value', type: 'keyword' });
             case 'AString':
             case 'ADate':
             case 'ATimestamp':
             case 'AFilePath':
-                return highlight({ node, property: 'value', type: 'string' });
+                return highlight({ node: literal, property: 'value', type: 'string' });
         }
     }
 }

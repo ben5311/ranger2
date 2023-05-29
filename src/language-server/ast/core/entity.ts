@@ -1,10 +1,23 @@
-import { SemanticTokenAcceptor } from 'langium';
+import { SemanticTokenAcceptor, ValidationAcceptor } from 'langium';
 
-import * as ast from '../../generated/ast';
+import { Entity } from '../../generated/ast';
+import { Issues } from '../../ranger-validator';
+import { Check } from '../Companion';
 import { PropertyCompanion } from './property';
 
 export class EntityCompanion extends PropertyCompanion {
-    override highlight(node: ast.Entity, highlight: SemanticTokenAcceptor): void {
-        highlight({ node, keyword: 'Entity', type: 'keyword' });
+    override highlight(entity: Entity, highlight: SemanticTokenAcceptor): void {
+        highlight({ node: entity, keyword: 'Entity', type: 'keyword' });
+    }
+
+    @Check
+    nameStartsWithCapital(entity: Entity, accept: ValidationAcceptor) {
+        if (entity.name) {
+            const issue = Issues.NameNotCapitalized;
+            const firstChar = entity.name.substring(0, 1);
+            if (firstChar.toUpperCase() !== firstChar) {
+                accept('warning', issue.msg, { node: entity, property: 'name', code: issue.code });
+            }
+        }
     }
 }

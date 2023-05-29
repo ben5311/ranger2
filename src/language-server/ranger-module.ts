@@ -25,7 +25,7 @@ import { RangerScopeProvider } from './ranger-scope';
 import { RangerLanguageServer } from './ranger-server';
 import { RangerDocumentSymbolProvider, RangerWorkspaceSymbolProvider, WorkspaceSymbolProvider } from './ranger-symbols';
 import { RangerTokenProvider } from './ranger-tokens';
-import { RangerValidator, registerValidationChecks } from './ranger-validator';
+import { registerValidationChecks } from './ranger-validator';
 
 /**
  * Union of Langium default services and your custom services - use this as constructor parameter
@@ -40,9 +40,6 @@ export type RangerAddedServices = {
     generator: {
         Generator: RangerGenerator;
         Companions: RangerCompanions;
-    };
-    validation: {
-        Validator: RangerValidator;
     };
     workspace: {
         IndexAccess: IndexAccess;
@@ -87,9 +84,6 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
     },
     references: {
         ScopeProvider: (services) => new RangerScopeProvider(services),
-    },
-    validation: {
-        Validator: (services) => new RangerValidator(services),
     },
     workspace: {
         IndexAccess: (services) => new IndexAccess(services),

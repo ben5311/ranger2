@@ -1,16 +1,16 @@
 import dedent from 'dedent-js';
 
-import * as ast from '../../generated/ast';
+import { TodayFunc } from '../../generated/ast';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
 
-export class TodayFuncCompanion extends FuncCompanion<ast.TodayFunc> {
-    override valueGenerator(_node: ast.TodayFunc): ValueGenerator {
+export class TodayFuncCompanion extends FuncCompanion<TodayFunc> {
+    override valueGenerator(_func: TodayFunc): ValueGenerator {
         const today = new Date().toISOString().substring(0, 10);
         return new ValueGenerator(() => today);
     }
 
-    override funcHover(_node: ast.TodayFunc): FuncHover {
+    override funcHover(_func: TodayFunc): FuncHover {
         return {
             description: dedent`
             Retrieves the current date.

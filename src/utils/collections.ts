@@ -54,3 +54,12 @@ Set.prototype.toArray = function () {
 Map.prototype.valuesArray = function () {
     return Array.from(this.values());
 };
+
+export function findDuplicates<T extends { name: string }>(elements: T[], includeFirst = true): T[] {
+    return elements
+        .groupBy((el) => el.name)
+        .valuesArray()
+        .filter((arr) => arr.length >= 2)
+        .map((arr) => arr.slice(includeFirst ? 0 : 1))
+        .flat();
+}

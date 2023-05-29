@@ -1,10 +1,10 @@
-import * as ast from '../../generated/ast';
+import { RandomOfList } from '../../generated/ast';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
 
-export class RandomOfListCompanion extends FuncCompanion<ast.RandomOfList> {
-    override valueGenerator(node: ast.RandomOfList): ValueGenerator {
-        const list = node.list.values;
+export class RandomOfListCompanion extends FuncCompanion<RandomOfList> {
+    override valueGenerator(randomFunc: RandomOfList): ValueGenerator {
+        const list = randomFunc.list.values;
 
         return new ValueGenerator((data) => {
             const randomIndex = this.generator.random.integer(0, list.length - 1);
@@ -13,7 +13,7 @@ export class RandomOfListCompanion extends FuncCompanion<ast.RandomOfList> {
         });
     }
 
-    override funcHover(_node: ast.RandomOfList): FuncHover {
+    override funcHover(_randomFunc: RandomOfList): FuncHover {
         return {
             description: `Generates a random element of the provided arguments.`,
         };

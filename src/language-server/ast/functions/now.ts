@@ -1,16 +1,16 @@
 import dedent from 'dedent-js';
 
-import * as ast from '../../generated/ast';
+import { NowFunc } from '../../generated/ast';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
 
-export class NowFuncCompanion extends FuncCompanion<ast.NowFunc> {
-    override valueGenerator(_node: ast.NowFunc): ValueGenerator {
+export class NowFuncCompanion extends FuncCompanion<NowFunc> {
+    override valueGenerator(_func: NowFunc): ValueGenerator {
         const now = new Date().toISOString();
         return new ValueGenerator(() => now);
     }
 
-    override funcHover(_node: ast.NowFunc): FuncHover {
+    override funcHover(_func: NowFunc): FuncHover {
         return {
             description: dedent`
             Retrieves the current timestamp.
