@@ -1,10 +1,11 @@
 import dedent from 'dedent-js';
-import { ValidationAcceptor } from 'langium';
+import { LangiumDocument, ValidationAcceptor } from 'langium';
+import { CodeAction, CodeActionKind, Diagnostic } from 'vscode-languageserver';
 
 import { MapToList } from '../../generated/ast';
 import { resolveReference } from '../../ranger-scope';
 import { Issues } from '../../ranger-validator';
-import { Check } from '../Companion';
+import { Check, Fix } from '../Companion';
 import { isListFunc } from '../core/list';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
@@ -70,5 +71,18 @@ export class MapToListCompanion extends FuncCompanion<MapToList> {
                 },
             });
         }
+    }
+
+    @Fix(Issues.MapToList_NotBasedOnAListFunc.code)
+    convertTo_MapToObject(diagnostic: Diagnostic, document: LangiumDocument): CodeAction {
+        return {
+            title: 'Convert to map(=>{})',
+            kind: CodeActionKind.QuickFix,
+            diagnostics: [diagnostic],
+            isPreferred: true,
+            edit: {
+                changes: { [document.textDocument.uri]: [diagnostic.data.suggestedChange] },
+            },
+        };
     }
 }

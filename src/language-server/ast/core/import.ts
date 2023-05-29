@@ -1,9 +1,10 @@
-import { getDocument, ValidationAcceptor } from 'langium';
+import { getDocument, LangiumDocument, ValidationAcceptor } from 'langium';
+import { CodeAction, CodeActionKind, Diagnostic } from 'vscode-languageserver';
 
-import { Import } from '../../generated/ast';
-import { buildDocument, hasErrors, isRangerFile, resolvePath } from '../../ranger-documents';
+import { Document, Import } from '../../generated/ast';
+import { buildDocument, hasErrors, isRangerFile, resolvePath, resolveRelativePath } from '../../ranger-documents';
 import { Issues } from '../../ranger-validator';
-import { Check, NoOpCompanion } from '../Companion';
+import { Check, Fix, NoOpCompanion } from '../Companion';
 
 export class ImportCompanion extends NoOpCompanion {
     seen = new Set<string>();
@@ -41,5 +42,35 @@ export class ImportCompanion extends NoOpCompanion {
                 code: Issues.DocumentHasErrors.code,
             });
         }
+    }
+
+    @Fix(Issues.ReferenceError.code)
+    suggestImport(diagnostic: Diagnostic, document: LangiumDocument): CodeAction[] {
+        const lastImportOffset = (document.parseResult.value as Document).imports.last()?.$cstNode?.end ?? 0;
+        const lastImportPos = document.textDocument.positionAt(lastImportOffset);
+        const range = { start: lastImportPos, end: lastImportPos };
+
+        const candidates = this.indexManager
+            .allElements('Entity')
+            .filter((desc) => desc.name === diagnostic.data.refText)
+            .toArray();
+
+        return candidates.map((desc) => {
+            const entityName = desc.name;
+            const filePath = resolveRelativePath(desc.documentUri.fsPath, document);
+            let newText = `from "${filePath}" import ${entityName}`;
+            newText = lastImportOffset ? `\n${newText}` : `${newText}\n\n`;
+
+            return {
+                title: `Import '${entityName}' from '${filePath}'`,
+                kind: CodeActionKind.QuickFix,
+                diagnostics: [diagnostic],
+                edit: {
+                    changes: {
+                        [document.textDocument.uri]: [{ range, newText }],
+                    },
+                },
+            };
+        });
     }
 }
