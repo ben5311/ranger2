@@ -6,7 +6,7 @@ import { FuncCompanion, FuncHover } from './func';
 
 export class TodayFuncCompanion extends FuncCompanion<TodayFunc> {
     override valueGenerator(_func: TodayFunc): ValueGenerator {
-        const today = new Date().toISOString().substring(0, 10);
+        const today = new Date().isoDate();
         return new ValueGenerator(() => today);
     }
 

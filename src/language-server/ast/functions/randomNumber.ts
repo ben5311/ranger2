@@ -1,10 +1,10 @@
-import { RandomOfRange } from '../../generated/ast';
+import { RandomNumber } from '../../generated/ast';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
 
-export class RandomOfRangeCompanion extends FuncCompanion<RandomOfRange> {
-    override valueGenerator(randomFunc: RandomOfRange): ValueGenerator | undefined {
-        const [minVal, maxVal] = [randomFunc.range.min, randomFunc.range.max];
+export class RandomNumberCompanion extends FuncCompanion<RandomNumber> {
+    override valueGenerator(random: RandomNumber): ValueGenerator | undefined {
+        const [minVal, maxVal] = [random.min, random.max];
         if (!minVal || !maxVal) {
             return undefined; // can be undefined if there are parsing errors
         }
@@ -23,8 +23,8 @@ export class RandomOfRangeCompanion extends FuncCompanion<RandomOfRange> {
         });
     }
 
-    override funcHover(randomFunc: RandomOfRange): FuncHover {
-        let [min, max] = [randomFunc.range.min.value, randomFunc.range.max.value];
+    override funcHover(random: RandomNumber): FuncHover {
+        let [min, max] = [random.min.value, random.max.value];
         return {
             description: `Generates a random number between \`${min}\` and \`${max}\` (ends inclusive).`,
         };

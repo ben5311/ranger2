@@ -16,8 +16,9 @@ import { MapFuncCompanion } from './ast/functions/map';
 import { MapToDictCompanion } from './ast/functions/mapToDict';
 import { MapToListCompanion } from './ast/functions/mapToList';
 import { NowFuncCompanion } from './ast/functions/now';
+import { RandomDateCompanion } from './ast/functions/randomDate';
+import { RandomNumberCompanion } from './ast/functions/randomNumber';
 import { RandomOfListCompanion } from './ast/functions/randomOfList';
-import { RandomOfRangeCompanion } from './ast/functions/randomOfRange';
 import { RegexCompanion } from './ast/functions/regex';
 import { SequenceFuncCompanion } from './ast/functions/sequence';
 import { TodayFuncCompanion } from './ast/functions/today';
@@ -51,8 +52,10 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     MapToDict: MapToDictCompanion,
     MapToList: MapToListCompanion,
     NowFunc: NowFuncCompanion,
+    RandomNumber: RandomNumberCompanion,
+    RandomDate: RandomDateCompanion,
+    RandomTimestamp: RandomDateCompanion,
     RandomOfList: RandomOfListCompanion,
-    RandomOfRange: RandomOfRangeCompanion,
     Regex: RegexCompanion,
     SequenceFunc: SequenceFuncCompanion,
     TodayFunc: TodayFuncCompanion,
@@ -62,7 +65,6 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     ValueOrPropertyReference: NoOpCompanion,
     Func: NoOpCompanion,
     RandomFunc: NoOpCompanion,
-    Range: NoOpCompanion,
     Dictionary: NoOpCompanion,
     KeyValuePair: NoOpCompanion,
 };

@@ -2,5 +2,5 @@ Entity CreditCard {
     type: random("Visa", "Mastercard", "American Express", "Diners Club")
     number: map(type => [/4\d{15}/, /5\d{15}/, /3[4567]\d{13}/, /(3|5)(\d{13}|\d{15})/])
     cvv: /\d{3}/
-    expiresOn: "2028-06-30"   // TODO: Random time values; Now + 1..5 years
+    expiresOn: "2023-06-30".."2028-06-30"   // TODO: Random time values; Now + 1..5 years
 }

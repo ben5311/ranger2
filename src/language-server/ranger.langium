@@ -72,9 +72,6 @@ ANull:
 // Other data structures
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Range:
-    min=ANumber ".." max=ANumber;
-
 ListWithoutBrackets returns List:
     (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?;
 
@@ -92,11 +89,21 @@ Func:
     RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc | Regex | TodayFunc | NowFunc;
 
 RandomFunc:
-    RandomOfRange | RandomOfList;     // TODO: Allow references for range and list
-RandomOfRange:
-    "random" "(" range=Range ")";
+    RandomNumber | RandomDate | RandomTimestamp | RandomOfList;     // TODO: Allow references for range and list
+RandomNumber:
+    "random" "(" NumberRange ")" | NumberRange;
+RandomDate:
+    "random" "(" DateRange ")" | DateRange ;
+RandomTimestamp:
+    "random" "(" TimestampRange ")" | TimestampRange;
 RandomOfList:
     "random" "(" list=(List|ListWithoutBrackets) ")";
+fragment NumberRange:
+    min=ANumber ".." max=ANumber;
+fragment DateRange:
+    min=(ADate|TodayFunc)  ".." max=(ADate|TodayFunc) ;
+fragment TimestampRange:
+    min=(ATimestamp|NowFunc)  ".." max=(ATimestamp|NowFunc) ;
 
 MapFunc:
     MapToList | MapToDict;
