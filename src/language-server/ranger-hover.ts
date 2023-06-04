@@ -29,12 +29,13 @@ export class RangerHoverProvider implements HoverProvider {
 
         const offset = document.textDocument.offsetAt(params.position);
         const cstNode = findDeclarationNodeAtOffset(rootNode, offset, this.grammarConfig.nameRegexp);
+        const astNode = cstNode?.element;
 
-        if (cstNode && cstNode.offset + cstNode.length > offset && cstNode.element) {
-            let hover = this.getAstNodeHover(cstNode.element, highlighter);
+        if (cstNode && cstNode.offset + cstNode.length > offset && astNode) {
+            let hover = this.getAstNodeHover(astNode, highlighter);
             if (hover !== undefined) {
                 return {
-                    range: cstNode.range,
+                    range: astNode.$cstNode?.range,
                     contents: {
                         kind: 'markdown',
                         value: hover,
