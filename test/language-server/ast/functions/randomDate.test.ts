@@ -11,8 +11,8 @@ describe('random(date..date)', () => {
             const generator = await createObjectGenerator(`
             Entity Test {
                 date1: random("2020-01-01".."2020-12-31")
-                date2: random("2020-01-01"..today())
-                date3: random(today().."2100-12-31")
+                date2: random("2020-01-01"..today)
+                date3: random(today.."2100-12-31")
             }`);
 
             range(20).forEach((_) => {
@@ -37,8 +37,8 @@ describe('random(date..date)', () => {
             const generator = await createObjectGenerator(`
             Entity Test {
                 timestamp1: random("2020-01-01T10:00:00Z".."2020-12-31T19:00:00Z")
-                timestamp2: random("2020-01-01T10:00:00Z"..now())
-                timestamp3: random(now().."2100-12-31T00:00:00Z")
+                timestamp2: random("2020-01-01T10:00:00Z"..now)
+                timestamp3: random(now.."2100-12-31T00:00:00Z")
             }`);
 
             range(20).forEach((_) => {

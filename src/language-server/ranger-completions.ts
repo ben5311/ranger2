@@ -46,8 +46,8 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'csv(delimiter,noHeader)': 'csv("$0", delimiter=",", noHeader)',
         'sequence()': 'sequence(1)',
         'uuid()': 'uuid()',
-        'today()': 'today()',
-        'now()': 'now()',
+        today: 'today',
+        now: 'now',
     };
     DocumentSnippets: Record<string, string> = {
         '//': '// $0',

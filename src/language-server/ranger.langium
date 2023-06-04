@@ -125,10 +125,10 @@ Regex:
     value=REGEXLITERAL;
 
 TodayFunc:
-    {infer TodayFunc} "today" "(" ")";
+    {infer TodayFunc} "today";
 
 NowFunc:
-    {infer NowFunc} "now" "(" ")";
+    {infer NowFunc} "now";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Interfaces

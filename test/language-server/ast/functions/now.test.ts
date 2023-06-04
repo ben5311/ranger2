@@ -4,10 +4,10 @@ import { describe, expect, test } from 'vitest';
 
 import { createObjectGenerator, hover, parseDocument, properties, rangerGenerator } from '../../../../src/utils/test';
 
-describe('now()', () => {
+describe('now', () => {
     const document = `
     Entity Test {
-        timestamp: now()
+        timestamp: now
     }`;
     const today = new Date().toISOString().substring(0, 10);
 
@@ -31,7 +31,7 @@ describe('now()', () => {
         expect(hover(timestamp)).toBe(`timestamp: "${nowTimestamp}"`);
 
         expect(hover(timestamp.value)?.trim()).toBe(dedent`
-        now()
+        now
         \n---\n
         Retrieves the current timestamp.
 

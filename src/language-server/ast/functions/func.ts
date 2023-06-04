@@ -22,7 +22,7 @@ export abstract class FuncCompanion<FuncType extends Func> extends Companion<Fun
     }
 
     override highlight(func: Func, highlight: SemanticTokenAcceptor): void {
-        const match = func.$cstNode?.text?.match(/([\w_]+)\(/);
+        const match = func.$cstNode?.text?.match(/([\w_]+)\(?/);
         if (match) highlight({ node: func, keyword: match[1], type: 'keyword' });
     }
 

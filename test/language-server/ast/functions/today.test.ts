@@ -4,10 +4,10 @@ import { describe, expect, test } from 'vitest';
 
 import { createObjectGenerator, hover, parseDocument, properties } from '../../../../src/utils/test';
 
-describe('today()', () => {
+describe('today', () => {
     const document = `
     Entity Test {
-        date: today()
+        date: today
     }`;
     const today = new Date().toISOString().substring(0, 10);
 
@@ -29,7 +29,7 @@ describe('today()', () => {
         expect(hover(date)).toBe(`date: "${today}"`);
 
         expect(hover(date.value)).toBe(dedent`
-        today()
+        today
         \n---\n
         Retrieves the current date.
 
