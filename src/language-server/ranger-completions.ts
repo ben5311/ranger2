@@ -48,6 +48,8 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'uuid()': 'uuid()',
         today: 'today',
         now: 'now',
+        'today.plus()': 'today.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)',
+        'now.plus()': 'now.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)',
     };
     DocumentSnippets: Record<string, string> = {
         '//': '// $0',

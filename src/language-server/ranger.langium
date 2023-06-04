@@ -125,10 +125,11 @@ Regex:
     value=REGEXLITERAL;
 
 TodayFunc:
-    {infer TodayFunc} "today";
-
+    "today" ("." "minus" "(" minusDuration=Duration ")")? ("." "plus" "(" plusDuration=Duration ")")?;
 NowFunc:
-    {infer NowFunc} "now";
+    "now"   ("." "minus" "(" minusDuration=Duration ")")? ("." "plus" "(" plusDuration=Duration ")")? ;
+Duration:
+    ((days=NUMBER "DAYS") | (months=NUMBER "MONTHS") | (weeks=NUMBER "WEEKS") | (years=NUMBER "YEARS"))*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Interfaces

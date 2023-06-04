@@ -6,10 +6,17 @@ export {};
 
 declare global {
     interface Date {
+        plusDays(days: number): Date;
         isoDate(): string;
         isoTimestamp(): string;
     }
 }
+
+Date.prototype.plusDays = function (days: number) {
+    const result = new Date(this);
+    result.setDate(this.getDate() + days);
+    return result;
+};
 
 Date.prototype.isoDate = function () {
     const timestamp = this.isoTimestamp();

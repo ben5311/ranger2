@@ -2,6 +2,7 @@ import { AstNode } from 'langium';
 
 import { Companion, NoOpCompanion } from './ast/Companion';
 import { DocumentCompanion } from './ast/core/document';
+import { DurationCompanion } from './ast/core/duration';
 import { EntityCompanion } from './ast/core/entity';
 import { FilePathCompanion } from './ast/core/filePath';
 import { ImportCompanion } from './ast/core/import';
@@ -21,7 +22,6 @@ import { RandomNumberCompanion } from './ast/functions/randomNumber';
 import { RandomOfListCompanion } from './ast/functions/randomOfList';
 import { RegexCompanion } from './ast/functions/regex';
 import { SequenceFuncCompanion } from './ast/functions/sequence';
-import { TodayFuncCompanion } from './ast/functions/today';
 import { UuidFuncCompanion } from './ast/functions/uuid';
 import { RangerAstType } from './generated/ast';
 import { RangerServices } from './ranger-module';
@@ -52,13 +52,13 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     MapToDict: MapToDictCompanion,
     MapToList: MapToListCompanion,
     NowFunc: NowFuncCompanion,
+    TodayFunc: NowFuncCompanion,
     RandomNumber: RandomNumberCompanion,
     RandomDate: RandomDateCompanion,
     RandomTimestamp: RandomDateCompanion,
     RandomOfList: RandomOfListCompanion,
     Regex: RegexCompanion,
     SequenceFunc: SequenceFuncCompanion,
-    TodayFunc: TodayFuncCompanion,
     UuidFunc: UuidFuncCompanion,
     // Other
     Value: NoOpCompanion,
@@ -67,6 +67,7 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     RandomFunc: NoOpCompanion,
     Dictionary: NoOpCompanion,
     KeyValuePair: NoOpCompanion,
+    Duration: DurationCompanion,
 };
 
 export class RangerCompanions {

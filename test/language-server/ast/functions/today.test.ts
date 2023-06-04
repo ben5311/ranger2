@@ -7,9 +7,12 @@ import { createObjectGenerator, hover, parseDocument, properties } from '../../.
 describe('today', () => {
     const document = `
     Entity Test {
-        date: today
+        today1: today
+        today2: today.minus(1 DAYS 1 MONTHS 1 WEEKS 1 YEARS).plus(1 DAYS 1 MONTHS 1 WEEKS 1 YEARS)
+        tomorrow: today.plus(1 DAYS)
     }`;
-    const today = new Date().toISOString().substring(0, 10);
+    const today = new Date().isoDate();
+    const tomorrow = new Date().plusDays(1).isoDate();
 
     test('Generate', async () => {
         const generator = await createObjectGenerator(document);
@@ -17,18 +20,20 @@ describe('today', () => {
         range(20).forEach((_) => {
             const output = generator.next();
 
-            expect(output.date).toBe(today);
+            expect(output.today1).toBe(today);
+            expect(output.today2).toBe(today);
+            expect(output.tomorrow).toBe(tomorrow);
         });
     });
 
     test('Hover', async () => {
         let doc = await parseDocument(document);
 
-        let [date] = properties(doc);
+        let [today1] = properties(doc);
 
-        expect(hover(date)).toBe(`date: "${today}"`);
+        expect(hover(today1)).toBe(`today1: "${today}"`);
 
-        expect(hover(date.value)).toBe(dedent`
+        expect(hover(today1.value)).toBe(dedent`
         today
         \n---\n
         Retrieves the current date.

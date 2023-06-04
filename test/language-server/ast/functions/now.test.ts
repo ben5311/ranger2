@@ -7,9 +7,12 @@ import { createObjectGenerator, hover, parseDocument, properties, rangerGenerato
 describe('now', () => {
     const document = `
     Entity Test {
-        timestamp: now
+        now1: now
+        now2: now.minus(1 DAYS 1 MONTHS 1 WEEKS 1 YEARS).plus(1 DAYS 1 MONTHS 1 WEEKS 1 YEARS)
+        tomorrow: now.plus(1 DAYS)
     }`;
-    const today = new Date().toISOString().substring(0, 10);
+    const today = new Date().isoDate();
+    const tomorrow = new Date().plusDays(1).isoDate();
 
     test('Generate', async () => {
         const generator = await createObjectGenerator(document);
@@ -17,20 +20,24 @@ describe('now', () => {
         range(20).forEach((_) => {
             const output = generator.next();
 
-            expect(output.timestamp.substring(0, 10)).toBe(today);
-            expect(output.timestamp).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/);
+            expect(output.now1).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/);
+            expect(output.now2).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/);
+            expect(output.tomorrow).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/);
+            expect(output.now1.substring(0, 10)).toBe(today);
+            expect(output.now2.substring(0, 10)).toBe(today);
+            expect(output.tomorrow.substring(0, 10)).toBe(tomorrow);
         });
     });
 
     test('Hover', async () => {
         let doc = await parseDocument(document);
 
-        let [timestamp] = properties(doc);
-        const nowTimestamp = rangerGenerator.getValue(timestamp);
+        let [now1] = properties(doc);
+        const nowTimestamp = rangerGenerator.getValue(now1);
 
-        expect(hover(timestamp)).toBe(`timestamp: "${nowTimestamp}"`);
+        expect(hover(now1)).toBe(`now1: "${nowTimestamp}"`);
 
-        expect(hover(timestamp.value)?.trim()).toBe(dedent`
+        expect(hover(now1.value)?.trim()).toBe(dedent`
         now
         \n---\n
         Retrieves the current timestamp.
