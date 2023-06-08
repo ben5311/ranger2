@@ -1,9 +1,6 @@
 # Ranger: A test data generator
 
-There are many libraries out there that generate fake data to facilitate testing.
-
-However, Ranger takes a different approach.
-Instead of providing pre-built data, it enables users to create customized test data for their specific use case using the **Ranger language**.
+Ranger is a test data generator that lets you create customized, correlated test data using the  **Ranger language**.
 
 This example Ranger file
 
@@ -25,24 +22,22 @@ produces such an output
 {"age":39,"gender":"male","firstname":"Robert","lastname":"Parker"}
 ```
 
-Note that each individual's first name corresponds to their gender.
+Find more examples [here](examples).
 
 ## How does it work?
 
-Using the Ranger language, you can design test entities specific to your needs in a `.ranger` file. Once you've configured your entities, you can generate test data in one of two ways:
+You design test entities specific to your needs in a `.ranger` file. Then, there are two ways to generate test data:
 
-* Use the Ranger command line interface to create CSV or JSONL files containing the data.
-* Utilize the JavaScript API to generate JavaScript objects and integrate them directly into your code.
+* Use the Ranger CLI to create CSV or JSONL files.
+* Use the JavaScript API to generate JS objects and integrate them into your code.
 
-## Installation
-
-### Command Line Interface
+## Command Line Interface
 
 To setup the Ranger Command Line Interface (CLI), you have two options.
 
 **Option 1**: Download one of the [prebuilt binaries](https://github.com/ben5311/ranger2/releases) (Windows and Linux  only).
 
-**Option 2**: Install [Node.js](https://nodejs.org/) and execute `npm install -g ben5311/ranger2`.
+**Option 2**: Install [Node.js](https://nodejs.org/) and execute `npm install -g ben5311/ranger2`. #FIXME!
 
 To test it, create new file `Customer.ranger` and paste the following content into the file:
 
@@ -71,13 +66,23 @@ It will generate 100'000 rows and save the output to file `generated/Customer.js
 Output file generated successfully: generated/Customer.jsonl
 ```
 
-### Visual Studio Code
+## Visual Studio Code
 
-To get editing assistance for `.ranger` files, you may
-use the Visual Studio Code editor with its Ranger extension.
+To get editing assistance for `.ranger` files, use the Ranger extension in Visual Studio Code.
+
+### Supported Features
+
+* Auto completion
+* Go to definition
+* Hover
+* Validations
+* Quick Fixes
+* Code formatting
+
+### Setup
 
 1. Install [Visual Studio Code](https://code.visualstudio.com/).
-2. Install the VS Code [Ranger extension](https://marketplace.visualstudio.com/items?itemName=bheimann.ranger).
+2. Install the [Ranger extension](https://marketplace.visualstudio.com/items?itemName=bheimann.ranger).
 3. Open a folder in VS Code.
 4. Create new file `Customer.ranger`.
 5. Paste the following content into the file
@@ -100,7 +105,7 @@ use the Visual Studio Code editor with its Ranger extension.
 
 ### What's in the folder
 
-This folder contains all necessary files for the VS Code Ranger extension.
+This folder contains all necessary files for the VS Code Ranger extension and the CLI.
 
 It's built using the [Langium](https://langium.org/) framework.
 
