@@ -18,7 +18,7 @@ import { MapToDictCompanion } from './ast/functions/mapToDict';
 import { MapToListCompanion } from './ast/functions/mapToList';
 import { NowFuncCompanion } from './ast/functions/now';
 import { RandomDateCompanion } from './ast/functions/randomDate';
-import { RandomNumberCompanion } from './ast/functions/randomNumber';
+import { RandomNormalCompanion, RandomNumberCompanion } from './ast/functions/randomNumber';
 import { RandomOfListCompanion } from './ast/functions/randomOfList';
 import { RegexCompanion } from './ast/functions/regex';
 import { SequenceFuncCompanion } from './ast/functions/sequence';
@@ -57,6 +57,7 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     RandomDate: RandomDateCompanion,
     RandomTimestamp: RandomDateCompanion,
     RandomOfList: RandomOfListCompanion,
+    RandomNormal: RandomNormalCompanion,
     Regex: RegexCompanion,
     SequenceFunc: SequenceFuncCompanion,
     UuidFunc: UuidFuncCompanion,

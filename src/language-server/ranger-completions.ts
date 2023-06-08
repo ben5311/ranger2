@@ -39,6 +39,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'Entity {}': 'Entity $0 {\n\t\n}',
         'random()': 'random($0)',
         'random(a..b)': 'random($1..$0)',
+        'randomNormal(mean,std)': 'randomNormal(mean=$1, std=$0)',
         'map(=>[])': 'map($1 => [$0])',
         'map(=>{})': 'map($1 => {$0})',
         'csv()': 'csv("$0")',
@@ -47,8 +48,8 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'sequence()': 'sequence(1)',
         'uuid()': 'uuid()',
         today: 'today',
-        now: 'now',
         'today.plus()': 'today.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)',
+        now: 'now',
         'now.plus()': 'now.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)',
     };
     DocumentSnippets: Record<string, string> = {
@@ -68,7 +69,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         const offset = textDocument.offsetAt(params.position);
         const acceptor: CompletionAcceptor = (value) => {
             const completionItem = this.fillCompletionItem(textDocument, offset, value);
-            if (completionItem) {
+            if (completionItem && !items.some((item) => item.label === completionItem.label)) {
                 items.push(completionItem);
             }
         };
@@ -141,7 +142,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
                     detail: 'Snippet',
                     insertText: value,
                     insertTextFormat: InsertTextFormat.Snippet,
-                    sortText: `-1000${index}`,
+                    sortText: '-1' + String(index).padStart(5, '0'),
                 });
             });
         }
@@ -170,7 +171,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
                     detail: 'Snippet',
                     insertText: value,
                     insertTextFormat: InsertTextFormat.Snippet,
-                    sortText: `-0000${index}`,
+                    sortText: '-0' + String(index).padStart(5, '0'),
                 });
                 matched = true;
             }

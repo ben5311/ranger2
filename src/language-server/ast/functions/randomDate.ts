@@ -6,14 +6,13 @@ import { FuncCompanion, FuncHover } from './func';
 export class RandomDateCompanion extends FuncCompanion<RandomDate | RandomTimestamp> {
     override valueGenerator(func: RandomDate | RandomTimestamp): ValueGenerator | undefined {
         const [min, max] = this.resolveMinMax(func);
-        const minEpochTime = date(min).getTime();
-        const maxEpochTime = date(max).getTime();
+        const minDate = date(min);
+        const maxDate = date(max);
 
         return new ValueGenerator(() => {
-            const randomEpochTime = this.generator.random.integer(minEpochTime, maxEpochTime);
-            const randomDate = new Date(randomEpochTime);
+            const randomDate = this.generator.random.date(minDate, maxDate);
 
-            if (isRandomDate(func)) {
+            if (this.isDate(func)) {
                 return randomDate.isoDate();
             } else {
                 return randomDate.isoTimestamp();
@@ -23,7 +22,7 @@ export class RandomDateCompanion extends FuncCompanion<RandomDate | RandomTimest
 
     override funcHover(func: RandomDate | RandomTimestamp): FuncHover {
         const [min, max] = this.resolveMinMax(func);
-        const type = isRandomDate(func) ? 'date' : 'timestamp';
+        const type = this.isDate(func) ? 'date' : 'timestamp';
         return {
             description: `Generates a random ${type} between \`"${min}"\` and \`"${max}"\` (ends inclusive).`,
         };
@@ -33,5 +32,9 @@ export class RandomDateCompanion extends FuncCompanion<RandomDate | RandomTimest
         const min = this.generator.getValue(func.min) as string;
         const max = this.generator.getValue(func.max) as string;
         return [min, max];
+    }
+
+    private isDate(func: RandomDate | RandomTimestamp): boolean {
+        return isRandomDate(func);
     }
 }

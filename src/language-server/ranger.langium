@@ -31,8 +31,7 @@ EntityReference returns PropertyReference:
     element=[Property:ID];
 
 PropertyReference returns PropertyReference:
-    element=[Property:ID]
-    ({PropertyReference.previous=current} "." element=[Property:ID])*;
+    element=[Property:ID] ({PropertyReference.previous=current} "." element=[Property:ID])*;
 
 List returns List:
     "["
@@ -89,21 +88,24 @@ Func:
     RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc | Regex | TodayFunc | NowFunc;
 
 RandomFunc:
-    RandomNumber | RandomDate | RandomTimestamp | RandomOfList;     // TODO: Allow references for range and list
+    RandomNumber | RandomDate | RandomTimestamp | RandomOfList | RandomNormal;
 RandomNumber:
-    "random" "(" NumberRange ")" | NumberRange;
+    "random" "(" NumberRange ")" | NumberRange;     // TODO: Allow references for range and list
 RandomDate:
     "random" "(" DateRange ")" | DateRange ;
 RandomTimestamp:
     "random" "(" TimestampRange ")" | TimestampRange;
 RandomOfList:
     "random" "(" list=(List|ListWithoutBrackets) ")";
+RandomNormal:
+    "randomNormal" "(" "mean=" mean=ANumber "," "std=" std=ANumber ")";
+
 fragment NumberRange:
     min=ANumber ".." max=ANumber;
 fragment DateRange:
-    min=(ADate|TodayFunc)  ".." max=(ADate|TodayFunc) ;
+    min=(ADate|TodayFunc)  ".." max=(ADate|TodayFunc);
 fragment TimestampRange:
-    min=(ATimestamp|NowFunc)  ".." max=(ATimestamp|NowFunc) ;
+    min=(ATimestamp|NowFunc)  ".." max=(ATimestamp|NowFunc);
 
 MapFunc:
     MapToList | MapToDict;
@@ -113,7 +115,7 @@ MapToDict:
     "map" "(" source=PropertyReference "=>" dictionary=Dictionary ")";
 
 CsvFunc:
-    "csv" "(" filePath=AFilePath (",""delimiter=" delimiter=STRING)? ("," noHeader?="noHeader")? ")";
+    "csv" "(" filePath=AFilePath ("," "delimiter=" delimiter=STRING)? ("," noHeader?="noHeader")? ")";
 
 SequenceFunc:
     "sequence" "(" start=ANumber ")";
