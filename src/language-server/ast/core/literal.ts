@@ -7,7 +7,7 @@ import { ValueGenerator } from '../ValueGenerator';
 
 export class LiteralCompanion extends Companion<Literal> {
     override valueGenerator(literal: Literal): ValueGenerator {
-        const value = isANull(literal) ? null : literal.value;
+        const value = getLiteralValue(literal);
         return new ValueGenerator(() => value);
     }
 
@@ -36,4 +36,8 @@ export class LiteralCompanion extends Companion<Literal> {
                 return highlight({ node: literal, property: 'value', type: 'string' });
         }
     }
+}
+
+export function getLiteralValue(literal: Literal) {
+    return isANull(literal) ? null : literal.value;
 }

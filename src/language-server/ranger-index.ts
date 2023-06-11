@@ -31,7 +31,10 @@ export class IndexAccess {
             .toArray();
     }
 
-    loadAstNode(nodeDescription: AstNodeDescription): AstNode | undefined {
+    loadAstNode(nodeDescription?: AstNodeDescription): AstNode | undefined {
+        if (!nodeDescription) {
+            return undefined;
+        }
         if (nodeDescription.node) {
             return nodeDescription.node;
         }

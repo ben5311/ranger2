@@ -16,6 +16,7 @@ export const Issues = satisfies<Record<string, { code: string; msg: string }>>()
     MapToList_NotBasedOnAListFunc: { code: 'MapToList.NotBasedOnAListFunc', msg: 'Unsupported value source' },
     NameNotCapitalized: { code: 'NameNotCapitalized', msg: 'Entity name should start with a capital' },
     ReferenceError: { code: 'linking-error', msg: 'Could not resolve reference' },
+    TemplateSyntaxError: { code: 'TemplateSyntaxError', msg: 'Template syntax error' },
     WrongFileExtension: { code: 'WrongFileExtension', msg: 'File path should end with .ranger' },
 });
 

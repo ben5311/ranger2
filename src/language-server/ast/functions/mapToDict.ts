@@ -1,18 +1,13 @@
 import dedent from 'dedent-js';
 
-import { MapToDict } from '../../generated/ast';
+import { Dictionary, MapToDict } from '../../generated/ast';
+import { getLiteralValue } from '../core/literal';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
 
 export class MapToDictCompanion extends FuncCompanion<MapToDict> {
     override valueGenerator(mapFunc: MapToDict): ValueGenerator {
-        const map = new Map();
-
-        for (let pair of mapFunc.dictionary.pairs) {
-            const key = this.generator.getValue(pair.key);
-            const value = pair.value;
-            map.set(key, value);
-        }
+        const map = dictToMap(mapFunc.dictionary);
 
         return new ValueGenerator(() => {
             const source = this.generator.getValue(mapFunc.source);
@@ -38,4 +33,19 @@ export class MapToDictCompanion extends FuncCompanion<MapToDict> {
 
         return { description };
     }
+}
+
+export function dictToMap(dictionary?: Dictionary): Map<any, any> {
+    const map = new Map();
+    if (!dictionary) {
+        return map;
+    }
+
+    for (let pair of dictionary.pairs) {
+        const key = getLiteralValue(pair.key);
+        const value = pair.value;
+        map.set(key, value);
+    }
+
+    return map;
 }

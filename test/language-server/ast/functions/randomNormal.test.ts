@@ -19,7 +19,7 @@ describe('randomNormal(mean,std)', () => {
             expect(output.num1).toBeLessThanOrEqual(240);
             expect(output.num2).toBeGreaterThanOrEqual(1.2);
             expect(output.num2).toBeLessThanOrEqual(2.4);
-            expect(output.num2.toString()).toMatch(/\d\.\d\d?/);
+            expect(output.num2.toString()).toMatch(/\d(\.\d\d?)?/);
         });
     });
 

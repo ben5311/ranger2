@@ -51,6 +51,8 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'today.plus()': 'today.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)',
         now: 'now',
         'now.plus()': 'now.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)',
+        'f""': 'f"$0"',
+        'f"", {}': 'f"$1", {"$2": $0}',
     };
     DocumentSnippets: Record<string, string> = {
         '//': '// $0',

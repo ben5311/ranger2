@@ -22,18 +22,18 @@ Property returns Property:
     name=(STRING|ID) ":" value=Value ","?;
 
 Value returns Value:
-     Objekt | List | Func | Literal | PropertyReference | Transformer;
+     Objekt | List | Literal | Func | PropertyReference | Transformer;
+
+List returns List:
+    "["
+        (values+=Value ("," values+=Value)* ","?)?
+    "]";
 
 EntityReference returns PropertyReference:
     element=[Property:ID];
 
 PropertyReference returns PropertyReference:
     element=[Property:ID] ({PropertyReference.previous=current} "." element=[Property:ID])*;
-
-List returns List:
-    "["
-        (values+=Value ("," values+=Value)* ","?)?
-    "]";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Literals
@@ -83,7 +83,7 @@ TransformerType returns string:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Func:
-    RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc | Regex | TodayFunc | NowFunc;
+    RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc | Regex | TodayFunc | NowFunc | StringTemplate;
 
 RandomFunc:
     RandomNumber | RandomDate | RandomTimestamp | RandomOfList | RandomNormal;
@@ -130,6 +130,9 @@ NowFunc:
     "now"   ("." "minus" "(" minusDuration=Duration ")")? ("." "plus" "(" plusDuration=Duration ")")? ;
 Duration:
     ((days=NUMBER "DAYS") | (months=NUMBER "MONTHS") | (weeks=NUMBER "WEEKS") | (years=NUMBER "YEARS"))*;
+
+StringTemplate:
+    "f" template=STRING ("," params=Dictionary)?;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Other data structures

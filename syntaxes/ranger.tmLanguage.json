@@ -14,6 +14,7 @@
                 { "include": "#object" },
                 { "include": "#map-function" },
                 { "include": "#function" },
+                { "include": "#fstring" },
                 { "include": "#comment" },
                 { "include": "source.js#regex" }
             ]
@@ -116,9 +117,9 @@
             "end": "\\)",
             "beginCaptures": { "0": { "name": "keyword.control.ranger" } },
             "name": "meta.structure.map-function.ranger",
-            "patterns": [{ "include": "#map-object" }, { "include": "#value" }]
+            "patterns": [{ "include": "#dictionary" }, { "include": "#value" }]
         },
-        "map-object": {
+        "dictionary": {
             "begin": "\\{",
             "end": "\\}",
             "beginCaptures": { "0": { "name": "punctuation.definition.map.begin.ranger" } },
@@ -133,6 +134,12 @@
             "beginCaptures": { "0": { "name": "keyword.control.ranger" } },
             "name": "meta.structure.function.ranger",
             "patterns": [{ "include": "#value" }]
+        },
+
+        "fstring": {
+            "begin": "(f)(?=[\"'])",
+            "beginCaptures": { "0": { "name": "keyword.control.ranger" } },
+            "patterns": [{ "include": "#string" }, { "include": "#dictionary" }]
         },
 
         "comment": {

@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { createObjectGenerator, hover, parseDocument, properties } from '../../../src/utils/test';
 
-describe('regex()', () => {
+describe('Transformers', () => {
     const document = `
     Entity Test {
         name: "Dénnis Bäurer"

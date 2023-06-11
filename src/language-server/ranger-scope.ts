@@ -71,7 +71,7 @@ export class RangerScopeProvider extends DefaultScopeProvider {
      * 2. All Entities defined in the current Document.
      * 3. All Properties defined in the current and any parent node.
      */
-    doGetScope(node: AstNode, referenceType: RangerType): Scope {
+    doGetScope(node: AstNode, referenceType: RangerType = 'Property'): Scope {
         // The global Scope contains all imported Entities
         const globalScope = this.getGlobalScope(referenceType, node);
 
