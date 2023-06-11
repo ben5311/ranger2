@@ -8,7 +8,7 @@ import { ValueGenerator } from '../ValueGenerator';
 
 export class PropertyCompanion extends Companion<Property> {
     override valueGenerator(_property: Property): ValueGenerator {
-        throw 'Not implemented - Properties and References are resolved in Generator.getValue() method';
+        throw 'Not implemented - Properties are resolved in Generator.getValue() method';
     }
 
     override hover(property: Property, highlight: CodeHighlighter): string | undefined {

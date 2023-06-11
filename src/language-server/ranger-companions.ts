@@ -12,6 +12,7 @@ import { ObjektCompanion } from './ast/core/objekt';
 import { PropertyCompanion } from './ast/core/property';
 import { PropertyExtractorCompanion } from './ast/core/propertyExtractor';
 import { PropertyReferenceCompanion } from './ast/core/propertyReference';
+import { TransformerCompanion } from './ast/core/transformer';
 import { CsvFuncCompanion } from './ast/functions/csv';
 import { MapFuncCompanion } from './ast/functions/map';
 import { MapToDictCompanion } from './ast/functions/mapToDict';
@@ -38,6 +39,10 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     Property: PropertyCompanion,
     PropertyExtractor: PropertyExtractorCompanion,
     PropertyReference: PropertyReferenceCompanion,
+    Transformer: TransformerCompanion,
+    Transformable: NoOpCompanion,
+    Value: NoOpCompanion,
+    ValueOrProperty: NoOpCompanion,
     // Literals
     ANumber: LiteralCompanion,
     ABoolean: LiteralCompanion,
@@ -47,12 +52,14 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     AFilePath: FilePathCompanion,
     ANull: LiteralCompanion,
     // Functions
+    Func: NoOpCompanion,
     CsvFunc: CsvFuncCompanion,
     MapFunc: MapFuncCompanion,
     MapToDict: MapToDictCompanion,
     MapToList: MapToListCompanion,
     NowFunc: NowFuncCompanion,
     TodayFunc: NowFuncCompanion,
+    RandomFunc: NoOpCompanion,
     RandomNumber: RandomNumberCompanion,
     RandomDate: RandomDateCompanion,
     RandomTimestamp: RandomDateCompanion,
@@ -62,10 +69,6 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     SequenceFunc: SequenceFuncCompanion,
     UuidFunc: UuidFuncCompanion,
     // Other
-    Value: NoOpCompanion,
-    ValueOrPropertyReference: NoOpCompanion,
-    Func: NoOpCompanion,
-    RandomFunc: NoOpCompanion,
     Dictionary: NoOpCompanion,
     KeyValuePair: NoOpCompanion,
     Duration: DurationCompanion,

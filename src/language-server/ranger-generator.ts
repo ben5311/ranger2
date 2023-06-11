@@ -1,14 +1,13 @@
 import { MersenneTwister19937, nativeMath, Random } from 'random-js';
 
 import { ValueGenerator } from './ast/ValueGenerator';
-import * as ast from './generated/ast';
+import { isValue, Value, ValueOrProperty } from './generated/ast';
 import { RangerServices } from './ranger-module';
-import { resolveReference, ValueOrProperty } from './ranger-scope';
 
 export class RangerGenerator {
-    cache: Map<ast.Value | undefined, any>;
+    cache: Map<Value, any>;
     /** Stores the state of Function values. */
-    valueGenerators: Map<ast.Value, ValueGenerator | undefined>;
+    valueGenerators: Map<Value, ValueGenerator | undefined>;
     random: Random;
 
     constructor(protected services: RangerServices, seed?: number) {
@@ -24,20 +23,20 @@ export class RangerGenerator {
      * Values are cached, so all property references are resolved to the same value.
      */
     getValue(element?: ValueOrProperty): unknown {
-        let value = resolveReference(element);
+        if (element === undefined) return undefined;
+        if (element === null) return null;
+
+        const value = isValue(element) ? element : element.value;
 
         if (!this.cache.has(value)) {
             this.cache.set(value, this.doGetValue(value));
         }
 
-        let cached = this.cache.get(value);
+        const cached = this.cache.get(value);
         return cached;
     }
 
-    protected doGetValue(value?: ast.Value): unknown {
-        if (value === undefined) return undefined;
-        if (value === null) return null;
-
+    protected doGetValue(value: Value): unknown {
         if (!this.valueGenerators.has(value)) {
             this.valueGenerators.set(value, this.createValueGenerator(value));
         }
@@ -45,7 +44,7 @@ export class RangerGenerator {
         return this.valueGenerators.get(value)?.nextValue();
     }
 
-    protected createValueGenerator(value: ast.Value) {
+    protected createValueGenerator(value: Value) {
         return this.services.generator.Companions.get(value).valueGenerator(value);
     }
 

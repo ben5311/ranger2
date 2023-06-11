@@ -19,13 +19,10 @@ Objekt:  // Object is a reserved keyword.
     "}";
 
 Property returns Property:
-    name=(STRING|ID) ":" value=ValueOrPropertyReference ","?;
-
-ValueOrPropertyReference:
-     Value | PropertyReference;
+    name=(STRING|ID) ":" value=Value ","?;
 
 Value returns Value:
-     Objekt | List | Func | Literal;
+     Objekt | List | Func | Literal | PropertyReference | Transformer;
 
 EntityReference returns PropertyReference:
     element=[Property:ID];
@@ -35,17 +32,18 @@ PropertyReference returns PropertyReference:
 
 List returns List:
     "["
-        (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?
+        (values+=Value ("," values+=Value)* ","?)?
     "]";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Literals
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Literal returns Literal:
     AString | ABoolean | ANumber | ADate | ATimestamp | ANull;
 
-/**
- * "String", "Number" and "Date" cannot be used
- * as type names because they are reserved keywords.
- * Therefore, all literal types are prefixed with an "A" here.
- */
+// "String", "Number" and "Date" cannot be used as type names because they are reserved keywords.
+// Therefore, all literal types are prefixed with an "A" here.
 AString:
     value=STRING;
 
@@ -68,17 +66,17 @@ ANull:
     {infer ANull} "null";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Other data structures
+// Transformers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ListWithoutBrackets returns List:
-    (values+=ValueOrPropertyReference ("," values+=ValueOrPropertyReference)* ","?)?;
+Transformable:
+    Objekt | List | Func | Literal | PropertyReference;
 
-Dictionary:
-    "{" (pairs+=KeyValuePair)* "}";
+Transformer:
+    value=Transformable "|" type=TransformerType ({infer Transformer.previous=current} "|" type=TransformerType)*;
 
-KeyValuePair:
-    key=Literal ":" value=ValueOrPropertyReference ","?;
+TransformerType returns string:
+    "lower" | "upper"| "ascii";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
@@ -134,16 +132,30 @@ Duration:
     ((days=NUMBER "DAYS") | (months=NUMBER "MONTHS") | (weeks=NUMBER "WEEKS") | (years=NUMBER "YEARS"))*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Other data structures
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ListWithoutBrackets returns List:
+    (values+=Value ("," values+=Value)* ","?)?;
+
+Dictionary:
+    "{" (pairs+=KeyValuePair)* "}";
+
+KeyValuePair:
+    key=Literal ":" value=Value ","?;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 interface Entity extends Property {}
-interface Property { name: string; value: ValueOrPropertyReference }
-interface List { values: ValueOrPropertyReference[] }
+interface Property { name: string; value: Value }
+interface List { values: Value[] }
 interface PropertyReference { element: @Property | @PropertyExtractor; previous?: PropertyReference }
 interface PropertyExtractor { source: Value; name: string}
 type Literal = AString | ABoolean | ANumber | ADate | ATimestamp | AFilePath | ANull
-type Value = Objekt | List | Func | Literal | PropertyExtractor
+type Value = Objekt | List | Func | Literal | PropertyReference | PropertyExtractor | Transformer
+type ValueOrProperty = Value | Property
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Terminals

@@ -194,19 +194,19 @@ export class RangerScopeProvider extends DefaultScopeProvider {
     }
 }
 
-export type ValueOrProperty = ast.Value | ast.Property | ast.PropertyReference;
-
 /**
  * Resolves the Value behind a Property or PropertyReference.
  * Supports transitive references.
  */
-export function resolveReference(element?: ValueOrProperty, onError?: (error: string) => void): ast.Value | undefined {
+export function resolveReference(
+    element?: ast.ValueOrProperty,
+    onError: (error: string) => void = console.log,
+): ast.Value | undefined {
     let i = 1;
     while (ast.isProperty(element) || ast.isPropertyReference(element)) {
         element = ast.isProperty(element) ? element.value : element.element.ref;
         if (i++ >= 100) {
-            onError = onError || console.log;
-            onError(`Possibly circular refernce on [${element?.$cstNode?.text}]: Max reference depth exceeded`);
+            onError(`Possibly circular reference on [${element?.$cstNode?.text}]: Max reference depth exceeded`);
             return undefined;
         }
     }

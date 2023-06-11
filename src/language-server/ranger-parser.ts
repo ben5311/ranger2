@@ -20,6 +20,8 @@ export class RangerValueConverter extends DefaultValueConverter {
             case 'INT':
                 return convertInt(input);
             case 'STRING':
+            case 'DATE':
+            case 'TIMESTAMP':
                 return convertString(input);
             case 'ID':
                 return convertID(input);
@@ -36,7 +38,7 @@ export class RangerValueConverter extends DefaultValueConverter {
             case 'date':
                 return convertDate(input);
             default:
-                return convertString(input);
+                return input;
         }
     }
 }
