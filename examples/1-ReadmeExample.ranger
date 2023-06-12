@@ -1,9 +1,0 @@
-Entity Customer {
-    age: random(20..60)
-    gender: random("male", "female")
-    firstname: map(gender => {
-        "male": random("James", "Robert")
-        "female": random("Emily", "Lucy")
-    })
-    lastname: "Parker"
-}

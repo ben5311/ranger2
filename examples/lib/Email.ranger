@@ -1,0 +1,7 @@
+from "../lib/Name.ranger" import Name
+
+Entity Email {
+    prefix: random(f"{Name.firstname}.{Name.lastname}", f"{Name.username}") | lower | ascii
+    domain: random("gmail.com", "yahoo.de", "yahoo.com", "hotmail.com", "hotmail.de", "outlook.com", "outlook.de", "icloud.com", "aol.com", "gmx.de", "gmx.net", "web.de", "freenet.de", "t-online.de")
+    address: f"{prefix}@{domain}"
+}

@@ -1,0 +1,14 @@
+from "./Address.ranger" import Address
+
+Entity Car {
+    brand: _Car.hersteller
+    model: _Car.name
+    typeNumber: _Car.typnr
+    powerKw: _Car.kw
+    fuel: map(_Car.kraftstoff => {"b":"petrol", "d":"diesel"})
+    color: random("black", "silver", "grey", "blue", "white", "red", "orange", "beige", "green", "yellow", "purple")
+    transmission: random("manual", "automatic")
+    licensePlate: f"{Address.licenseCode}-{middle}-{end}" % {"middle": /[A-Z]{2,3}/, "end": /[0-9]{3,4}/}
+}
+
+Entity _Car: csv("../data/car.csv")

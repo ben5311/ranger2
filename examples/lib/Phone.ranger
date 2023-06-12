@@ -1,0 +1,6 @@
+from "./Address.ranger" import Address
+
+Entity Phone {
+    home: f"{Address.prefix} {suffix}" % {"suffix": /\d{6,7}/}
+    mobile: /01(51|52|57|59|60|62|63|70|71|72|73|74|75|76|77|78|79) \d{7,9}/
+}

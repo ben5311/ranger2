@@ -1,5 +1,0 @@
-Entity Customer {
-    id: sequence(1)
-    age: random(18..80)
-    height: randomNormal(mean=180, std=10)
-}

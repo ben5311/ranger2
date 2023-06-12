@@ -1,0 +1,6 @@
+Entity Customer {
+    id: uuid()
+    firstname: "James"
+    lastname: "Parker"
+    email: f"{firstname|lower}.{lastname|lower}@gmail.com"
+}

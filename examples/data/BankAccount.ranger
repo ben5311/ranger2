@@ -1,4 +1,0 @@
-Entity BankAccount {
-    balance: random(1000..15000.50)
-    currency: random("EUR", "USD", "CHF")
-}

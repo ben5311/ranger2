@@ -1,5 +1,0 @@
-Entity Customer {
-    firstname: "James"
-    lastname: "Parker"
-    email: f"{firstname}.{lastname}@gmail.com" | lower | ascii
-}

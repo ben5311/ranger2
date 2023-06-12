@@ -1,0 +1,12 @@
+Entity Name {
+    male: MaleFirstname.firstname
+    female: FemaleFirstname.firstname
+    firstname: random(male, female)
+    lastname: Lastname.lastname
+    username: Username.username
+}
+
+Entity MaleFirstname: csv("../data/firstnames_male.csv")
+Entity FemaleFirstname: csv("../data/firstnames_female.csv")
+Entity Lastname: csv("../data/lastnames.csv")
+Entity Username: csv("../data/usernames.csv")
