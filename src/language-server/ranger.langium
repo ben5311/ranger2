@@ -132,7 +132,7 @@ Duration:
     ((days=NUMBER "DAYS") | (months=NUMBER "MONTHS") | (weeks=NUMBER "WEEKS") | (years=NUMBER "YEARS"))*;
 
 StringTemplate:
-    "f" template=STRING ("," params=Dictionary)?;
+    "f" template=STRING ("%" params=Dictionary)?;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Other data structures

@@ -10,7 +10,7 @@ describe('f""', () => {
         firstname: "James"
         lastname: "Parker"
         email: f"{firstname}.{lastname}@gmail.com"
-        uname: f"{firstname}{number}", {"number": random(99..99)}
+        uname: f"{firstname}{number}" % {"number": random(99..99)}
     }`;
 
     test('Generate', async () => {
@@ -36,7 +36,7 @@ describe('f""', () => {
         Generates a String by inserting values into a Template.
 
         - You can access all Properties in scope.
-        - You can pass additional parameters via \`f"", {}\` variant.
+        - You can pass additional parameters via \`f"" % {}\` variant.
         - Complex expressions are possible, e.g. \`{a + b}\` or \`{a || b}\`.
         - Uses the [art-template](https://aui.github.io/art-template/docs/syntax.html) syntax.
 

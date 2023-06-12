@@ -1,23 +1,23 @@
 import fs from 'fs';
 import {
-    AstNode,
-    CompletionAcceptor,
-    CompletionContext,
-    DefaultCompletionProvider,
-    findLeafNodeAtOffset,
-    getEntryRule,
-    LangiumDocument,
-    NextFeature,
-    stream,
+	AstNode,
+	CompletionAcceptor,
+	CompletionContext,
+	DefaultCompletionProvider,
+	findLeafNodeAtOffset,
+	getEntryRule,
+	LangiumDocument,
+	NextFeature,
+	stream,
 } from 'langium';
 import { isKeyword, Keyword } from 'langium/lib/grammar/generated/ast';
 import path, { ParsedPath } from 'path';
 import {
-    CompletionItem,
-    CompletionItemKind,
-    CompletionList,
-    CompletionParams,
-    InsertTextFormat,
+	CompletionItem,
+	CompletionItemKind,
+	CompletionList,
+	CompletionParams,
+	InsertTextFormat,
 } from 'vscode-languageserver';
 
 import { executeProvider, Providers } from './ast/Providers';
@@ -52,7 +52,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         now: 'now',
         'now.plus()': 'now.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)',
         'f""': 'f"$0"',
-        'f"", {}': 'f"$1", {"$2": $0}',
+        'f"" % {}': 'f"$1" % {"$2": $0}',
     };
     DocumentSnippets: Record<string, string> = {
         '//': '// $0',

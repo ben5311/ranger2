@@ -68,7 +68,7 @@ export class StringTemplateCompanion extends FuncCompanion<StringTemplate> {
             Generates a String by inserting values into a Template.
 
             - You can access all Properties in scope.
-            - You can pass additional parameters via \`f"", {}\` variant.
+            - You can pass additional parameters via \`f"" % {}\` variant.
             - Complex expressions are possible, e.g. \`{a + b}\` or \`{a || b}\`.
             - Uses the [art-template](https://aui.github.io/art-template/docs/syntax.html) syntax.
             `,
@@ -94,4 +94,11 @@ const rules = [
     },
 ];
 
-const filters = {};
+const filters = {
+    ascii: (value: any) =>
+        String(value)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, ''),
+    lower: (value: any) => String(value).toLocaleLowerCase(),
+    upper: (value: any) => String(value).toLocaleUpperCase(),
+};

@@ -137,9 +137,21 @@
         },
 
         "fstring": {
-            "begin": "(f)(?=[\"'])",
-            "beginCaptures": { "0": { "name": "keyword.control.ranger" } },
-            "patterns": [{ "include": "#string" }, { "include": "#dictionary" }]
+            "patterns": [
+                {
+                    "begin": "(f)(?=[\"'].*[\"']\\s*%)",
+                    "end": "(?<=})",
+                    "beginCaptures": { "0": { "name": "keyword.control.ranger" } },
+                    "patterns": [{ "include": "#comment" }, { "include": "#string" }, { "include": "#dictionary" }]
+                },
+                {
+                    "begin": "(f)(?=[\"'])",
+                    "end": "(?<=[\"'])",
+                    "beginCaptures": { "0": { "name": "keyword.control.ranger" } },
+                    "patterns": [{ "include": "#comment" }, { "include": "#string" }, { "include": "#dictionary" }]
+                }
+            ]
+
         },
 
         "comment": {
