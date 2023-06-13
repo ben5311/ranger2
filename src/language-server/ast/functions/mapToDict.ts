@@ -2,6 +2,7 @@ import dedent from 'dedent-js';
 
 import { Dictionary, MapToDict } from '../../generated/ast';
 import { getLiteralValue } from '../core/literal';
+import { getPropertyName } from '../core/propertyReference';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
 
@@ -17,7 +18,7 @@ export class MapToDictCompanion extends FuncCompanion<MapToDict> {
     }
 
     override funcHover(mapFunc: MapToDict): FuncHover {
-        const sourceRef = mapFunc.source.$cstNode?.text;
+        const sourceRef = getPropertyName(mapFunc.source);
         const firstPair = mapFunc.dictionary.pairs[0];
 
         let description = dedent`

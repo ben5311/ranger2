@@ -7,6 +7,7 @@ import { resolveReference } from '../../ranger-scope';
 import { Issues } from '../../ranger-validator';
 import { Check, Fix } from '../Companion';
 import { isListFunc } from '../core/list';
+import { getPropertyName } from '../core/propertyReference';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
 
@@ -32,7 +33,7 @@ export class MapToListCompanion extends FuncCompanion<MapToList> {
     }
 
     override funcHover(mapFunc: MapToList): FuncHover {
-        const sourceRef = mapFunc.source.$cstNode?.text;
+        const sourceRef = getPropertyName(mapFunc.source);
         const source = resolveReference(mapFunc.source);
         const firstSourceVal = isListFunc(source) ? source.list.values.first() : undefined;
         const firstTargetVal = mapFunc.list.values.first();

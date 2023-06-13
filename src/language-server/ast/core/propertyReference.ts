@@ -1,7 +1,7 @@
 import { ValidationAcceptor } from 'langium';
 
 import { PropertyReference } from '../../generated/ast';
-import { getPropertyName, resolveReference } from '../../ranger-scope';
+import { resolveReference } from '../../ranger-scope';
 import { Issues } from '../../ranger-validator';
 import { CodeHighlighter } from '../CodeHighlighter';
 import { Check, Companion } from '../Companion';
@@ -36,4 +36,8 @@ export class PropertyReferenceCompanion extends Companion<PropertyReference> {
             accept('error', issue.msg, { node: propRef, code: issue.code });
         });
     }
+}
+
+export function getPropertyName(propRef: PropertyReference): string | undefined {
+    return propRef.$cstNode?.text.split('.').pop();
 }

@@ -213,10 +213,6 @@ export function resolveReference(
     return element;
 }
 
-export function getPropertyName(propRef: ast.PropertyReference): string | undefined {
-    return propRef.$cstNode?.text.split('.').pop();
-}
-
 export type DeclarationInfo = { node: AstNode; range: Range };
 
 /**
