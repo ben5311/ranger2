@@ -3,8 +3,8 @@ from "./lib/Name.ranger" import Name
 
 Entity Customer {
     age: random(18..60)
-    gender: random("male", "female")
-    firstname: map(gender => [Name.male, Name.female])
+    gender: Name.gender
+    firstname: Name.firstname
     lastname: Name.lastname
     account: BankAccount
 }

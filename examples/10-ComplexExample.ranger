@@ -1,21 +1,21 @@
-from "./lib/Name.ranger" import Name
 from "./lib/Address.ranger" import Address
 from "./lib/Car.ranger" import Car
 from "./lib/Email.ranger" import Email
+from "./lib/Name.ranger" import Name
 from "./lib/Phone.ranger" import Phone
 
 Entity Person {
-    gender: random("male", "female")
-    firstname: map(gender => [Name.male, Name.female])
+    id: /[C-HJ-NPRTV-Z0-9]{9}/
+    gender: Name.gender
+    firstname: Name.firstname
     lastname: Name.lastname
     age: randomNormal(mean=42, std=15)  // TODO: min / max
     //birthDate: today.minus(age YEARS)
-    birthCity: Address.city
     eyecolor: random("brown", "gray", "blue", "green")  // TODO: weighted!
     height: map(gender => [randomNormal(mean=1.80, std=0.10), randomNormal(mean=1.66, std=0.10)])
     bloodGroup: random("0-", "0+", "A-", "A+", "B-", "B+", "AB-", "AB+")
-    phone: Phone
+    phone: Phone.home
     email: Email.address
-    address: Address
-    car: Car
+    address: Address.text
+    car: Car.text
 }

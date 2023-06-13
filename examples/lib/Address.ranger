@@ -6,6 +6,7 @@ Entity Address {
     city: _Address.ort
     street: _Address.strasse
     houseNumber: random(1..99)
+    text: f"{street} {houseNumber}, {zip} {city}"
 }
 
 Entity _Address: csv("../data/address.csv")

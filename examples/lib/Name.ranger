@@ -1,7 +1,6 @@
 Entity Name {
-    male: MaleFirstname.firstname
-    female: FemaleFirstname.firstname
-    firstname: random(male, female)
+    gender: random("male", "female")
+    firstname: map(gender => [MaleFirstname.firstname, FemaleFirstname.firstname])
     lastname: Lastname.lastname
     username: Username.username
 }
