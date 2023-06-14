@@ -14,10 +14,12 @@ test/
 unzipped/
 .eslintrc
 .gitignore
+.npmignore
 .prettierrc
 langium-config.json
 # language-configuration.json   # this is a configuration file required by vscode at runtime
 tsconfig.json
+webpack*config.js
 **/*.map
 **/*.ts
 **/*.yml

@@ -4,6 +4,7 @@
     "module": "commonjs",
     "lib": ["ESNext", "WebWorker"],
     "sourceMap": true,
+    "declaration": true,
     "outDir": "out",
     "strict": true,
     "noUnusedLocals": false,
