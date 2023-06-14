@@ -1,136 +1,31 @@
 {
-    "name": "ranger",
-    "displayName": "Ranger",
-    "description": "A Test data generator",
-    "version": "0.1.0",
-    "publisher": "bheimann",
-    "icon": "./images/icon.png",
-    "categories": ["Testing"],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/ben5311/ranger2"
-    },
+    "name": "ranger-workspaces",
+    "private": true,
+    "engineStrict": true,
     "engines": {
-        "vscode": "^1.67.0"
+        "npm": ">= 7.7.0"
     },
-    "main": "./out/extension.js",
-    "types": "./out/index.d.ts",
-    "files": ["src", "bin", "dist"],
-    "bin": { "ranger": "./bin/ranger" },
     "scripts": {
-        "prepare": "npm run build",
-        "build": "langium generate && tsc -b tsconfig.json",
-        "bundle:cli": "esbuild ./src/cli/index.ts --bundle --outdir=out --format=cjs --platform=node --minify",
-        "bundle:extension": "esbuild ./src/extension.ts src/language-server/main.ts --bundle --outdir=out --external:vscode --format=cjs --platform=node --minify",
-        "bundle:webworker": "esbuild ./src/language-server/main.ts --bundle --outdir=out --format=iife --minify",
-        "watch": "concurrently \"langium generate --watch\" \"tsc -b tsconfig.json --watch\"",
-        "lint": "eslint src --ext ts",
+        "watch": "concurrently -n tsc,workspace -c blue,yellow \"tsc -b tsconfig.json --watch\" \"npm run watch --workspaces --if-present\"",
+        "lint": "eslint packages --ext ts",
         "test": "vitest",
-        "test:once": "vitest run",
-        "package:cli": "npm run bundle:cli && pkg ./out/index.js -o ranger -t win && pkg ./out/index.js -o ranger -t linux",
-        "package:extension": "npm run bundle:extension && vsce package",
-        "publish:extension": "npm run bundle:extension && vsce publish",
-        "publish:library": "npm run build && npm publish"
+        "test:once": "vitest run"
     },
     "pre-commit": {
-        "run": ["test:once"],
+        "run": [
+            "lint",
+            "test:once"
+        ],
         "silent": true
     },
-    "dependencies": {
-        "art-template": "^4.13.2",
-        "chalk": "~4.1.2",
-        "chevrotain": "~10.4.2",
-        "cli-progress": "~3.12.0",
-        "commander": "~10.0.0",
-        "csv": "~6.2.8",
-        "langium": "~1.1.0",
-        "lodash": "~4.17.21",
-        "lru-cache": "^9.1.2",
-        "luxon": "^3.3.0",
-        "randexp": "~0.5.3",
-        "random-js": "~2.1.0",
-        "vscode-languageclient": "~8.0.2",
-        "vscode-languageserver": "~8.0.2",
-        "vscode-uri": "~3.0.7"
-    },
     "devDependencies": {
-        "@types/cli-progress": "~3.11.0",
-        "@types/lodash": "~4.14.192",
-        "@types/luxon": "^3.3.0",
-        "@types/node": "~16.18.11",
-        "@types/tmp": "~0.2.3",
-        "@types/vscode": "~1.67.0",
-        "@typescript-eslint/eslint-plugin": "~5.51.0",
-        "@typescript-eslint/parser": "~5.51.0",
-        "@vitest/ui": "~0.28.4",
-        "@vscode/vsce": "~2.19.0",
         "concurrently": "^7.6.0",
-        "dedent-js": "~1.0.1",
-        "esbuild": "~0.17.11",
         "eslint": "~8.33.0",
-        "langium-cli": "~1.1.0",
-        "pkg": "~5.8.1",
         "pre-commit": "~1.2.2",
-        "tmp": "~0.2.1",
         "typescript": "~4.9.5",
-        "vitest": "^0.29.2",
-        "webpack": "^5.86.0",
-        "webpack-cli": "^5.1.4"
+        "vitest": "^0.29.2"
     },
-    "activationEvents": ["onLanguage:ranger"],
-    "contributes": {
-        "languages": [
-            {
-                "id": "ranger",
-                "aliases": ["Ranger", "ranger"],
-                "extensions": [".ranger"],
-                "configuration": "./language-configuration.json"
-            },
-            { "id": "ranger-markdown" }
-        ],
-        "grammars": [
-            {
-                "language": "ranger",
-                "scopeName": "source.ranger",
-                "path": "./syntaxes/ranger.tmLanguage.json"
-            },
-            {
-                "language": "ranger-markdown",
-                "scopeName": "markdown.ranger.codeblock",
-                "path": "./syntaxes/rangermarkdown.tmLanguage.json",
-                "injectTo": ["text.html.markdown"],
-                "embeddedLanguages": {
-                    "meta.embedded.block.ranger": "ranger"
-                }
-            }
-        ],
-        "commands": [
-            { "command": "ranger.generateFile", "title": "Ranger: Generate File", "enablement": "textInputFocus" },
-            { "command": "ranger.toggleWatchFile", "title": "Ranger: Watch File", "enablement": "textInputFocus"}
-        ],
-        "menus": {
-            "editor/context": [
-                { "command": "ranger.generateFile", "group": "navigation", "when": "resourceLangId == ranger" },
-                { "command": "ranger.toggleWatchFile", "group": "navigation", "when": "resourceLangId == ranger"}
-            ]
-        },
-        "configuration": {
-            "title": "Ranger",
-            "properties": {
-                "ranger.generate.format": {
-                    "type": "string",
-                    "enum": ["jsonl", "csv"],
-                    "default": "jsonl",
-                    "markdownDescription": "Output format for right click > `Ranger: Generate File`"
-                },
-                "ranger.generate.count": {
-                    "type": "integer",
-                    "markdownDescription": "Count of rows for right click > `Ranger: Generate File`.\n\n If you want more than 10000 rows, use the ranger CLI instead.",
-                    "minimum": 0,
-                    "maximum": 10000,
-                    "default": 10
-                }
-            }
-        }
-    }
+    "workspaces": [
+        "packages/*"
+    ]
 }

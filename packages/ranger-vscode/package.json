@@ -1,0 +1,78 @@
+{
+    "name": "ranger-vscode",
+    "displayName": "Ranger",
+    "description": "A Test data generator",
+    "version": "0.1.0",
+    "publisher": "bheimann",
+    "icon": "../../images/icon.png",
+    "categories": ["Testing"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ben5311/ranger2"
+    },
+    "engines": {
+        "vscode": "^1.67.0"
+    },
+    "main": "./out/extension.js",
+    "files": [
+        "src",
+        "bin",
+        "out"
+    ],
+    "activationEvents": ["onLanguage:ranger"],
+    "contributes": {
+        "languages": [
+            {
+                "id": "ranger",
+                "aliases": ["Ranger", "ranger"],
+                "extensions": [".ranger"],
+                "configuration": "./language-configuration.json"
+            },
+            { "id": "ranger-markdown" }
+        ],
+        "grammars": [
+            {
+                "language": "ranger",
+                "scopeName": "source.ranger",
+                "path": "./syntaxes/ranger.tmLanguage.json"
+            },
+            {
+                "language": "ranger-markdown",
+                "scopeName": "markdown.ranger.codeblock",
+                "path": "./syntaxes/rangermarkdown.tmLanguage.json",
+                "injectTo": ["text.html.markdown"],
+                "embeddedLanguages": {
+                    "meta.embedded.block.ranger": "ranger"
+                }
+            }
+        ],
+        "commands": [
+            { "command": "ranger.generateFile", "title": "Ranger: Generate File", "enablement": "textInputFocus" },
+            { "command": "ranger.toggleWatchFile", "title": "Ranger: Watch File", "enablement": "textInputFocus"}
+        ],
+        "menus": {
+            "editor/context": [
+                { "command": "ranger.generateFile", "group": "navigation", "when": "resourceLangId == ranger" },
+                { "command": "ranger.toggleWatchFile", "group": "navigation", "when": "resourceLangId == ranger"}
+            ]
+        },
+        "configuration": {
+            "title": "Ranger",
+            "properties": {
+                "ranger.generate.format": {
+                    "type": "string",
+                    "enum": ["jsonl", "csv"],
+                    "default": "jsonl",
+                    "markdownDescription": "Output format for right click > `Ranger: Generate File`"
+                },
+                "ranger.generate.count": {
+                    "type": "integer",
+                    "markdownDescription": "Count of rows for right click > `Ranger: Generate File`.\n\n If you want more than 10000 rows, use the ranger CLI instead.",
+                    "minimum": 0,
+                    "maximum": 10000,
+                    "default": 10
+                }
+            }
+        }
+    }
+}

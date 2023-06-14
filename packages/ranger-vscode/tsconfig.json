@@ -1,0 +1,12 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": "out",
+        "declarationMap": false,
+        "sourceMap": false
+    },
+    "references": [{ "path": "../ranger" }],
+    "include": ["src/**/*"],
+    "exclude": ["out", "/node_modules"]
+}

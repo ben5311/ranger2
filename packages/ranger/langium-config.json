@@ -3,10 +3,7 @@
     "languages": [{
         "id": "ranger",
         "grammar": "src/language-server/ranger.langium",
-        "fileExtensions": [".ranger"],
-        "textMate": {
-            "out": "syntaxes/generated/ranger.tmLanguage.json"
-        }
+        "fileExtensions": [".ranger"]
     }],
     "out": "src/language-server/generated"
 }

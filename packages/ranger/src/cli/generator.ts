@@ -13,7 +13,7 @@ import { createRangerServices } from '../language-server/ranger-module';
 // Object Generator for use when outside of the LSP server
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-type ObjectGenerator = { next(): any };
+export type ObjectGenerator = { next(): any };
 /**
  * Creates an ObjectGenerator that generates JavaScript objects based on a Ranger configuration file.
  *

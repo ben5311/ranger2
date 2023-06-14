@@ -5,7 +5,7 @@ Ranger is a test data generator that lets you create customized, correlated test
 This example Ranger file
 
 <!-- markdownlint-disable MD033 -->
-<img src="https://raw.githubusercontent.com/ben5311/ranger2/main/images/customer.png" alt="Example Ranger file" width="450"/>
+<img src="https://raw.githubusercontent.com/ben5311/ranger2/main/images/example.png" alt="Example Ranger file" width="450"/>
 
 produces such an output
 

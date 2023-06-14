@@ -10,9 +10,14 @@
             "type": "extensionHost",
             "request": "launch",
             "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/ranger-vscode",
                 "${workspaceFolder}/examples",
-                "--extensionDevelopmentPath=${workspaceFolder}"
-            ]
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/node_modules/ranger",
+                "${workspaceFolder}/packages/ranger-vscode/out/**/*.js"
+            ],
         },
         {
             "name": "Attach to Language Server",
@@ -24,8 +29,9 @@
             ],
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceFolder}/out/**/*.js",
-                "${workspaceFolder}/node_modules/langium"
+                "${workspaceFolder}/node_modules/langium",
+                "${workspaceFolder}/node_modules/ranger",
+                "${workspaceFolder}/node_modules/ranger-vscode"
             ]
         },
         {
@@ -33,7 +39,7 @@
             "type": "node",
             "request": "launch",
             "args": [
-                "${workspaceFolder}/out/cli/index.js"
+                "${workspaceFolder}/packages/ranger/lib/cli/index.js"
             ]
     }
     ],

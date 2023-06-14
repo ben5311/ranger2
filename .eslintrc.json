@@ -13,7 +13,7 @@
         "@typescript-eslint"
     ],
     "ignorePatterns": [
-        "**/{node_modules,lib,bin}",
+        "**/{node_modules,out,lib,bin}",
         "webpack*config.js",
         "/bin/"
     ],
