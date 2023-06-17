@@ -70,7 +70,7 @@
                     "markdownDescription": "Count of rows for right click > `Ranger: Generate File`.\n\n If you want more than 10000 rows, use the ranger CLI instead.",
                     "minimum": 0,
                     "maximum": 10000,
-                    "default": 10
+                    "default": 20
                 }
             }
         }

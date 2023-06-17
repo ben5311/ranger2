@@ -11,43 +11,34 @@
             "request": "launch",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}/packages/ranger-vscode",
-                "${workspaceFolder}/examples",
+                "${workspaceFolder}/examples"
             ],
-            "sourceMaps": true,
             "outFiles": [
-                "${workspaceFolder}/node_modules/ranger",
-                "${workspaceFolder}/packages/ranger-vscode/out/**/*.js"
-            ],
+                "${workspaceFolder}/**/*.js"
+            ]
         },
         {
             "name": "Attach to Language Server",
             "type": "node",
             "port": 6009,
             "request": "attach",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "sourceMaps": true,
+            "skipFiles": ["<node_internals>/**"],
             "outFiles": [
-                "${workspaceFolder}/node_modules/langium",
-                "${workspaceFolder}/node_modules/ranger",
-                "${workspaceFolder}/node_modules/ranger-vscode"
+                "${workspaceFolder}/**/*.js"
             ]
         },
         {
             "name": "Debug CLI",
             "type": "node",
             "request": "launch",
-            "args": [
-                "${workspaceFolder}/packages/ranger/lib/cli/index.js"
-            ]
-    }
+            "args": ["${workspaceFolder}/packages/ranger/lib/cli/index.js"]
+        },
     ],
     "compounds": [
         {
-          "name": "Debug Extension",
-          "configurations": ["Run Extension", "Attach to Language Server"],
-          "stopAll": true,
+            "name": "Debug Extension",
+            "configurations": ["Run Extension", "Attach to Language Server"],
+            "stopAll": true,
         }
-      ]
+    ]
 }

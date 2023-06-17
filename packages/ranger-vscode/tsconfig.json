@@ -4,7 +4,6 @@
         "rootDir": "src",
         "outDir": "out",
         "declarationMap": false,
-        "sourceMap": false
     },
     "references": [{ "path": "../ranger" }],
     "include": ["src/**/*"],
