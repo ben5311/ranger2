@@ -1,6 +1,6 @@
 Entity User {
-    birthdate: "2000-01-01".."2010-01-01"
-    birthtime: "2000-01-01T12:00:00Z".."2010-01-01T12:00:00Z"
-    lastOnline: today.minus(1 YEARS)..today
+    birthdate: random("2000-01-01".."2010-01-01")
+    birthtime: random("2000-01-01T12:00:00Z".."2010-01-01T12:00:00Z")
+    lastOnline: random(today.minus(1 YEARS)..today)
     createdAt: now
 }

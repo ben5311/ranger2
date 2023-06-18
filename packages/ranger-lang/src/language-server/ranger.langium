@@ -88,11 +88,11 @@ Func:
 RandomFunc:
     RandomNumber | RandomDate | RandomTimestamp | RandomOfList | RandomNormal;
 RandomNumber:
-    "random" "(" NumberRange ")" | NumberRange;     // TODO: Allow references for range and list
+    "random" "(" NumberRange ")";     // TODO: Allow references for range and list
 RandomDate:
-    "random" "(" DateRange ")" | DateRange ;
+    "random" "(" DateRange ")";
 RandomTimestamp:
-    "random" "(" TimestampRange ")" | TimestampRange;
+    "random" "(" TimestampRange ")";
 RandomOfList:
     "random" "(" list=(List|ListWithoutBrackets) ")";
 RandomNormal:

@@ -6,8 +6,8 @@
         "npm": ">= 7.7.0"
     },
     "scripts": {
-        "build": "npm run build --workspace ranger-lang && tsc --build --clean && tsc -b tsconfig.json",
-        "watch": "concurrently -n langium,tsc -c yellow,blue \"npm run watch --workspace ranger-lang\" \"tsc -b tsconfig.json --watch\"",
+        "build": "tsc --build --clean && npm run build --workspace ranger-lang && tsc -b tsconfig.json",
+        "watch": "tsc --build --clean && concurrently -n langium,tsc -c yellow,blue \"npm run watch --workspace ranger-lang\" \"tsc -b tsconfig.json --watch\"",
         "lint": "eslint packages --ext ts",
         "test": "vitest",
         "test:once": "vitest run",
