@@ -1,3 +1,3 @@
-import { startLanguageServer } from 'ranger/lib/language-server/main';
+import { startLanguageServer } from 'ranger-lang/lib/language-server/main';
 
 startLanguageServer();

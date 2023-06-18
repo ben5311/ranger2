@@ -39,11 +39,11 @@ Get editing assistance via the [Visual Studio Code Extension](../ranger-vscode/R
 
 To setup the `ranger` command line tool, you have two options.
 
-Option 1: Download one of the [prebuilt binaries](https://github.com/ben5311/ranger2/releases) (Windows and Linux  only).
+Option 1: Download one of the [prebuilt binaries](https://github.com/ben5311/ranger2/releases) (Windows and Linux x86 only).
 
-Option 2: Install [Node.js](https://nodejs.org/) and execute `npm install -g ben5311/ranger2`. #FIXME!
+Option 2: Install [Node.js](https://nodejs.org/) and execute `npm install -g ranger-lang`.
 
-To test it, create new file `Customer.ranger` and paste the following content into the file:
+To test it, create a new file `Customer.ranger` and paste the following content into the file:
 
 ```ranger
 Entity Customer {

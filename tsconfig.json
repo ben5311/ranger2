@@ -29,7 +29,7 @@
   ],
   "files": [],
   "references": [
-      { "path": "packages/ranger" },
+      { "path": "packages/ranger-lang" },
       { "path": "packages/ranger-vscode" },
   ]
 }

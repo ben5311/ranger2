@@ -14,7 +14,7 @@ import {
     StreamScope,
 } from 'langium';
 import { isObject } from 'lodash';
-import { Range } from 'vscode-languageclient';
+import { Range } from 'vscode-languageserver';
 
 import { RangerType } from './ast/Providers';
 import * as ast from './generated/ast';

@@ -5,7 +5,7 @@
         "outDir": "out",
         "declarationMap": false,
     },
-    "references": [{ "path": "../ranger" }],
+    "references": [{ "path": "../ranger-lang" }],
     "include": ["src/**/*"],
     "exclude": ["out", "/node_modules"]
 }

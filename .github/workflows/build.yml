@@ -31,16 +31,19 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run lint
-    - if: always()
-      run: npm run test
-    - run: npm run publish:extension
-      env: { VSCE_PAT: "${{secrets.vscode_marketplace_token}}" }
+    - run: npm run test
+      if: always()
+    - run: npm run publish:npm
+      env: { VSCE_PAT: "${{secrets.VSCODE_MARKETPLACE_TOKEN}}" }
+      if: env.release == 'true'
+    - run: npm run publish:vscode
+      env: { NODE_AUTH_TOKEN: "${{secrets.NPM_REGISTRY_TOKEN}}" }
       if: env.release == 'true'
     - run: npm run package:cli
       if: env.release == 'true'
     - name: Release
-      if: env.release == 'true'
       uses: softprops/action-gh-release@v1
       with:
         generate_release_notes: true
-        files: "ranger*"
+        files: "packages/ranger-lang/ranger*"
+      if: env.release == 'true'

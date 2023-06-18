@@ -35,8 +35,8 @@ Then, there are two ways to generate data:
 
 ## Read more
 
-* The [ranger](packages/ranger/README.md#command-line-interface)  command line tool.
-* The [JavaScript API](packages/ranger/README.md#javascript-api).
+* The [ranger](packages/ranger-lang/README.md#command-line-interface)  command line tool.
+* The [JavaScript API](packages/ranger-lang/README.md#javascript-api).
 * Get editing assistance via the [Visual Studio Code Extension](packages/ranger-vscode/README.md#visual-studio-code-extension).
 
 ## For Developers
@@ -52,7 +52,7 @@ It's built using the [Langium](https://langium.org/) framework.
 ├── examples                            - Example .ranger files
 ├── packages
 │   │
-│   ├── ranger
+│   ├── ranger-lang
 │   │   ├── src
 │   │   │   ├── cli
 │   │   │   └── language-server
@@ -114,7 +114,8 @@ and the source code into JavaScript code.
 
 ### Package
 
-* Run `npm run package:extension` to create a VS Code `.vsix` extension file that can be installed in any VS Code editor.
+* Run `npm run package:vscode` to create a VS Code `.vsix` extension file that can be installed in any VS Code editor.
+* Run `npm run package:cli` to create binaries for the `ranger` command line tool.
 
 ### To Go Further
 

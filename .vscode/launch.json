@@ -31,7 +31,7 @@
             "name": "Debug CLI",
             "type": "node",
             "request": "launch",
-            "args": ["${workspaceFolder}/packages/ranger/lib/cli/index.js"]
+            "args": ["${workspaceFolder}/packages/ranger-lang/lib/cli/index.js"]
         },
     ],
     "compounds": [
