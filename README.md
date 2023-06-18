@@ -110,7 +110,7 @@ and the source code into JavaScript code.
 
 * Add your `**.test.js` file to `test` folder.
 * Run `npm test`.
-* Alternatively, you can use VS Code extension [Vitest](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer) to run the tests.
+* Alternatively, you can use VS Code extension [Vitest Runner](https://marketplace.visualstudio.com/items?itemName=kingwl.vscode-vitest-runner) to run the tests.
 
 ### Package
 

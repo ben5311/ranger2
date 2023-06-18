@@ -24,19 +24,12 @@
         "ranger": "./bin/ranger"
     },
     "scripts": {
-        "prepare": "npm run build",
-        "build": "langium generate && tsc -b tsconfig.json",
-        "bundle:cli": "esbuild ./src/cli/index.ts --bundle --outdir=out --format=cjs --platform=node --minify",
-        "bundle:extension": "esbuild ./src/extension.ts src/language-server/main.ts --bundle --outdir=out --external:vscode --format=cjs --platform=node --minify",
-        "bundle:webworker": "esbuild ./src/language-server/main.ts --bundle --outdir=out --format=iife --minify",
+        "build": "langium generate",
         "watch": "langium generate --watch",
-        "package:cli": "npm run bundle:cli && pkg ./out/index.js -o ranger -t win && pkg ./out/index.js -o ranger -t linux",
-        "package:extension": "npm run bundle:extension && vsce package",
-        "publish:extension": "npm run bundle:extension && vsce publish",
-        "publish:library": "npm run build && npm publish"
+        "bundle": "esbuild ./src/cli/index.ts --bundle --outdir=out --format=cjs --platform=node --minify --target=es2021",
+        "package": "npm run bundle && pkg ./out/index.js -o ranger -t win && pkg ./out/index.js -o ranger -t linux"
     },
     "dependencies": {
-        "art-template": "^4.13.2",
         "chalk": "~4.1.2",
         "chevrotain": "~10.4.2",
         "cli-progress": "~3.12.0",
@@ -59,18 +52,10 @@
         "@types/node": "~16.18.11",
         "@types/tmp": "~0.2.3",
         "@types/vscode": "~1.67.0",
-        "@typescript-eslint/eslint-plugin": "~5.51.0",
-        "@typescript-eslint/parser": "~5.51.0",
-        "@vitest/ui": "~0.28.4",
         "@vscode/vsce": "~2.19.0",
-        "concurrently": "^7.6.0",
         "dedent-js": "~1.0.1",
-        "esbuild": "~0.17.11",
         "langium-cli": "~1.1.0",
         "pkg": "~5.8.1",
-        "tmp": "~0.2.1",
-        "typescript": "~4.9.5",
-        "webpack": "^5.86.0",
-        "webpack-cli": "^5.1.4"
+        "tmp": "~0.2.1"
     }
 }

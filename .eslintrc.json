@@ -15,7 +15,8 @@
     "ignorePatterns": [
         "**/{node_modules,out,lib,bin}",
         "webpack*config.js",
-        "/bin/"
+        "/bin/",
+        "artTemplate.js"
     ],
     "rules": {
         // List of [ESLint rules](https://eslint.org/docs/rules/)

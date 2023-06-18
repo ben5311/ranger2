@@ -6,10 +6,14 @@
         "npm": ">= 7.7.0"
     },
     "scripts": {
-        "watch": "concurrently -n tsc,workspace -c blue,yellow \"tsc -b tsconfig.json --watch\" \"npm run watch --workspaces --if-present\"",
+        "build": "npm run build --workspace ranger && tsc --build --clean && tsc -b tsconfig.json",
+        "watch": "concurrently -n langium,tsc -c yellow,blue \"npm run watch --workspace ranger\" \"tsc -b tsconfig.json --watch\"",
         "lint": "eslint packages --ext ts",
         "test": "vitest",
-        "test:once": "vitest run"
+        "test:once": "vitest run",
+        "package:cli": "npm run package --workspace ranger",
+        "publish:npm": "npm publish",
+        "publish:vscode": "npm run publish --workspace ranger-vscode"
     },
     "pre-commit": {
         "run": [
@@ -19,11 +23,15 @@
         "silent": true
     },
     "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "~5.51.0",
+        "@typescript-eslint/parser": "~5.51.0",
+        "@vitest/ui": "~0.28.4",
         "concurrently": "^7.6.0",
+        "esbuild": "~0.18.4",
         "eslint": "~8.33.0",
         "pre-commit": "~1.2.2",
         "typescript": "~4.9.5",
-        "vitest": "^0.29.2"
+        "vitest": "~0.29.2"
     },
     "workspaces": [
         "packages/*"

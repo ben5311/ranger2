@@ -1,4 +1,3 @@
-import template from 'art-template';
 import dedent from 'dedent-js';
 import { ValidationAcceptor } from 'langium';
 
@@ -6,6 +5,7 @@ import { Property, StringTemplate } from '../../generated/ast';
 import { Issues } from '../../ranger-validator';
 import { Check } from '../Companion';
 import { ValueGenerator } from '../ValueGenerator';
+import template from './artTemplate';
 import { FuncCompanion, FuncHover } from './func';
 import { dictToMap } from './mapToDict';
 
@@ -90,7 +90,7 @@ const rules = [
     ...template.defaults.rules,
     {
         ...template.defaults.rules[1],
-        test: /{([@#]?)[ \t]*(\/?)([\w\W]*?)[ \t]*}/,
+        test: /{([@#]?)[ \t]*(\/?)([\w\W]*?)[ \t]*}/, // single brace syntax: {varname}
     },
 ];
 
