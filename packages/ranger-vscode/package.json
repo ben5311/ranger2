@@ -2,8 +2,11 @@
     "name": "ranger-vscode",
     "displayName": "Ranger",
     "description": "A Test data generator",
-    "version": "0.1.0",
-    "categories": ["Testing", "Languages"],
+    "version": "0.2.1",
+    "categories": [
+        "Testing",
+        "Languages"
+    ],
     "publisher": "bheimann",
     "icon": "./icon.png",
     "repository": {
@@ -31,16 +34,25 @@
         "@types/vscode": "~1.67.0",
         "@vscode/vsce": "~2.19.0"
     },
-    "activationEvents": ["onLanguage:ranger"],
+    "activationEvents": [
+        "onLanguage:ranger"
+    ],
     "contributes": {
         "languages": [
             {
                 "id": "ranger",
-                "aliases": ["Ranger", "ranger"],
-                "extensions": [".ranger"],
+                "aliases": [
+                    "Ranger",
+                    "ranger"
+                ],
+                "extensions": [
+                    ".ranger"
+                ],
                 "configuration": "./language-configuration.json"
             },
-            { "id": "ranger-markdown" }
+            {
+                "id": "ranger-markdown"
+            }
         ],
         "grammars": [
             {
@@ -52,20 +64,38 @@
                 "language": "ranger-markdown",
                 "scopeName": "markdown.ranger.codeblock",
                 "path": "./syntaxes/rangermarkdown.tmLanguage.json",
-                "injectTo": ["text.html.markdown"],
+                "injectTo": [
+                    "text.html.markdown"
+                ],
                 "embeddedLanguages": {
                     "meta.embedded.block.ranger": "ranger"
                 }
             }
         ],
         "commands": [
-            { "command": "ranger.generateFile", "title": "Ranger: Generate File", "enablement": "textInputFocus" },
-            { "command": "ranger.toggleWatchFile", "title": "Ranger: Watch File", "enablement": "textInputFocus"}
+            {
+                "command": "ranger.generateFile",
+                "title": "Ranger: Generate File",
+                "enablement": "textInputFocus"
+            },
+            {
+                "command": "ranger.toggleWatchFile",
+                "title": "Ranger: Watch File",
+                "enablement": "textInputFocus"
+            }
         ],
         "menus": {
             "editor/context": [
-                { "command": "ranger.generateFile", "group": "navigation", "when": "resourceLangId == ranger" },
-                { "command": "ranger.toggleWatchFile", "group": "navigation", "when": "resourceLangId == ranger"}
+                {
+                    "command": "ranger.generateFile",
+                    "group": "navigation",
+                    "when": "resourceLangId == ranger"
+                },
+                {
+                    "command": "ranger.toggleWatchFile",
+                    "group": "navigation",
+                    "when": "resourceLangId == ranger"
+                }
             ]
         },
         "configuration": {
@@ -73,7 +103,10 @@
             "properties": {
                 "ranger.generate.format": {
                     "type": "string",
-                    "enum": ["jsonl", "csv"],
+                    "enum": [
+                        "jsonl",
+                        "csv"
+                    ],
                     "default": "jsonl",
                     "markdownDescription": "Output format for right click > `Ranger: Generate File`"
                 },

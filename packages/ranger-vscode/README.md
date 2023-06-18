@@ -42,7 +42,7 @@ The VS Code Extension provides editing assistance (*Intellisense*) for `.ranger`
 ### Getting Started
 
 1. Install [Visual Studio Code](https://code.visualstudio.com/).
-2. Install the [Ranger extension](https://marketplace.visualstudio.com/items?itemName=bheimann.ranger).
+2. Install the [Ranger extension](https://marketplace.visualstudio.com/items?itemName=bheimann.ranger-vscode).
 3. Open a folder in VS Code.
 4. Create a new file `Customer.ranger`.
 5. Paste the following content into the file

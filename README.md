@@ -26,18 +26,14 @@ Find more examples [here](examples).
 
 ## How does it work?
 
-You design test entities specific to your needs in a `.ranger` file.
+You design test entities in a `.ranger` file.
 
 Then, there are two ways to generate data:
 
-* Use the `ranger` command line tool to create CSV or JSONL files.
-* Use the JavaScript API to generate JS objects and use them in your code.
+* Use the [ranger](packages/ranger-lang/README.md#command-line-interface) command line tool to create CSV or JSONL files.
+* Use the [Node.js library](packages/ranger-lang/README.md#nodejs-library) to generate JavaScript objects and use them in your code.
 
-## Read more
-
-* The [ranger](packages/ranger-lang/README.md#command-line-interface)  command line tool.
-* The [JavaScript API](packages/ranger-lang/README.md#javascript-api).
-* Get editing assistance via the [Visual Studio Code Extension](packages/ranger-vscode/README.md#visual-studio-code-extension).
+Get editing assistance via the [Visual Studio Code Extension](packages/ranger-vscode/README.md#visual-studio-code-extension).
 
 ## For Developers
 

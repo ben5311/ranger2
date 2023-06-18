@@ -16,8 +16,6 @@ import { createRangerServices } from '../language-server/ranger-module';
 export type ObjectGenerator = { next(): any };
 /**
  * Creates an ObjectGenerator that generates JavaScript objects based on a Ranger configuration file.
- *
- * @param filePath Path to the .ranger file.
  */
 export async function createObjectGenerator(docSpec: DocumentSpec): Promise<ObjectGenerator> {
     const services = createRangerServices(NodeFileSystem).Ranger;
@@ -55,7 +53,7 @@ export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): 
     const progressBarFormat = ' {bar} {percentage}% | T: {duration_formatted} | ETA: {eta_formatted} | {value}/{total}';
     const progressBar = new SingleBar({ format: progressBarFormat }, Presets.shades_classic);
 
-    const generator = await ObjectGeneratorStream(docSpec, opts.count);
+    const generator = await createObjectStream(docSpec, opts.count);
     const reporter = ProxyTransformer(() => progressBar.increment());
     const transformer = Transformer(opts.format);
     const writer = FileWriter(outputFilePath);
@@ -81,9 +79,9 @@ export async function generateOutputFile(docSpec: DocumentSpec, opts: Options): 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Creates a ReadableStream that outputs objects generated from a Ranger configuration file.
+ * Creates a Readable Stream that outputs objects generated from a Ranger configuration file.
  */
-export async function ObjectGeneratorStream(docSpec: DocumentSpec, count: number): Promise<stream.Readable> {
+export async function createObjectStream(docSpec: DocumentSpec, count: number): Promise<stream.Readable> {
     const generator = await createObjectGenerator(docSpec);
     let i = 1;
     return new stream.Readable({

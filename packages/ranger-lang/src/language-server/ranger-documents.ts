@@ -13,7 +13,7 @@ import { AFilePath, Document } from './generated/ast';
  * If you only provide filePath, the Document will be loaded from the file system.
  *
  * If you pass the text argument as well, the document will not be loaded from disk,
- * and the file path will only be used to create the Document URI.
+ * and the file path will only be used to search for relative files (e.g. for Imports).
  */
 export type DocumentSpec = { filePath: string; text?: string };
 

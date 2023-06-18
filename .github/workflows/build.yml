@@ -36,10 +36,10 @@ jobs:
     - run: npm run test
       if: always()
     - run: npm run publish:npm
-      env: { VSCE_PAT: "${{secrets.VSCODE_MARKETPLACE_TOKEN}}" }
+      env: { NODE_AUTH_TOKEN: "${{secrets.NPM_REGISTRY_TOKEN}}" }
       if: env.release == 'true'
     - run: npm run publish:vscode
-      env: { NODE_AUTH_TOKEN: "${{secrets.NPM_REGISTRY_TOKEN}}" }
+      env: { VSCE_PAT: "${{secrets.VSCODE_MARKETPLACE_TOKEN}}" }
       if: env.release == 'true'
     - run: npm run package:cli
       if: env.release == 'true'

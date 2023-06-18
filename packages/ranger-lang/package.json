@@ -1,15 +1,18 @@
 {
     "name": "ranger-lang",
     "description": "A Test data generator",
-    "version": "0.1.0",
-    "categories": ["Testing", "Languages"],
+    "version": "0.2.1",
+    "categories": [
+        "Testing",
+        "Languages"
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/ben5311/ranger2"
     },
     "engines": {
         "node": ">=14.0.0"
-      },
+    },
     "main": "./lib/index.js",
     "types": "./lib/index.d.ts",
     "files": [
@@ -32,6 +35,7 @@
         "cli-progress": "~3.12.0",
         "commander": "~10.0.0",
         "csv": "~6.2.8",
+        "dedent-js": "~1.0.1",
         "langium": "~1.1.0",
         "lodash": "~4.17.21",
         "lru-cache": "^9.1.2",
@@ -47,7 +51,6 @@
         "@types/luxon": "^3.3.0",
         "@types/node": "~16.18.11",
         "@types/tmp": "~0.2.3",
-        "dedent-js": "~1.0.1",
         "langium-cli": "~1.1.0",
         "pkg": "~5.8.1",
         "tmp": "~0.2.1"
