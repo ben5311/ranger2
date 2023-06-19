@@ -39,7 +39,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         'Entity {}': 'Entity $0 {\n\t\n}',
         'random()': 'random($0)',
         'random(a..b)': 'random($1..$0)',
-        'randomNormal(mean,std)': 'randomNormal(mean=$1, std=$0)',
+        'randomNormal(mean,std)': 'randomNormal($1..$2, mean=$3, std=$0)',
         'map(=>[])': 'map($1 => [$0])',
         'map(=>{})': 'map($1 => {$0})',
         'csv()': 'csv("$0")',

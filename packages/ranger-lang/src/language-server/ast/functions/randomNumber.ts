@@ -1,56 +1,101 @@
 import dedent from 'dedent-js';
+import { ValidationAcceptor } from 'langium';
 
-import { RandomNormal, RandomNumber } from '../../generated/ast';
+import { ANumber, RandomNormal, RandomNumber } from '../../generated/ast';
+import { Issues } from '../../ranger-validator';
+import { Check } from '../Companion';
 import { ValueGenerator } from '../ValueGenerator';
 import { FuncCompanion, FuncHover } from './func';
 
 export class RandomNumberCompanion extends FuncCompanion<RandomNumber> {
     override valueGenerator(random: RandomNumber): ValueGenerator | undefined {
-        const [min, max] = [random.min, random.max];
-        const [minVal, maxVal] = [min.value, max.value];
-        const decimals = decimalPlaces(min.$cstNode?.text, max.$cstNode?.text);
+        const { min, max, decimalPlaces } = this.getValues(random);
 
-        let randomGenerator = decimals ? this.generator.random.real : this.generator.random.integer;
+        let randomGenerator = decimalPlaces ? this.generator.random.real : this.generator.random.integer;
         randomGenerator = randomGenerator.bind(this.generator.random);
 
         return new ValueGenerator(() => {
-            const randomNumber = randomGenerator(minVal, maxVal);
-            return truncateDecimals(randomNumber, decimals);
+            const randomNumber = randomGenerator(min, max);
+            return truncateDecimals(randomNumber, decimalPlaces);
         });
     }
 
     override funcHover(random: RandomNumber): FuncHover {
-        let [min, max] = [random.min.value, random.max.value];
+        const { min, max } = this.getValues(random);
         return {
             description: `Generates a random number between \`${min}\` and \`${max}\` (ends inclusive).`,
+        };
+    }
+
+    getValues(random: RandomNumber) {
+        return {
+            min: random.min.value,
+            max: random.max.value,
+            decimalPlaces: decimalPlaces(random.min, random.max),
         };
     }
 }
 
 export class RandomNormalCompanion extends FuncCompanion<RandomNormal> {
     override valueGenerator(normal: RandomNormal): ValueGenerator {
-        const [mean, std] = [normal.mean, normal.std];
-        const [meanVal, stdVal] = [mean.value, std.value];
-        const decimals = decimalPlaces(mean.$cstNode?.text, std.$cstNode?.text);
+        const { min, max, mean, std, decimalPlaces } = this.getValues(normal);
 
-        const randomGenerator = this.generator.random.realZeroToOneExclusive.bind(this.generator.random);
+        const randomGenerator = () => this.generator.random.realZeroToOneExclusive();
 
         return new ValueGenerator(() => {
-            const randomNumber = gaussianRandom(meanVal, stdVal, randomGenerator);
-            return truncateDecimals(randomNumber, decimals);
+            let randomNumber: number;
+
+            let i = 1;
+            do {
+                randomNumber = gaussianRandom(mean, std, randomGenerator);
+                // Skip generated numbers that are not inside [min..max] interval
+            } while ((randomNumber < min || randomNumber > max) && i++ < 1000);
+
+            if (randomNumber < min || randomNumber > max) {
+                // If no suitable number was found, fallback to min value
+                randomNumber = min;
+            }
+
+            return truncateDecimals(randomNumber, decimalPlaces);
         });
     }
 
-    override funcHover(_normal: RandomNormal): FuncHover {
+    override funcHover(normal: RandomNormal): FuncHover {
+        const { min, max } = this.getValues(normal);
         return {
             description: dedent`
-            Generates random values based on a [Normal distribution](https://en.wikipedia.org/wiki/Normal_distribution).
+            Generates a random number between \`${min}\` and \`${max}\` (ends inclusive) based on a
+            [Normal distribution](https://en.wikipedia.org/wiki/Normal_distribution).
 
             #### Parameters
             * mean: The mean of the Normal distribution.
             * std: The standard deviation of the Normal distribution.
             `,
         };
+    }
+
+    getValues(normal: RandomNormal) {
+        return {
+            min: normal.min.value,
+            max: normal.max.value,
+            mean: normal.mean.value,
+            std: normal.std.value,
+            decimalPlaces: decimalPlaces(normal.min, normal.max, normal.mean, normal.std),
+        };
+    }
+
+    @Check
+    meanIsInRange(normal: RandomNormal, accept: ValidationAcceptor) {
+        const issue = Issues.MeanOutOfBounds;
+        const { min, max, mean } = this.getValues(normal);
+
+        if (mean < min || mean > max) {
+            accept('error', `${issue.msg} [${min}..${max}]`, {
+                node: normal,
+                property: 'mean',
+                code: issue.code,
+            });
+        }
     }
 }
 
@@ -59,12 +104,12 @@ const numRegex = new RegExp(/[+-]?[0-9]+(\.([0-9]+))?/);
 /**
  * Returns the maximum number of decimal places among multiple numbers.
  */
-function decimalPlaces(...numbers: any[]): number {
+function decimalPlaces(...numbers: ANumber[]): number {
     let result = 0;
-    numbers = numbers.filter((num) => num !== undefined);
 
     for (let number of numbers) {
-        const decimals = numRegex.exec(String(number))?.[2]?.length || 0;
+        const numberText = number.$cstNode?.text || '';
+        const decimals = numRegex.exec(numberText)?.[2]?.length || 0;
         if (decimals > result) {
             result = decimals;
         }

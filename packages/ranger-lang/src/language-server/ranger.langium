@@ -96,7 +96,7 @@ RandomTimestamp:
 RandomOfList:
     "random" "(" list=(List|ListWithoutBrackets) ")";
 RandomNormal:
-    "randomNormal" "(" "mean=" mean=ANumber "," "std=" std=ANumber ")";
+    "randomNormal" "(" NumberRange "," "mean=" mean=ANumber "," "std=" std=ANumber ")";
 
 fragment NumberRange:
     min=ANumber ".." max=ANumber;

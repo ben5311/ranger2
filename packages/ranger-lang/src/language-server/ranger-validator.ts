@@ -14,6 +14,7 @@ export const Issues = satisfies<Record<string, { code: string; msg: string }>>()
     FilePathWithBackslashes: { code: 'FilePathWithBackslashes', msg: 'File paths should only contain forward slashes' },
     InvalidCsvFile: { code: 'InvalidCsvFile', msg: 'Invalid CSV file, check delimiter.' },
     MapToList_NotBasedOnAListFunc: { code: 'MapToList.NotBasedOnAListFunc', msg: 'Unsupported value source' },
+    MeanOutOfBounds: { code: 'MeanOutOfBounds', msg: 'Mean must be inside number range' },
     NameNotCapitalized: { code: 'NameNotCapitalized', msg: 'Entity name should start with a capital' },
     ReferenceError: { code: 'linking-error', msg: 'Could not resolve reference' },
     TemplateSyntaxError: { code: 'TemplateSyntaxError', msg: 'Template syntax error' },
