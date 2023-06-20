@@ -1,25 +1,26 @@
 import fs from 'fs';
 import {
-	AstNode,
-	CompletionAcceptor,
-	CompletionContext,
-	DefaultCompletionProvider,
-	findLeafNodeAtOffset,
-	getEntryRule,
-	LangiumDocument,
-	NextFeature,
-	stream,
+    AstNode,
+    CompletionAcceptor,
+    CompletionContext,
+    DefaultCompletionProvider,
+    findLeafNodeAtOffset,
+    getEntryRule,
+    LangiumDocument,
+    NextFeature,
+    stream,
 } from 'langium';
 import { isKeyword, Keyword } from 'langium/lib/grammar/generated/ast';
 import path, { ParsedPath } from 'path';
 import {
-	CompletionItem,
-	CompletionItemKind,
-	CompletionList,
-	CompletionParams,
-	InsertTextFormat,
+    CompletionItem,
+    CompletionItemKind,
+    CompletionList,
+    CompletionParams,
+    InsertTextFormat,
 } from 'vscode-languageserver';
 
+import { getValues, MaybeArray } from '../utils/types';
 import { executeProvider, Providers } from './ast/Providers';
 import * as ast from './generated/ast';
 import { getDocumentDir } from './ranger-documents';
@@ -34,25 +35,37 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
      * @see
      * https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
      */
-    KeywordSnippets: Record<string, string> = {
-        'from "" import': 'from "$1" import $0',
-        'Entity {}': 'Entity $0 {\n\t\n}',
-        'random()': 'random($0)',
-        'random(a..b)': 'random($1..$0)',
-        'randomNormal(mean,std)': 'randomNormal($1..$2, mean=$3, std=$0)',
-        'map(=>[])': 'map($1 => [$0])',
-        'map(=>{})': 'map($1 => {$0})',
-        'csv()': 'csv("$0")',
-        'csv(delimiter)': 'csv("$0", delimiter=",")',
-        'csv(delimiter,noHeader)': 'csv("$0", delimiter=",", noHeader)',
-        'sequence()': 'sequence(1)',
-        'uuid()': 'uuid()',
-        today: 'today',
-        'today.plus()': 'today.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)',
-        now: 'now',
-        'now.plus()': 'now.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)',
-        'f""': 'f"$0"',
-        'f"" % {}': 'f"$1" % {"$2": $0}',
+    KeywordSnippets: Record<string, MaybeArray<{ label: string; completion: string }>> = {
+        from: { label: 'from "" import', completion: 'from "$1" import $0' },
+        Entity: { label: 'Entity {}', completion: 'Entity $0 {\n\t\n}' },
+        random: [
+            { label: 'random()', completion: 'random($0)' },
+            { label: 'random(a..b)', completion: 'random($1..$0)' },
+            { label: 'randomNormal(mean,std)', completion: 'randomNormal($1..$2, mean=$3, std=$0)' },
+        ],
+        map: [
+            { label: 'map(=>[])', completion: 'map($1 => [$0])' },
+            { label: 'map(=>{})', completion: 'map($1 => {$0})' },
+        ],
+        csv: [
+            { label: 'csv()', completion: 'csv("$0")' },
+            { label: 'csv(delimiter)', completion: 'csv("$0", delimiter=",")' },
+            { label: 'csv(delimiter,noHeader)', completion: 'csv("$0", delimiter=",", noHeader)' },
+        ],
+        sequence: { label: 'sequence()', completion: 'sequence(1)' },
+        uuid: { label: 'uuid()', completion: 'uuid()' },
+        today: [
+            { label: 'today', completion: 'today' },
+            { label: 'today.plus()', completion: 'today.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)' },
+        ],
+        now: [
+            { label: 'now', completion: 'now' },
+            { label: 'now.plus()', completion: 'now.plus(0$0 DAYS 0 MONTHS 0 WEEKS 0 YEARS)' },
+        ],
+        f: [
+            { label: 'f""', completion: 'f"$0"' },
+            { label: 'f"" % {}', completion: 'f"$1" % {"$2": $0}' },
+        ],
     };
     DocumentSnippets: Record<string, string> = {
         '//': '// $0',
@@ -164,22 +177,22 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
      * Provides custom Completions for language keywords.
      */
     override completionForKeyword(context: CompletionContext, keyword: Keyword, accept: CompletionAcceptor) {
-        let matched = false;
-        Object.entries(this.KeywordSnippets).forEach(([key, value], index) => {
-            if (key.startsWith(keyword.value)) {
-                accept({
-                    label: key,
-                    kind: CompletionItemKind.Function,
-                    detail: 'Snippet',
-                    insertText: value,
-                    insertTextFormat: InsertTextFormat.Snippet,
-                    sortText: '-0' + String(index).padStart(5, '0'),
-                });
-                matched = true;
-            }
-        });
-        if (!matched) {
+        const index = Object.keys(this.KeywordSnippets).indexOf(keyword.value);
+        if (index == -1) {
             return super.completionForKeyword(context, keyword, accept);
+        }
+
+        const snippets = getValues(this.KeywordSnippets[keyword.value]);
+
+        for (const snippet of snippets) {
+            accept({
+                label: snippet.label,
+                kind: CompletionItemKind.Function,
+                detail: 'Snippet',
+                insertText: snippet.completion,
+                insertTextFormat: InsertTextFormat.Snippet,
+                sortText: '-0' + String(index).padStart(5, '0'),
+            });
         }
     }
 }

@@ -1,6 +1,8 @@
 import './collections';
 import './time';
 
+import { isArray } from 'lodash';
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility types
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,3 +41,12 @@ export const satisfies =
     <T>() =>
     <U extends T>(u: U) =>
         u;
+
+export type MaybeArray<T> = T | T[];
+
+export function getValues<T>(values: MaybeArray<T>): T[] {
+    if (!isArray(values)) {
+        values = [values];
+    }
+    return values;
+}
