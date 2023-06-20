@@ -50,5 +50,7 @@ function applyTransformer(value: any, transformer: TransformerType): unknown {
             return String(value).toLocaleLowerCase();
         case 'upper':
             return String(value).toLocaleUpperCase();
+        case 'trim':
+            return String(value).trim();
     }
 }

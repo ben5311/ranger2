@@ -76,7 +76,7 @@ Transformer:
     value=Transformable "|" type=TransformerType ({infer Transformer.previous=current} "|" type=TransformerType)*;
 
 TransformerType returns string:
-    "lower" | "upper"| "ascii";
+    "lower" | "upper"| "ascii" | "trim";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
