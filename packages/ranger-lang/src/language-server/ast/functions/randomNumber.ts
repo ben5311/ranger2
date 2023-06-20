@@ -128,7 +128,7 @@ function truncateDecimals(number: number, decimalPlaces = 0): number {
  *
  * @param mean Mean.
  * @param stdev Standard deviation.
- * @param rng Generator for random numbers from interval [0, 1)
+ * @param rng Generator for random numbers from interval [0, 1).
  */
 function gaussianRandom(mean = 0, stdev = 1, rng = Math.random): number {
     const u = 1 - rng(); // Converting [0,1) to (0,1]

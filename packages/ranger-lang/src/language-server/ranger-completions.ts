@@ -43,6 +43,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
             { label: 'random(a..b)', completion: 'random($1..$0)' },
             { label: 'randomNormal(mean,std)', completion: 'randomNormal($1..$2, mean=$3, std=$0)' },
         ],
+        weighted: { label: 'weighted()', completion: 'weighted($1:50, $0:50)' },
         map: [
             { label: 'map(=>[])', completion: 'map($1 => [$0])' },
             { label: 'map(=>{})', completion: 'map($1 => {$0})' },

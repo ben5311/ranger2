@@ -8,6 +8,7 @@ declare global {
     interface Array<T> {
         first(): T | undefined;
         groupBy<KeyT>(this: T[], key: (element: T) => KeyT): Map<KeyT, T[]>;
+        sum(): number;
         last(index?: number): T | undefined;
         lastIndex(): number;
         isEmpty(): boolean;
@@ -33,6 +34,9 @@ Array.prototype.groupBy = function (keyFn) {
         accumulator.get(key)!.push(currentVal);
         return accumulator;
     }, new Map<any, any[]>());
+};
+Array.prototype.sum = function () {
+    return this.reduce((previous, current) => previous + current, 0);
 };
 Array.prototype.last = function (index = 0) {
     return this[this.lastIndex() - index];

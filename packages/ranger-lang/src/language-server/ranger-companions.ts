@@ -25,6 +25,7 @@ import { RegexCompanion } from './ast/functions/regex';
 import { SequenceFuncCompanion } from './ast/functions/sequence';
 import { StringTemplateCompanion } from './ast/functions/stringTemplate';
 import { UuidFuncCompanion } from './ast/functions/uuid';
+import { WeightedFuncCompanion } from './ast/functions/weighted';
 import { RangerAstType } from './generated/ast';
 import { RangerServices } from './ranger-module';
 
@@ -66,6 +67,7 @@ export const companionRegistry: { [type in keyof RangerAstType]: CompanionClass 
     RandomTimestamp: RandomDateCompanion,
     RandomOfList: RandomOfListCompanion,
     RandomNormal: RandomNormalCompanion,
+    WeightedFunc: WeightedFuncCompanion,
     Regex: RegexCompanion,
     SequenceFunc: SequenceFuncCompanion,
     UuidFunc: UuidFuncCompanion,

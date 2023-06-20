@@ -4,18 +4,19 @@ import { FuncCompanion, FuncHover } from './func';
 
 export class RandomOfListCompanion extends FuncCompanion<RandomOfList> {
     override valueGenerator(randomFunc: RandomOfList): ValueGenerator {
-        const list = randomFunc.list.values;
+        const choices = randomFunc.list.values;
 
         return new ValueGenerator((data) => {
-            const randomIndex = this.generator.random.integer(0, list.length - 1);
+            const randomIndex = this.generator.random.integer(0, choices.length - 1);
             data.index = randomIndex;
-            return this.generator.getValue(list[randomIndex]);
+            return this.generator.getValue(choices[randomIndex]);
         });
     }
 
-    override funcHover(_randomFunc: RandomOfList): FuncHover {
+    override funcHover(randomFunc: RandomOfList): FuncHover {
+        const choices = randomFunc.list.values.map((v) => v.$cstNode?.text).join(', ');
         return {
-            description: `Generates a random element of the provided arguments.`,
+            description: `Generates a random value of \`[${choices}]\`.`,
         };
     }
 }

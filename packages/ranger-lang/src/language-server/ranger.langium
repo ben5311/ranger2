@@ -83,7 +83,16 @@ TransformerType returns string:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Func:
-    RandomFunc | MapFunc | CsvFunc | SequenceFunc | UuidFunc | Regex | TodayFunc | NowFunc | StringTemplate;
+    RandomFunc
+    | WeightedFunc
+    | MapFunc
+    | CsvFunc
+    | SequenceFunc
+    | UuidFunc
+    | Regex
+    | TodayFunc
+    | NowFunc
+    | StringTemplate;
 
 RandomFunc:
     RandomNumber | RandomDate | RandomTimestamp | RandomOfList | RandomNormal;
@@ -104,6 +113,9 @@ fragment DateRange:
     min=(ADate|TodayFunc)  ".." max=(ADate|TodayFunc);
 fragment TimestampRange:
     min=(ATimestamp|NowFunc)  ".." max=(ATimestamp|NowFunc);
+
+WeightedFunc:
+    "weighted" "(" (values+=Value ":" weights+=ANumber ("," values+=Value ":" weights+=ANumber)* ","?)? ")";
 
 MapFunc:
     MapToList | MapToDict;

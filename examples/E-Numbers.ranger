@@ -2,4 +2,5 @@ Entity Customer {
     id: sequence(1)
     age: random(18..80)
     height: randomNormal(120..230, mean=180, std=10)
+    eyecolor: weighted("brown":60, "gray":15, "blue":15, "green":10)
 }
