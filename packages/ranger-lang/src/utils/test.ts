@@ -171,6 +171,18 @@ export function firstValue(document: LangiumDocument<Document> | AstNode) {
     return firstProperty(document).value;
 }
 
+export function secondEntity(document: LangiumDocument<Document>) {
+    return entities(document)[1]!;
+}
+
+export function secondProperty(document: LangiumDocument<Document> | AstNode) {
+    return properties(document)[1]!;
+}
+
+export function secondValue(document: LangiumDocument<Document> | AstNode) {
+    return secondProperty(document).value;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validations (Errors, Warnings, Infos, etc.)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

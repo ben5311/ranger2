@@ -13,6 +13,7 @@ declare global {
         lastIndex(): number;
         isEmpty(): boolean;
         notEmpty(): boolean;
+        nonNull(): Array<T>;
     }
     interface Set<T> {
         toArray(): T[];
@@ -49,6 +50,9 @@ Array.prototype.isEmpty = function () {
 };
 Array.prototype.notEmpty = function () {
     return !this.isEmpty();
+};
+Array.prototype.nonNull = function () {
+    return this.filter((el) => el !== null && el !== undefined);
 };
 
 Set.prototype.toArray = function () {

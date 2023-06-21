@@ -141,7 +141,7 @@ TodayFunc:
 NowFunc:
     "now"   ("." "minus" "(" minusDuration=Duration ")")? ("." "plus" "(" plusDuration=Duration ")")? ;
 Duration:
-    ((days=NUMBER "DAYS") | (months=NUMBER "MONTHS") | (weeks=NUMBER "WEEKS") | (years=NUMBER "YEARS"))*;
+    ((days=Value "DAYS") | (months=Value "MONTHS") | (weeks=Value "WEEKS") | (years=Value "YEARS"))*;
 
 StringTemplate:
     "f" template=STRING ("%" params=Dictionary)?;

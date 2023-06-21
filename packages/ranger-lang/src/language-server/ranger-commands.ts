@@ -62,7 +62,7 @@ export class RangerExecuteCommandHandler extends AbstractExecuteCommandHandler {
                 },
             );
         } catch (error) {
-            return { success: false, message: 'Error generating file', detail: error };
+            return { success: false, message: 'Error generating file', detail: String(error) };
         }
 
         if (showGeneratedFile) {

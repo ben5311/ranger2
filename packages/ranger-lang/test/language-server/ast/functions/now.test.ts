@@ -9,7 +9,9 @@ describe('now', () => {
     Entity Test {
         now1: now
         now2: now.minus(1 DAYS 1 MONTHS 1 WEEKS 1 YEARS).plus(1 DAYS 1 MONTHS 1 WEEKS 1 YEARS)
-        tomorrow: now.plus(1 DAYS)
+        tomorrow1: now.plus(1 DAYS)
+        tomorrow2: now.plus(one DAYS)
+        one: 1
     }`;
     const today = new Date().isoDate();
     const tomorrow = new Date().plusDays(1).isoDate();
@@ -22,10 +24,11 @@ describe('now', () => {
 
             expect(output.now1).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/);
             expect(output.now2).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/);
-            expect(output.tomorrow).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/);
+            expect(output.tomorrow1).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/);
             expect(output.now1.substring(0, 10)).toBe(today);
             expect(output.now2.substring(0, 10)).toBe(today);
-            expect(output.tomorrow.substring(0, 10)).toBe(tomorrow);
+            expect(output.tomorrow1.substring(0, 10)).toBe(tomorrow);
+            expect(output.tomorrow2.substring(0, 10)).toBe(tomorrow);
         });
     });
 
@@ -41,8 +44,6 @@ describe('now', () => {
         now
         \n---\n
         Retrieves the current timestamp.
-
-        It is determined once and remains constant throughout.
 
         Example: "${nowTimestamp}"`);
     });

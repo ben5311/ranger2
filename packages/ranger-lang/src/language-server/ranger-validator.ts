@@ -13,6 +13,7 @@ export const Issues = satisfies<Record<string, { code: string; msg: string }>>()
     FileDoesNotExist: { code: 'FileDoesNotExist', msg: 'File does not exist' },
     FilePathWithBackslashes: { code: 'FilePathWithBackslashes', msg: 'File paths should only contain forward slashes' },
     InvalidCsvFile: { code: 'InvalidCsvFile', msg: 'Invalid CSV file, check delimiter.' },
+    InvalidDuration: { code: 'InvalidDuration', msg: 'Duration value is not a number' },
     MapToList_NotBasedOnAListFunc: { code: 'MapToList.NotBasedOnAListFunc', msg: 'Unsupported value source' },
     MeanOutOfBounds: { code: 'MeanOutOfBounds', msg: 'Mean must be inside number range' },
     NameNotCapitalized: { code: 'NameNotCapitalized', msg: 'Entity name should start with a capital' },

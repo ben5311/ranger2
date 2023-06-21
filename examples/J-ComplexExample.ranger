@@ -9,11 +9,14 @@ Entity Person {
     gender: Name.gender
     firstname: Name.firstname
     lastname: Name.lastname
-    age: randomNormal(mean=42, std=15)  // TODO: min / max
-    //birthDate: today.minus(age YEARS)
-    eyecolor: random("brown", "gray", "blue", "green")  // TODO: weighted!
-    height: map(gender => [randomNormal(mean=1.80, std=0.10), randomNormal(mean=1.66, std=0.10)])
-    bloodGroup: random("0-", "0+", "A-", "A+", "B-", "B+", "AB-", "AB+")
+    age: randomNormal(14..90, mean=42, std=30)
+    birthDate: random(today.minus(age YEARS 364 DAYS)..today.minus(age YEARS))
+    eyecolor: weighted("brown":60, "gray":15, "blue":15, "green":10)
+    height: map(gender => [
+        randomNormal(1.30..2.30, mean=1.80, std=0.10),
+        randomNormal(1.20..2.10, mean=1.66, std=0.10),
+    ])
+    bloodGroup: weighted("A+":37, "O+":35, "B+":9, "A-":6, "O-":6, "AB+":4, "B-":2, "AB-":1)
     phone: Phone.home
     email: Email.address
     address: Address.text

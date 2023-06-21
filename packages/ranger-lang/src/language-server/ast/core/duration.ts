@@ -1,5 +1,4 @@
 import { SemanticTokenAcceptor } from 'langium';
-import { DurationLikeObject } from 'luxon';
 
 import { Duration } from '../../generated/ast';
 import { CodeHighlighter } from '../CodeHighlighter';
@@ -20,13 +19,4 @@ export class DurationCompanion extends Companion<Duration> {
             highlight({ node: duration, keyword, type: 'keyword' });
         }
     }
-}
-
-export function duration(duration?: Duration): DurationLikeObject {
-    return {
-        days: duration?.days ?? 0,
-        months: duration?.months ?? 0,
-        weeks: duration?.weeks ?? 0,
-        years: duration?.years ?? 0,
-    };
 }
