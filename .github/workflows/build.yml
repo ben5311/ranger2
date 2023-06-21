@@ -7,9 +7,10 @@ on:
   push:
     branches: [ "**" ]
     paths:
-    - .github/**
-    - src/**
-    - test/**
+    - ".github/**"
+    - "**/*.ts"
+    - "**/*.js"
+    - "**/*.json"
     tags: [ "v**" ]
   workflow_dispatch: {}
 
