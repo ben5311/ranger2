@@ -1,0 +1,5 @@
+Entity HouseNumber {
+    withoutLetter: randomNormal(1..300, mean=15, std=40) | trim
+    withLetter: f"{withoutLetter} {letter}" % { "letter": /[A-F]/ }
+    mixed: weighted(withoutLetter:90, withLetter:10)
+}

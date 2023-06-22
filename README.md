@@ -10,16 +10,16 @@ This example Ranger file
 produces such an output
 
 ```json
-{"age":21,"gender":"male","firstname":"James","lastname":"Parker"}
-{"age":58,"gender":"male","firstname":"James","lastname":"Parker"}
-{"age":26,"gender":"female","firstname":"Emily","lastname":"Parker"}
-{"age":51,"gender":"male","firstname":"James","lastname":"Parker"}
-{"age":59,"gender":"male","firstname":"Robert","lastname":"Parker"}
-{"age":60,"gender":"female","firstname":"Lucy","lastname":"Parker"}
-{"age":41,"gender":"male","firstname":"Robert","lastname":"Parker"}
-{"age":51,"gender":"female","firstname":"Lucy","lastname":"Parker"}
-{"age":41,"gender":"male","firstname":"James","lastname":"Parker"}
-{"age":39,"gender":"male","firstname":"Robert","lastname":"Parker"}
+{"age":37,"sex":"female","name":"Lucy","id":"Lucy123","pin":"1683","eyes":"brown"}
+{"age":57,"sex":"male","name":"Robert","id":"Robert123","pin":"4242","eyes":"brown"}
+{"age":42,"sex":"female","name":"Lisa","id":"Lisa123","pin":"2016","eyes":"brown"}
+{"age":60,"sex":"female","name":"Emily","id":"Emily123","pin":"8119","eyes":"brown"}
+{"age":50,"sex":"male","name":"Max","id":"Max123","pin":"4061","eyes":"brown"}
+{"age":54,"sex":"male","name":"Robert","id":"Robert123","pin":"5378","eyes":"brown"}
+{"age":52,"sex":"female","name":"Emily","id":"Emily123","pin":"4765","eyes":"brown"}
+{"age":38,"sex":"male","name":"Robert","id":"Robert123","pin":"8901","eyes":"brown"}
+{"age":39,"sex":"female","name":"Emily","id":"Emily123","pin":"6529","eyes":"blue"}
+{"age":28,"sex":"male","name":"Max","id":"Max123","pin":"6623","eyes":"brown"}
 ```
 
 Find more examples [here](examples).

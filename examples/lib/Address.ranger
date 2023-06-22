@@ -1,12 +1,14 @@
+from "./HouseNumber.ranger" import HouseNumber
+
 Entity Address {
-    state: map(_Address.bundesland => {"BW":"Baden-Württemberg", "BY":"Bayern", "BE":"Berlin", "BB":"Brandenburg", "HB":"Bremen", "HH":"Hamburg", "HE":"Hessen", "MV":"Mecklenburg-Vorpommern", "NI":"Niedersachsen", "NW":"Nordrhein-Westfalen", "RP":"Rheinland-Pfalz", "SL":"Saarland", "SN":"Sachsen", "ST":"Sachsen-Anhalt", "SH":"Schleswig-Holstein", "TH":"Thüringen"})
-    licenseCode: _Address.kennzeichen
-    prefix: _Address.vorwahl
-    zip: _Address.plz
-    city: _Address.ort
-    street: _Address.strasse
-    houseNumber: random(1..99)
+    state: map(AddressData.bundesland => {"BW":"Baden-Württemberg", "BY":"Bayern", "BE":"Berlin", "BB":"Brandenburg", "HB":"Bremen", "HH":"Hamburg", "HE":"Hessen", "MV":"Mecklenburg-Vorpommern", "NI":"Niedersachsen", "NW":"Nordrhein-Westfalen", "RP":"Rheinland-Pfalz", "SL":"Saarland", "SN":"Sachsen", "ST":"Sachsen-Anhalt", "SH":"Schleswig-Holstein", "TH":"Thüringen"})
+    licenseCode: AddressData.kennzeichen
+    prefix: AddressData.vorwahl
+    zip: AddressData.plz
+    city: f"{AddressData.ort} {AddressData.zusatz}" | trim
+    street: AddressData.strasse
+    houseNumber: HouseNumber.mixed
     text: f"{street} {houseNumber}, {zip} {city}"
 }
 
-Entity _Address: csv("../data/address.csv")
+Entity AddressData: csv("../data/address.csv")
