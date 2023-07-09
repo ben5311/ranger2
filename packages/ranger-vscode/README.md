@@ -32,6 +32,7 @@ The VS Code Extension provides editing assistance (*Intellisense*) for `.ranger`
 
 ### Supported Features
 
+* Syntax highlighting
 * Auto completion
 * Go to definition
 * Hover
@@ -50,12 +51,14 @@ The VS Code Extension provides editing assistance (*Intellisense*) for `.ranger`
     ```ranger
     Entity Customer {
         age: random(20..60)
-        gender: random("male", "female")
-        firstname: map(gender => {
-            "male": random("James", "Robert")
-            "female": random("Emily", "Lucy")
-        })
-        lastname: "Parker"
+        sex: random("male", "female")
+        name: map(sex => [
+            random("James", "Robert", "Max"),
+            random("Emily", "Lucy", "Lisa"),
+        ])
+        id: f"{name}123"
+        pin: /\d{4}/
+        eyes: weighted("brown":80, "blue":20)
     }
     ```
 
