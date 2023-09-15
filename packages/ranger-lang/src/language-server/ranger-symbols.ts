@@ -1,11 +1,5 @@
-import { AstNode, DefaultDocumentSymbolProvider, LangiumDocument, MaybePromise } from 'langium';
-import {
-    CancellationToken,
-    DocumentSymbol,
-    SymbolKind,
-    WorkspaceSymbol,
-    WorkspaceSymbolParams,
-} from 'vscode-languageserver';
+import { AstNode, DefaultDocumentSymbolProvider, LangiumDocument } from 'langium';
+import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 
 import { isSimpleProperty } from './ast/core/propertyChecks';
 import { RangerType } from './ast/Providers';
@@ -62,31 +56,4 @@ export function getSymbolKind(type: RangerType): SymbolKind {
         default:
             return SymbolKind.Field;
     }
-}
-
-export class RangerWorkspaceSymbolProvider implements WorkspaceSymbolProvider {
-    constructor(protected services: RangerServices) {
-        services.shared.lsp.Connection?.onWorkspaceSymbol((params, token) => this.provideSymbols(params, token));
-    }
-
-    provideSymbols(_params: WorkspaceSymbolParams, _cancelToken?: CancellationToken) {
-        const symbols: WorkspaceSymbol[] = [];
-        for (const element of this.services.shared.workspace.IndexManager.allElements()) {
-            symbols.push({
-                name: element.name,
-                kind: getSymbolKind(element.type as RangerType),
-                location: {
-                    uri: element.documentUri.toString(),
-                },
-            });
-        }
-        return symbols;
-    }
-}
-
-export interface WorkspaceSymbolProvider {
-    provideSymbols(
-        params: WorkspaceSymbolParams,
-        cancelToken?: CancellationToken,
-    ): MaybePromise<WorkspaceSymbol[] | undefined>;
 }

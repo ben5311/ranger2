@@ -1,24 +1,8 @@
 import fs from 'fs';
-import {
-    AstNode,
-    CompletionAcceptor,
-    CompletionContext,
-    DefaultCompletionProvider,
-    findLeafNodeAtOffset,
-    getEntryRule,
-    LangiumDocument,
-    NextFeature,
-    stream,
-} from 'langium';
-import { isKeyword, Keyword } from 'langium/lib/grammar/generated/ast';
+import { AstNode, CompletionAcceptor, CompletionContext, DefaultCompletionProvider, NextFeature } from 'langium';
+import { AbstractElement, Keyword } from 'langium/lib/grammar/generated/ast';
 import path, { ParsedPath } from 'path';
-import {
-    CompletionItem,
-    CompletionItemKind,
-    CompletionList,
-    CompletionParams,
-    InsertTextFormat,
-} from 'vscode-languageserver';
+import { CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
 
 import { getValues, MaybeArray } from '../utils/types';
 import { executeProvider, Providers } from './ast/Providers';
@@ -41,8 +25,8 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         random: [
             { label: 'random()', completion: 'random($0)' },
             { label: 'random(a..b)', completion: 'random($1..$0)' },
-            { label: 'randomNormal(mean,std)', completion: 'randomNormal($1..$2, mean=$3, std=$0)' },
         ],
+        randomNormal: { label: 'randomNormal(mean,std)', completion: 'randomNormal($1..$2, mean=$3, std=$0)' },
         weighted: { label: 'weighted()', completion: 'weighted($1:50, $0:50)' },
         map: [
             { label: 'map(=>[])', completion: 'map($1 => [$0])' },
@@ -73,77 +57,18 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         '/*': '/*\n$0\n*/',
     };
 
-    override async getCompletion(document: LangiumDocument, params: CompletionParams) {
-        const root = document.parseResult.value;
-        const cst = root.$cstNode;
-        if (!cst) {
-            return undefined;
-        }
-        const items: CompletionItem[] = [];
-        const textDocument = document.textDocument;
-        const text = textDocument.getText();
-        const offset = textDocument.offsetAt(params.position);
-        const acceptor: CompletionAcceptor = (value) => {
-            const completionItem = this.fillCompletionItem(textDocument, offset, value);
-            if (completionItem && !items.some((item) => item.label === completionItem.label)) {
-                items.push(completionItem);
-            }
-        };
-
-        const node = findLeafNodeAtOffset(cst, this.backtrackToAnyToken(text, offset));
-
-        const context: CompletionContext = {
-            document,
-            textDocument,
-            node: node?.element,
-            offset,
-            position: params.position,
-        };
-
-        if (!node) {
-            const parserRule = getEntryRule(this.grammar)!;
-            await this.completionForRule(context, parserRule, acceptor);
-            return CompletionList.create(items, true);
-        }
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Custom completions
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    protected override async completionFor(
+        context: CompletionContext,
+        next: NextFeature<AbstractElement>,
+        acceptor: CompletionAcceptor,
+    ) {
+        await super.completionFor(context, next, acceptor);
 
         this.addDocumentSnippets(context, acceptor);
 
         if (context.node) {
             this.completionForNode(context.node, context, acceptor);
         }
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        const parserStart = this.backtrackToTokenStart(text, offset);
-        const beforeFeatures = this.findFeaturesAt(textDocument, parserStart);
-        let afterFeatures: NextFeature[] = [];
-        const reparse = this.canReparse() && offset !== parserStart;
-        if (reparse) {
-            afterFeatures = this.findFeaturesAt(textDocument, offset);
-        }
-
-        const distinctionFunction = (el: NextFeature) => (isKeyword(el.feature) ? el.feature.value : el.feature);
-
-        await Promise.all(
-            stream(beforeFeatures)
-                .distinct(distinctionFunction)
-                .map((e) => this.completionFor(context, e, acceptor)),
-        );
-
-        if (reparse) {
-            await Promise.all(
-                stream(afterFeatures)
-                    .exclude(beforeFeatures, distinctionFunction)
-                    .distinct(distinctionFunction)
-                    .map((e) => this.completionFor(context, e, acceptor)),
-            );
-        }
-
-        return CompletionList.create(items, true);
     }
 
     /**
@@ -152,7 +77,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
     addDocumentSnippets(context: CompletionContext, accept: CompletionAcceptor) {
         if (context.position.character == 0) {
             Object.entries(this.DocumentSnippets).forEach(([key, value], index) => {
-                accept({
+                accept(context, {
                     label: key,
                     kind: CompletionItemKind.Text,
                     detail: 'Snippet',
@@ -186,7 +111,7 @@ export class RangerCompletionProvider extends DefaultCompletionProvider {
         const snippets = getValues(this.KeywordSnippets[keyword.value]);
 
         for (const snippet of snippets) {
-            accept({
+            accept(context, {
                 label: snippet.label,
                 kind: CompletionItemKind.Function,
                 detail: 'Snippet',
@@ -208,7 +133,7 @@ function completionForFilePath(filePath: ast.AFilePath, accept: CompletionAccept
 
     files.forEach((file) => {
         const isDir = isDirectory(file.path);
-        accept({
+        accept(context, {
             label: file.base,
             kind: CompletionItemKind.File,
             detail: isDir ? 'Folder' : 'File',

@@ -35,6 +35,17 @@ Then, there are two ways to generate data:
 
 Get editing assistance via the [Visual Studio Code Extension](packages/ranger-vscode/README.md#visual-studio-code-extension).
 
+## Run time
+
+This is the time it takes to generate n rows of [ComplexExample.ranger](examples/J-ComplexExample.ranger) file on an M1 Mac.
+
+| Count of rows | Time          | File size |
+|---------------|---------------|-----------|
+| 1000          | < 1s          | 320 KB    |
+| 100,000       | 10s           | 31 MB     |
+| 1,000,000     | 2m            | 310 MB    |
+| 100,000,000   | 3h            | 31 GB     |
+
 ## For Developers
 
 This project contains all necessary files for the Ranger JavaScript API, the CLI and the VS Code extension.

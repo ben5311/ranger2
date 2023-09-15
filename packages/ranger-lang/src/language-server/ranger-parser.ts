@@ -5,7 +5,6 @@ import {
     convertID,
     convertInt,
     convertNumber,
-    convertRegexLiteral,
     convertString,
     CstNode,
     DefaultValueConverter,
@@ -41,4 +40,8 @@ export class RangerValueConverter extends DefaultValueConverter {
                 return input;
         }
     }
+}
+
+function convertRegexLiteral(input: string): string {
+    return input.substring(1, input.length - 1);
 }

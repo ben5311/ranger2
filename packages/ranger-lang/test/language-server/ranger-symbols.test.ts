@@ -2,7 +2,7 @@ import dedent from 'dedent-js';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { SymbolKind } from 'vscode-languageserver';
 
-import { RangerDocumentSymbolProvider, RangerWorkspaceSymbolProvider } from '../../src/language-server/ranger-symbols';
+import { RangerDocumentSymbolProvider } from '../../src/language-server/ranger-symbols';
 import { clearIndex, parseDocument, range, services } from '../../src/utils/test';
 
 beforeEach(() => {
@@ -89,7 +89,7 @@ describe('RangerDocumentSymbolProvider', () => {
 
 describe('RangerWorkspaceSymbolProvider', () => {
     test('Symbols', async () => {
-        const symbolProvider = new RangerWorkspaceSymbolProvider(services);
+        const symbolProvider = services.shared.lsp.WorkspaceSymbolProvider!;
         await parseDocument({
             filePath: '/User.ranger',
             text: `
@@ -99,23 +99,23 @@ describe('RangerWorkspaceSymbolProvider', () => {
             `,
         });
 
-        let symbols = symbolProvider.provideSymbols({ query: '' });
+        let symbols = await symbolProvider.getSymbols({ query: '' });
         let expectedUri = process.platform === 'win32' ? 'file:///c%3A/User.ranger' : 'file:///User.ranger';
         expect(symbols).toStrictEqual([
             {
                 name: 'User',
-                kind: 5,
-                location: { uri: expectedUri },
+                kind: 8,
+                location: { uri: expectedUri, range: range('1:19-1:23') },
             },
             {
                 name: 'Account',
-                kind: 5,
-                location: { uri: expectedUri },
+                kind: 8,
+                location: { uri: expectedUri, range: range('2:19-2:26') },
             },
             {
                 name: 'Address',
-                kind: 5,
-                location: { uri: expectedUri },
+                kind: 8,
+                location: { uri: expectedUri, range: range('3:19-3:26') },
             },
         ]);
     });

@@ -22,7 +22,7 @@ Property returns Property:
     name=(STRING|ID) ":" value=Value ","?;
 
 Value returns Value:
-     Objekt | List | Literal | Func | PropertyReference | Transformer;
+    Objekt | List | Literal | Func | PropertyReference | Transformer;
 
 List returns List:
     "["
@@ -139,7 +139,7 @@ Regex:
 TodayFunc:
     "today" ("." "minus" "(" minusDuration=Duration ")")? ("." "plus" "(" plusDuration=Duration ")")?;
 NowFunc:
-    "now"   ("." "minus" "(" minusDuration=Duration ")")? ("." "plus" "(" plusDuration=Duration ")")? ;
+    "now"   ("." "minus" "(" minusDuration=Duration ")")? ("." "plus" "(" plusDuration=Duration ")")?;
 Duration:
     ((days=Value "DAYS") | (months=Value "MONTHS") | (weeks=Value "WEEKS") | (years=Value "YEARS"))*;
 

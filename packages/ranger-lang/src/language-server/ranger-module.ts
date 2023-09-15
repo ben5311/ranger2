@@ -22,8 +22,7 @@ import { RangerHoverProvider } from './ranger-hover';
 import { IndexAccess } from './ranger-index';
 import { RangerValueConverter } from './ranger-parser';
 import { RangerScopeProvider } from './ranger-scope';
-import { RangerLanguageServer } from './ranger-server';
-import { RangerDocumentSymbolProvider, RangerWorkspaceSymbolProvider, WorkspaceSymbolProvider } from './ranger-symbols';
+import { RangerDocumentSymbolProvider } from './ranger-symbols';
 import { RangerTokenProvider } from './ranger-tokens';
 import { registerValidationChecks } from './ranger-validator';
 
@@ -43,7 +42,6 @@ export type RangerAddedServices = {
     };
     workspace: {
         IndexAccess: IndexAccess;
-        WorkspaceSymbolProvider: WorkspaceSymbolProvider;
     };
 };
 
@@ -55,7 +53,6 @@ export type RangerAddedServices = {
 export const RangerSharedModule: Module<LangiumSharedServices, PartialLangiumSharedServices> = {
     lsp: {
         ExecuteCommandHandler: (services) => new RangerExecuteCommandHandler(services),
-        LanguageServer: (services) => new RangerLanguageServer(services),
     },
     workspace: {},
 };
@@ -87,7 +84,6 @@ export const RangerModule: Module<RangerServices, PartialLangiumServices & Range
     },
     workspace: {
         IndexAccess: (services) => new IndexAccess(services),
-        WorkspaceSymbolProvider: (services) => new RangerWorkspaceSymbolProvider(services),
     },
 };
 
